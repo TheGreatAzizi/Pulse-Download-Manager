@@ -76,4 +76,4 @@ jobs:
         run: npx electron-builder --linux AppImage --publish never
 
       - name: List dist contents
-        run: ls -la dist/linux-unpacked/
+        run: ls -laR dist/

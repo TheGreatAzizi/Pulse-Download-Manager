@@ -36,7 +36,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: pulse-win
-          path: dist/
+          path: |
+            dist/Pulse-*-win64.exe
+            dist/Pulse-*-win64.exe.blockmap
 
   build-linux:
     runs-on: ubuntu-latest
@@ -64,14 +66,13 @@ jobs:
       - name: Package for Linux
         run: npx electron-builder --linux AppImage --publish never
 
-      - name: List dist contents
-        run: ls -laR dist/
-
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: pulse-linux
-          path: dist/
+          path: |
+            dist/Pulse-*-x86_64.AppImage
+            dist/*.deb
 
   release:
     needs: [build-windows, build-linux]
