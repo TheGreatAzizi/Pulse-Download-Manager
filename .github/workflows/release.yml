@@ -6,7 +6,7 @@ on:
       - 'v*'
 
 jobs:
-  release:
+  build:
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -15,11 +15,19 @@ jobs:
         include:
           - os: windows-latest
             target: win
+            artifact: Pulse-win-x64.zip
+            unpacked: dist/win-unpacked
           - os: ubuntu-latest
             target: linux
+            artifact: Pulse-linux-x64.AppImage
+            unpacked: dist/linux-unpacked
+
+    outputs:
+      artifact: ${{ steps.package.outputs.artifact }}
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -27,11 +35,23 @@ jobs:
           node-version: '20'
           cache: 'npm'
 
-      - run: npm ci --registry=https://registry.npmjs.org
-      - run: node node_modules/electron/install.js
-      - run: npm run typecheck
-      - run: npm run build
-      - run: npx electron-builder --${{ matrix.target }} --publish never
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund --registry=https://registry.npmjs.org
+
+      - name: Install Electron binary
+        run: node node_modules/electron/install.js
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Build app
+        run: npm run build
+
+      - name: Package application
+        id: package
+        run: |
+          npx electron-builder --${{ matrix.target }} --publish never
+          echo "artifact=${{ matrix.artifact }}" >> $GITHUB_OUTPUT
 
       - name: Stage artifacts
         shell: bash
@@ -42,19 +62,32 @@ jobs:
             zip -r ../release-artifacts/Pulse-win-x64.zip *
             cd ../..
           else
+            # AppImage works on all distros including Arch-based ones.
             cp dist/linux-unpacked/*.AppImage release-artifacts/Pulse-linux-x64.AppImage 2>/dev/null || true
             cp dist/linux-unpacked/*.deb release-artifacts/ 2>/dev/null || true
           fi
 
-      - uses: actions/upload-artifact@v4
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
         with:
           name: artifacts-${{ matrix.os }}
           path: release-artifacts/
 
-      - name: Create release
-        if: startsWith(github.ref, 'refs/tags/v')
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: release-artifacts
+          merge-multiple: true
+
+      - name: Create GitHub release
         uses: softprops/action-gh-release@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           files: release-artifacts/*
+          generate_release_notes: true
