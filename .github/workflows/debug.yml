@@ -1,0 +1,68 @@
+name: Debug
+
+on:
+  push:
+    tags:
+      - 'v1.0.0'
+
+jobs:
+  debug:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Cache status
+        run: |
+          echo "Node cache dir: ${{ steps.setup-node.outputs.cache-hit }}"
+          echo "Current dir:"
+          dir
+
+      - name: Install deps
+        run: npm install --registry=https://registry.npmjs.org 2>&1
+
+      - name: Check npm
+        run: |
+          echo "node version:"
+          node --version
+          echo "npm version:"
+          npm --version
+          echo "electron installed:"
+          if (Test-Path node_modules\electron\dist\electron.exe) { "electron.exe exists" } else { "electron.exe MISSING" }
+
+      - name: Install Electron binary
+        run: node node_modules/electron/install.js
+
+      - name: Check binary after install
+        run: |
+          if (Test-Path node_modules\electron\dist\electron.exe) { "✅ electron.exe ready" } else { "❌ electron.exe NOT FOUND" }
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Build
+        run: npm run build
+
+      - name: Show output
+        run: |
+          echo "📁 out directory:"
+          Get-ChildItem out -Recurse | Select-Object FullName, Length
+          echo ""
+          echo "📁 dist directory:"
+          Get-ChildItem dist -Recurse | Select-Object FullName, Length
+          if (Test-Path dist/win-unpacked) {
+            echo ""
+            echo "📦 win-unpacked:"
+            Get-ChildItem dist\win-unpacked -Recurse | Select-Object FullName, Length
+          }
+          if (Test-Path dist\linux-unpacked) {
+            echo ""
+            echo "📦 linux-unpacked:"
+            Get-ChildItem dist\linux-unpacked -Recurse | Select-Object FullName, Length
+          }
