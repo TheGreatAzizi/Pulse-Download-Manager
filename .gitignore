@@ -1,0 +1,9 @@
+node_modules/
+out/
+dist/
+resources/bin/yt-dlp
+resources/bin/yt-dlp.exe
+resources/bin/ffmpeg
+resources/bin/ffmpeg.exe
+*.log
+.DS_Store

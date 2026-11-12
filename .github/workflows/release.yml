@@ -1,0 +1,60 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+        include:
+          - os: windows-latest
+            target: win
+          - os: ubuntu-latest
+            target: linux
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - run: npm ci --registry=https://registry.npmjs.org
+      - run: node node_modules/electron/install.js
+      - run: npm run typecheck
+      - run: npm run build
+      - run: npx electron-builder --${{ matrix.target }} --publish never
+
+      - name: Stage artifacts
+        shell: bash
+        run: |
+          mkdir -p release-artifacts
+          if [ "${{ matrix.os }}" = "windows-latest" ]; then
+            cd dist/win-unpacked
+            zip -r ../release-artifacts/Pulse-win-x64.zip *
+            cd ../..
+          else
+            cp dist/linux-unpacked/*.AppImage release-artifacts/Pulse-linux-x64.AppImage 2>/dev/null || true
+            cp dist/linux-unpacked/*.deb release-artifacts/ 2>/dev/null || true
+          fi
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: artifacts-${{ matrix.os }}
+          path: release-artifacts/
+
+      - name: Create release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          files: release-artifacts/*

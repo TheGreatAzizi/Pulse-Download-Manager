@@ -1,0 +1,176 @@
+import { useEffect, useRef, useState } from 'react'
+import {
+  Check,
+  ChevronDown,
+  Gauge,
+  Plus,
+  Search,
+  Settings,
+  SlidersHorizontal,
+  X
+} from 'lucide-react'
+import { useApp, type ViewId } from '../state'
+import { cn } from '../lib/format'
+
+const LIMITS: Array<{ value: number; label: string }> = [
+  { value: 0, label: '∞' },
+  { value: 512 * 1024, label: '512 KB/s' },
+  { value: 1024 * 1024, label: '1 MB/s' },
+  { value: 2 * 1024 * 1024, label: '2 MB/s' },
+  { value: 5 * 1024 * 1024, label: '5 MB/s' },
+  { value: 10 * 1024 * 1024, label: '10 MB/s' },
+  { value: 25 * 1024 * 1024, label: '25 MB/s' }
+]
+
+export function TopBar(): React.JSX.Element {
+  const { t, view, tasks, query, setQuery, openAdd, setSettingsOpen, settings, patchSettings, lang } =
+    useApp()
+  const [limitOpen, setLimitOpen] = useState(false)
+  const limitRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!limitOpen) return
+    const onDown = (e: MouseEvent): void => {
+      if (limitRef.current && !limitRef.current.contains(e.target as Node)) setLimitOpen(false)
+    }
+    window.addEventListener('mousedown', onDown)
+    return () => window.removeEventListener('mousedown', onDown)
+  }, [limitOpen])
+
+  const titles: Record<ViewId, string> = {
+    all: t.nav.all,
+    active: t.nav.active,
+    completed: t.nav.completed,
+    paused: t.nav.paused,
+    error: t.nav.error,
+    youtube: t.nav.youtube,
+    torrents: t.nav.torrents,
+    direct: t.nav.direct,
+    video: t.nav.video,
+    audio: t.nav.audio,
+    image: t.nav.image,
+    archive: t.nav.archive,
+    document: t.nav.document,
+    app: t.nav.app,
+    other: t.nav.other
+  }
+
+  const currentLimit = settings.globalSpeedLimit
+  const limitLabel =
+    LIMITS.find((x) => x.value === currentLimit)?.label ??
+    `${Math.round(currentLimit / (1024 * 1024))} MB/s`
+
+  return (
+    <div className="flex shrink-0 items-center gap-3 border-b border-line/60 px-5 py-3">
+      <div className="min-w-0">
+        <h1 className="truncate text-[17px] font-bold tracking-tight">{titles[view]}</h1>
+        <p className="text-[10.5px] text-muted">
+          {tasks.length} {t.stats.tasks}
+        </p>
+      </div>
+
+      <div className="ms-auto flex items-center gap-2">
+        <div className="relative hidden md:block">
+          <Search
+            size={14}
+            className="pointer-events-none absolute start-3 top-1/2 -translate-y-1/2 text-faint"
+          />
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder={t.toolbar.search}
+            className="field h-9 w-[230px] ps-8 pe-8 text-[12px] lg:w-[270px]"
+          />
+          {query ? (
+            <button
+              type="button"
+              className="absolute end-2 top-1/2 -translate-y-1/2 text-faint hover:text-ink"
+              onClick={() => setQuery('')}
+            >
+              <X size={13} />
+            </button>
+          ) : (
+            <kbd className="absolute end-2 top-1/2 hidden -translate-y-1/2 rounded border border-line2 px-1 text-[9px] text-faint lg:block">
+              /
+            </kbd>
+          )}
+        </div>
+
+        <div ref={limitRef} className="relative">
+          <button
+            type="button"
+            onClick={() => setLimitOpen((v) => !v)}
+            className={cn(
+              'btn btn-ghost h-9 gap-1.5 px-2.5 text-[11px]',
+              currentLimit > 0 && 'text-warn'
+            )}
+            title={t.settings.speed.title}
+          >
+            <Gauge size={15} />
+            <span className="hidden tabular sm:inline">{limitLabel}</span>
+            <ChevronDown size={12} className={cn('transition', limitOpen && 'rotate-180')} />
+          </button>
+          {limitOpen ? (
+            <div className="glass anim-rise absolute end-0 top-11 z-50 w-[190px] rounded-xl p-1.5 shadow-2xl">
+              <div className="px-2 py-1 text-[9.5px] font-bold uppercase tracking-wider text-faint">
+                {t.settings.speed.title}
+              </div>
+              {LIMITS.map((item) => (
+                <button
+                  key={item.value}
+                  type="button"
+                  onClick={() => {
+                    patchSettings({ globalSpeedLimit: item.value })
+                    setLimitOpen(false)
+                  }}
+                  className="flex w-full items-center justify-between rounded-lg px-2 py-1.5 text-[11.5px] text-muted transition hover:bg-elev2 hover:text-ink"
+                >
+                  <span className="tabular">
+                    {item.value === 0 ? t.settings.speed.unlimited : item.label}
+                  </span>
+                  {currentLimit === item.value ? <Check size={13} className="text-brand" /> : null}
+                </button>
+              ))}
+              <div className="my-1 h-px bg-line" />
+              <button
+                type="button"
+                onClick={() => {
+                  setSettingsOpen(true)
+                  setLimitOpen(false)
+                }}
+                className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-[11.5px] text-muted transition hover:bg-elev2 hover:text-ink"
+              >
+                <SlidersHorizontal size={13} />
+                {t.toolbar.settings}
+              </button>
+            </div>
+          ) : null}
+        </div>
+
+        <button
+          type="button"
+          onClick={() => setSettingsOpen(true)}
+          className="icon-btn hidden h-9 w-9 md:grid"
+          title={t.toolbar.settings}
+        >
+          <Settings size={16} />
+        </button>
+
+        <button
+          type="button"
+          onClick={() => openAdd()}
+          className="btn btn-primary h-9 px-3.5 text-[12px]"
+        >
+          <Plus size={16} strokeWidth={2.6} />
+          <span>{t.toolbar.add}</span>
+          <kbd
+            className="ms-1 hidden rounded border border-white/25 px-1 text-[9px] font-medium text-white/75 lg:block"
+            dir="ltr"
+          >
+            {lang === 'fa' ? 'Ctrl+N' : 'Ctrl+N'}
+          </kbd>
+        </button>
+      </div>
+    </div>
+  )
+}
