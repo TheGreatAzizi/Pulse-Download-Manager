@@ -1,12 +1,12 @@
-name: Debug
+name: Debug Build
 
 on:
   push:
     tags:
-      - 'v1.0.0'
+      - 'v*'
 
 jobs:
-  debug:
+  debug-windows:
     runs-on: windows-latest
     steps:
       - name: Checkout
@@ -16,32 +16,18 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
-
-      - name: Cache status
-        run: |
-          echo "Node cache dir: ${{ steps.setup-node.outputs.cache-hit }}"
-          echo "Current dir:"
-          dir
 
       - name: Install deps
-        run: npm install --registry=https://registry.npmjs.org 2>&1
+        run: npm install --registry=https://registry.npmjs.org
 
-      - name: Check npm
+      - name: Verify Electron binary
         run: |
-          echo "node version:"
-          node --version
-          echo "npm version:"
-          npm --version
-          echo "electron installed:"
-          if (Test-Path node_modules\electron\dist\electron.exe) { "electron.exe exists" } else { "electron.exe MISSING" }
-
-      - name: Install Electron binary
-        run: node node_modules/electron/install.js
-
-      - name: Check binary after install
-        run: |
-          if (Test-Path node_modules\electron\dist\electron.exe) { "✅ electron.exe ready" } else { "❌ electron.exe NOT FOUND" }
+          if (Test-Path node_modules\electron\dist\electron.exe) {
+            "✅ electron.exe exists"
+          } else {
+            "❌ electron.exe NOT FOUND - attempting install.js"
+            node node_modules\electron\install.js
+          }
 
       - name: Typecheck
         run: npm run typecheck
@@ -49,20 +35,45 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: Show output
+      - name: Package
+        run: npx electron-builder --win --publish never
+
+      - name: List dist contents
+        shell: pwsh
         run: |
-          echo "📁 out directory:"
-          Get-ChildItem out -Recurse | Select-Object FullName, Length
-          echo ""
-          echo "📁 dist directory:"
-          Get-ChildItem dist -Recurse | Select-Object FullName, Length
-          if (Test-Path dist/win-unpacked) {
-            echo ""
-            echo "📦 win-unpacked:"
-            Get-ChildItem dist\win-unpacked -Recurse | Select-Object FullName, Length
-          }
-          if (Test-Path dist\linux-unpacked) {
-            echo ""
-            echo "📦 linux-unpacked:"
-            Get-ChildItem dist\linux-unpacked -Recurse | Select-Object FullName, Length
-          }
+          Get-ChildItem dist -Recurse | Format-Table FullName, Length
+
+  debug-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install deps
+        run: npm install --registry=https://registry.npmjs.org
+
+      - name: Verify Electron binary
+        run: |
+          if [ -f node_modules/electron/dist/electron ]; then
+            echo "✅ electron binary exists"
+          else
+            echo "Installing electron..."
+            node node_modules/electron/install.js
+          fi
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Build
+        run: npm run build
+
+      - name: Package
+        run: npx electron-builder --linux AppImage --publish never
+
+      - name: List dist contents
+        run: ls -la dist/linux-unpacked/
