@@ -1,4 +1,4 @@
-import { app, BrowserWindow, Menu, clipboard, nativeTheme, shell } from 'electron'
+import { app, BrowserWindow, Menu, clipboard, nativeTheme, shell, Tray, nativeImage } from 'electron'
 import { join } from 'node:path'
 import { app as electronApp } from 'electron'
 import { Store } from './store'
@@ -13,6 +13,7 @@ let manager: DownloadManager
 let store: Store
 let clipboardTimer: NodeJS.Timeout | null = null
 let lastClipboard = ''
+let tray: Tray | null = null
 
 const gotLock = electronApp.requestSingleInstanceLock()
 if (!gotLock) {
@@ -90,6 +91,13 @@ function createWindow(): void {
     void mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
   }
 
+  mainWindow.on('close', (event) => {
+    if (!quitting) {
+      event.preventDefault()
+      mainWindow?.hide()
+    }
+  })
+
   mainWindow.on('closed', () => {
     mainWindow = null
   })
@@ -108,6 +116,46 @@ function startClipboardWatcher(): void {
   }, 1600)
 }
 
+function createTray(): void {
+  const iconPath = electronApp.isPackaged
+    ? join(process.resourcesPath, 'icon.png')
+    : join(__dirname, '../../resources/icon.png')
+  const image = nativeImage.createFromPath(iconPath)
+  tray = new Tray(image.resize({ width: 24, height: 24 }))
+
+  const contextMenu = Menu.buildFromTemplate([
+    {
+      label: 'Show Pulse',
+      click: () => {
+        if (mainWindow) {
+          if (mainWindow.isMinimized()) mainWindow.restore()
+          mainWindow.show()
+          mainWindow.focus()
+        }
+      }
+    },
+    { type: 'separator' },
+    {
+      label: 'Quit',
+      click: () => {
+        quitting = true
+        electronApp.quit()
+      }
+    }
+  ])
+
+  tray.setToolTip('Pulse Download Manager')
+  tray.setContextMenu(contextMenu)
+  tray.on('click', () => {
+    if (mainWindow?.isVisible()) {
+      mainWindow.hide()
+    } else {
+      mainWindow?.show()
+      mainWindow?.focus()
+    }
+  })
+}
+
 async function bootstrap(): Promise<void> {
   await electronApp.whenReady()
   electronApp.setAppUserModelId('com.pulse.downloadmanager')
@@ -123,6 +171,7 @@ async function bootstrap(): Promise<void> {
 
   registerIpc(manager, () => mainWindow)
   createWindow()
+  createTray()
   startClipboardWatcher()
 
   electronApp.on('second-instance', (_event, argv) => {
@@ -140,7 +189,10 @@ async function bootstrap(): Promise<void> {
 }
 
 electronApp.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') electronApp.quit()
+  // Keep app running for tray on Windows/Linux
+  if (process.platform !== 'darwin') {
+    mainWindow?.hide()
+  }
 })
 
 let quitting = false
