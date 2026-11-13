@@ -159,6 +159,7 @@ function createTray(): void {
 async function bootstrap(): Promise<void> {
   await electronApp.whenReady()
   electronApp.setAppUserModelId('com.pulse.downloadmanager')
+  electronApp.setName('Pulse')
   Menu.setApplicationMenu(null)
 
   store = new Store()
