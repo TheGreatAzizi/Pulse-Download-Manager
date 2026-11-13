@@ -36,8 +36,8 @@ function createWindow(): void {
     backgroundColor: store.settings.theme === 'dark' ? '#0a0c12' : '#f4f6fb',
     title: 'Pulse',
     icon: electronApp.isPackaged
-      ? join(process.resourcesPath, 'icon.png')
-      : join(__dirname, '../../resources/icon.png'),
+      ? join(process.resourcesPath, process.platform === 'win32' ? 'icon.ico' : 'icon.png')
+      : join(__dirname, '../../resources', process.platform === 'win32' ? 'icon.ico' : 'icon.png'),
     autoHideMenuBar: true,
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
@@ -118,8 +118,8 @@ function startClipboardWatcher(): void {
 
 function createTray(): void {
   const iconPath = electronApp.isPackaged
-    ? join(process.resourcesPath, 'icon.png')
-    : join(__dirname, '../../resources/icon.png')
+    ? join(process.resourcesPath, process.platform === 'win32' ? 'icon.ico' : 'icon.png')
+    : join(__dirname, '../../resources', process.platform === 'win32' ? 'icon.ico' : 'icon.png')
   const image = nativeImage.createFromPath(iconPath)
   tray = new Tray(image.resize({ width: 24, height: 24 }))
 
