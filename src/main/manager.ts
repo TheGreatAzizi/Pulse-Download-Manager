@@ -1,4 +1,4 @@
-import { Notification, app, shell, clipboard } from 'electron'
+import { Notification, app, nativeTheme, shell, clipboard } from 'electron'
 import { randomUUID } from 'node:crypto'
 import { existsSync } from 'node:fs'
 import { promises as fs } from 'node:fs'
@@ -27,6 +27,7 @@ import {
 import { HttpEngine, type EngineHost, type TaskHandle } from './engines/http'
 import { YoutubeEngine } from './engines/youtube'
 import { TorrentEngine } from './engines/torrent'
+import { applyLaunchAtStartup } from './autostart'
 
 interface ManagerDeps {
   store: Store
@@ -544,6 +545,12 @@ export class DownloadManager implements EngineHost {
     }
     if (patch.ytDlpPath !== undefined || patch.ffmpegPath !== undefined) {
       void this.refreshTools()
+    }
+    if (patch.launchAtStartup !== undefined) {
+      void applyLaunchAtStartup(settings.launchAtStartup)
+    }
+    if (patch.theme !== undefined) {
+      nativeTheme.themeSource = settings.theme
     }
     this.emit({ type: 'settings', settings })
     this.emitStats(true)

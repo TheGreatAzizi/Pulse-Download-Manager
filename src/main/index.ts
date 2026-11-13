@@ -4,6 +4,7 @@ import { app as electronApp } from 'electron'
 import { Store } from './store'
 import { DownloadManager } from './manager'
 import { registerIpc } from './ipc'
+import { applyLaunchAtStartup } from './autostart'
 import { IP } from '@shared/ipc'
 import type { MainEvent } from '@shared/types'
 
@@ -31,8 +32,11 @@ function createWindow(): void {
     minHeight: 640,
     show: false,
     frame: false,
-    backgroundColor: '#0a0c12',
+    backgroundColor: store.settings.theme === 'dark' ? '#0a0c12' : '#f4f6fb',
     title: 'Pulse',
+    icon: electronApp.isPackaged
+      ? join(process.resourcesPath, 'icon.png')
+      : join(__dirname, '../../resources/icon.png'),
     autoHideMenuBar: true,
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
@@ -108,10 +112,11 @@ async function bootstrap(): Promise<void> {
   await electronApp.whenReady()
   electronApp.setAppUserModelId('com.pulse.downloadmanager')
   Menu.setApplicationMenu(null)
-  nativeTheme.themeSource = 'dark'
 
   store = new Store()
   await store.load()
+  nativeTheme.themeSource = store.settings.theme
+  void applyLaunchAtStartup(store.settings.launchAtStartup)
 
   manager = new DownloadManager({ store, emit: send })
   await manager.init()

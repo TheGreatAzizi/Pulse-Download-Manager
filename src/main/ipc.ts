@@ -3,6 +3,8 @@ import { statfs } from 'node:fs/promises'
 import type { AddDownloadInput, AddTorrentInput, AppSnapshot, Settings } from '@shared/types'
 import { IP } from '@shared/ipc'
 import type { DownloadManager } from './manager'
+import { isAutoStartSupported } from './autostart'
+import { getGithubRepo, searchGithubRepos } from './github'
 
 export function registerIpc(manager: DownloadManager, getWindow: () => BrowserWindow | null): void {
   const handle = (channel: string, fn: (...args: any[]) => any): void => {
@@ -42,7 +44,8 @@ export function registerIpc(manager: DownloadManager, getWindow: () => BrowserWi
           chrome: process.versions.chrome || '',
           node: process.versions.node || ''
         },
-        maximized: getWindow()?.isMaximized() ?? false
+        maximized: getWindow()?.isMaximized() ?? false,
+        autoStartSupported: isAutoStartSupported()
       }
     }
   })
@@ -78,6 +81,14 @@ export function registerIpc(manager: DownloadManager, getWindow: () => BrowserWi
   handle(IP.installYtDlp, () => manager.installYtdlp())
 
   handle(IP.rescanTools, () => manager.rescanTools())
+
+  handle(IP.githubSearch, (query: string, page?: number) =>
+    searchGithubRepos(manager.settings().githubToken, query, page)
+  )
+
+  handle(IP.githubRepo, (fullName: string) =>
+    getGithubRepo(manager.settings().githubToken, fullName)
+  )
 
   handle(IP.readClipboard, () => manager.readClipboardUrl())
 

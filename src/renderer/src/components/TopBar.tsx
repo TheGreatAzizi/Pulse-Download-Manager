@@ -46,6 +46,7 @@ export function TopBar(): React.JSX.Element {
     youtube: t.nav.youtube,
     torrents: t.nav.torrents,
     direct: t.nav.direct,
+    github: t.nav.github,
     video: t.nav.video,
     audio: t.nav.audio,
     image: t.nav.image,
@@ -64,37 +65,39 @@ export function TopBar(): React.JSX.Element {
     <div className="flex shrink-0 items-center gap-3 border-b border-line/60 px-5 py-3">
       <div className="min-w-0">
         <h1 className="truncate text-[17px] font-bold tracking-tight">{titles[view]}</h1>
-        <p className="text-[10.5px] text-muted">
-          {tasks.length} {t.stats.tasks}
+        <p className="truncate text-[10.5px] text-muted">
+          {view === 'github' ? t.github.subtitle : `${tasks.length} ${t.stats.tasks}`}
         </p>
       </div>
 
       <div className="ms-auto flex items-center gap-2">
-        <div className="relative hidden md:block">
-          <Search
-            size={14}
-            className="pointer-events-none absolute start-3 top-1/2 -translate-y-1/2 text-faint"
-          />
-          <input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder={t.toolbar.search}
-            className="field h-9 w-[230px] ps-8 pe-8 text-[12px] lg:w-[270px]"
-          />
-          {query ? (
-            <button
-              type="button"
-              className="absolute end-2 top-1/2 -translate-y-1/2 text-faint hover:text-ink"
-              onClick={() => setQuery('')}
-            >
-              <X size={13} />
-            </button>
-          ) : (
-            <kbd className="absolute end-2 top-1/2 hidden -translate-y-1/2 rounded border border-line2 px-1 text-[9px] text-faint lg:block">
-              /
-            </kbd>
-          )}
-        </div>
+        {view !== 'github' ? (
+          <div className="relative hidden md:block">
+            <Search
+              size={14}
+              className="pointer-events-none absolute start-3 top-1/2 -translate-y-1/2 text-faint"
+            />
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder={t.toolbar.search}
+              className="field h-9 w-[230px] ps-8 pe-8 text-[12px] lg:w-[270px]"
+            />
+            {query ? (
+              <button
+                type="button"
+                className="absolute end-2 top-1/2 -translate-y-1/2 text-faint hover:text-ink"
+                onClick={() => setQuery('')}
+              >
+                <X size={13} />
+              </button>
+            ) : (
+              <kbd className="absolute end-2 top-1/2 hidden -translate-y-1/2 rounded border border-line2 px-1 text-[9px] text-faint lg:block">
+                /
+              </kbd>
+            )}
+          </div>
+        ) : null}
 
         <div ref={limitRef} className="relative">
           <button

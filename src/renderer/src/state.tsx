@@ -27,6 +27,7 @@ export type ViewId =
   | 'youtube'
   | 'torrents'
   | 'direct'
+  | 'github'
   | 'video'
   | 'audio'
   | 'image'
@@ -102,8 +103,10 @@ const fallbackSettings: Settings = {
   proxy: '',
   userAgent: '',
   autoResume: true,
+  launchAtStartup: true,
   cookiesBrowser: '',
-  cookiesFile: ''
+  cookiesFile: '',
+  githubToken: ''
 }
 
 const AppCtx = createContext<AppContextValue | null>(null)

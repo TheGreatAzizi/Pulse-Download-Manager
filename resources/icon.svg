@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#6d76f7"/>
+      <stop offset="0.52" stop-color="#7c5cf5"/>
+      <stop offset="1" stop-color="#22d3ee"/>
+    </linearGradient>
+    <radialGradient id="shine" cx="0.24" cy="0.12" r="0.95">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.30"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="line" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#e8fbff"/>
+    </linearGradient>
+    <filter id="glow" x="-25%" y="-25%" width="150%" height="150%">
+      <feGaussianBlur stdDeviation="20" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <rect x="64" y="64" width="896" height="896" rx="208" fill="url(#bg)"/>
+  <rect x="64" y="64" width="896" height="896" rx="208" fill="url(#shine)"/>
+  <rect x="82" y="82" width="860" height="860" rx="190" fill="none" stroke="#ffffff" stroke-opacity="0.20" stroke-width="4"/>
+
+  <path d="M236 548 H 356 L 424 372 L 548 706 L 626 472 L 690 548 H 788"
+        fill="none" stroke="url(#line)" stroke-width="60"
+        stroke-linecap="round" stroke-linejoin="round" filter="url(#glow)"/>
+</svg>

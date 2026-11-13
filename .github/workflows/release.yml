@@ -32,6 +32,13 @@ jobs:
       - name: Package for Windows
         run: npx electron-builder --win --publish never
 
+      - name: Verify Windows installer
+        shell: pwsh
+        run: |
+          $setup = Get-ChildItem dist -Filter 'Pulse-Setup-*.exe' -ErrorAction SilentlyContinue
+          if (-not $setup) { throw 'NSIS installer was not generated' }
+          $setup | Select-Object Name, Length | Format-Table
+
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:

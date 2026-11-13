@@ -19,6 +19,8 @@ export const IP = {
   setSpeedLimit: 'pulse:set-speed-limit',
   installYtDlp: 'pulse:install-ytdlp',
   rescanTools: 'pulse:rescan-tools',
+  githubSearch: 'pulse:github-search',
+  githubRepo: 'pulse:github-repo',
   openExternal: 'pulse:open-external',
   revealDir: 'pulse:reveal-dir',
   windowControl: 'pulse:window',

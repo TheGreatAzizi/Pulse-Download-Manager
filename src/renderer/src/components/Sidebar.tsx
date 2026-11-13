@@ -8,6 +8,7 @@ import {
   FileText,
   Film,
   FolderOpen,
+  GitBranch,
   Globe,
   HardDrive,
   Image as ImageIcon,
@@ -85,6 +86,7 @@ export function Sidebar(): React.JSX.Element {
           <Item icon={<Youtube size={16} />} label={t.nav.youtube} count={counts.youtube} active={view === 'youtube'} onClick={() => setView('youtube')} />
           <Item icon={<Magnet size={16} />} label={t.nav.torrents} count={counts.torrents} active={view === 'torrents'} onClick={() => setView('torrents')} />
           <Item icon={<Globe size={16} />} label={t.nav.direct} count={counts.direct} active={view === 'direct'} onClick={() => setView('direct')} />
+          <Item icon={<GitBranch size={16} />} label={t.nav.github} count={0} active={view === 'github'} onClick={() => setView('github')} />
         </Section>
 
         <Section title={t.nav.files}>

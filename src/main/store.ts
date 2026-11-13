@@ -30,8 +30,10 @@ export function defaultSettings(): Settings {
     proxy: '',
     userAgent: DEFAULT_UA,
     autoResume: true,
+    launchAtStartup: true,
     cookiesBrowser: '',
-    cookiesFile: ''
+    cookiesFile: '',
+    githubToken: ''
   }
 }
 

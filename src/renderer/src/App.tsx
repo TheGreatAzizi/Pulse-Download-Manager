@@ -10,6 +10,7 @@ import { DetailPanel } from './components/DetailPanel'
 import { StatusBar } from './components/StatusBar'
 import { AddDownloadModal } from './components/AddDownloadModal'
 import { SettingsModal } from './components/SettingsModal'
+import { GithubBrowser } from './components/GithubBrowser'
 import { Toasts } from './components/Toasts'
 import { Logo } from './components/primitives'
 
@@ -24,7 +25,7 @@ function base64(buffer: ArrayBuffer): string {
 }
 
 export function App(): React.JSX.Element {
-  const { ready, loadError, openAdd, pushToast, t, addOpen, settings } = useApp()
+  const { ready, loadError, openAdd, pushToast, t, addOpen, settings, view } = useApp()
   const [dropping, setDropping] = useState(false)
   const [dropKind, setDropKind] = useState<'url' | 'torrent'>('url')
 
@@ -110,25 +111,31 @@ export function App(): React.JSX.Element {
         <Sidebar />
         <main className="flex min-w-0 flex-1 flex-col">
           <TopBar />
-          <StatsStrip />
-          <div className="flex min-h-0 flex-1">
-            <div className="flex min-w-0 flex-1 flex-col">
-              {loadError ? (
-                <div className="scroll-y flex-1 p-5">
-                  <div className="mx-auto mt-16 flex max-w-md items-start gap-3 rounded-xl border border-bad/30 bg-bad/8 p-4">
-                    <AlertTriangle size={18} className="mt-0.5 text-bad" />
-                    <div>
-                      <div className="text-[12px] font-semibold text-bad">Could not load the app state</div>
-                      <p className="mt-1 text-[10.5px] leading-relaxed text-muted">{loadError}</p>
+          {view === 'github' ? (
+            <GithubBrowser />
+          ) : (
+            <>
+              <StatsStrip />
+              <div className="flex min-h-0 flex-1">
+                <div className="flex min-w-0 flex-1 flex-col">
+                  {loadError ? (
+                    <div className="scroll-y flex-1 p-5">
+                      <div className="mx-auto mt-16 flex max-w-md items-start gap-3 rounded-xl border border-bad/30 bg-bad/8 p-4">
+                        <AlertTriangle size={18} className="mt-0.5 text-bad" />
+                        <div>
+                          <div className="text-[12px] font-semibold text-bad">Could not load the app state</div>
+                          <p className="mt-1 text-[10.5px] leading-relaxed text-muted">{loadError}</p>
+                        </div>
+                      </div>
                     </div>
-                  </div>
+                  ) : (
+                    <DownloadList />
+                  )}
                 </div>
-              ) : (
-                <DownloadList />
-              )}
-            </div>
-            <DetailPanel />
-          </div>
+                <DetailPanel />
+              </div>
+            </>
+          )}
         </main>
       </div>
       <StatusBar />

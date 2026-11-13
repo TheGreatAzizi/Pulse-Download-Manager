@@ -3,6 +3,8 @@ import type {
   AddDownloadInput,
   AddTorrentInput,
   AppSnapshot,
+  GithubRepoDetails,
+  GithubSearchResult,
   MainEvent,
   ProbeResult,
   PulseAPI,
@@ -35,6 +37,10 @@ const api: PulseAPI = {
   setSpeedLimit: (bytes: number) => ipcRenderer.invoke(IP.setSpeedLimit, bytes) as Promise<void>,
   installYtDlp: () => ipcRenderer.invoke(IP.installYtDlp) as Promise<{ ok: boolean; message: string }>,
   rescanTools: () => ipcRenderer.invoke(IP.rescanTools) as Promise<void>,
+  githubSearch: (query: string, page?: number) =>
+    ipcRenderer.invoke(IP.githubSearch, query, page) as Promise<GithubSearchResult>,
+  githubRepo: (fullName: string) =>
+    ipcRenderer.invoke(IP.githubRepo, fullName) as Promise<GithubRepoDetails>,
   openExternal: (url: string) => ipcRenderer.invoke(IP.openExternal, url) as Promise<void>,
   revealDir: (dir: string) => ipcRenderer.invoke(IP.revealDir, dir) as Promise<void>,
   windowControl: (action: 'minimize' | 'maximize' | 'close') =>

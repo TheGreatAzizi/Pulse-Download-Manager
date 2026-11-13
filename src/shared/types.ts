@@ -43,10 +43,14 @@ export interface Settings {
   proxy: string
   userAgent: string
   autoResume: boolean
+  /** Register Pulse to start automatically after the user signs in. */
+  launchAtStartup: boolean
   /** Read YouTube (and other sites') cookies directly from a browser profile. */
   cookiesBrowser: CookiesBrowser
   /** Path to an exported cookies.txt file (takes precedence over the browser). */
   cookiesFile: string
+  /** Optional GitHub personal access token used by the repository search. */
+  githubToken: string
 }
 
 export interface SegmentState {
@@ -216,6 +220,63 @@ export interface AddDownloadInput {
   }
 }
 
+export interface GithubRepo {
+  id: number
+  fullName: string
+  name: string
+  owner: string
+  ownerAvatar?: string
+  description?: string
+  htmlUrl: string
+  stars: number
+  forks: number
+  openIssues: number
+  language?: string
+  license?: string
+  updatedAt: string
+  defaultBranch: string
+  topics: string[]
+  archived: boolean
+  private: boolean
+  /** Direct ZIP archive of the default branch. */
+  zipUrl: string
+}
+
+export interface GithubAsset {
+  id: number
+  name: string
+  size: number
+  contentType?: string
+  downloadCount: number
+  /** Public browser download URL. */
+  url: string
+  /** API URL (used with a token for private repositories). */
+  apiUrl: string
+}
+
+export interface GithubRelease {
+  id: number
+  tagName: string
+  name: string
+  publishedAt: string
+  prerelease: boolean
+  draft: boolean
+  htmlUrl: string
+  zipUrl: string
+  tarballUrl: string
+  assets: GithubAsset[]
+}
+
+export interface GithubRepoDetails extends GithubRepo {
+  releases: GithubRelease[]
+}
+
+export interface GithubSearchResult {
+  total: number
+  items: GithubRepo[]
+  rateRemaining?: number
+}
+
 export interface AddTorrentInput {
   /** magnet uri, http(s) .torrent url, or an absolute path to a .torrent file */
   uri?: string
@@ -240,6 +301,7 @@ export interface AppSnapshot {
     defaultDir: string
     runtime: { electron: string; chrome: string; node: string }
     maximized: boolean
+    autoStartSupported: boolean
   }
 }
 
@@ -276,6 +338,8 @@ export interface PulseAPI {
   setSpeedLimit(bytesPerSecond: number): Promise<void>
   installYtDlp(): Promise<{ ok: boolean; message: string }>
   rescanTools(): Promise<void>
+  githubSearch(query: string, page?: number): Promise<GithubSearchResult>
+  githubRepo(fullName: string): Promise<GithubRepoDetails>
   openExternal(url: string): Promise<void>
   revealDir(dir: string): Promise<void>
   windowControl(action: 'minimize' | 'maximize' | 'close'): Promise<void>

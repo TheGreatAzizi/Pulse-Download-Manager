@@ -10,6 +10,7 @@ import {
   Gauge,
   Globe2,
   Info,
+  KeyRound,
   Loader2,
   Monitor,
   Moon,
@@ -171,6 +172,17 @@ export function SettingsModal(): React.JSX.Element {
                   hint={t.settings.general.autoResumeHint}
                   checked={merged.autoResume}
                   onChange={(v) => set('autoResume', v)}
+                />
+                <ToggleRow
+                  title={t.settings.general.launchAtStartup}
+                  hint={
+                    system && !system.autoStartSupported
+                      ? t.settings.general.launchAtStartupUnsupported
+                      : t.settings.general.launchAtStartupHint
+                  }
+                  checked={merged.launchAtStartup}
+                  onChange={(v) => set('launchAtStartup', v)}
+                  disabled={system ? !system.autoStartSupported : false}
                 />
                 <ToggleRow
                   title={t.settings.general.notify}
@@ -477,6 +489,37 @@ export function SettingsModal(): React.JSX.Element {
                   {t.settings.tools.cookiesFileHint} {t.settings.tools.cookiesBrowserHint}
                 </p>
               </div>
+              <div className="rounded-xl border border-line bg-elev/25 p-3">
+                <div className="flex items-center gap-2">
+                  <KeyRound size={13} className="text-faint" />
+                  <span className="text-[10.5px] font-semibold">{t.settings.tools.githubToken}</span>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      void window.pulse.openExternal(
+                        'https://github.com/settings/tokens/new?scopes=public_repo&description=Pulse'
+                      )
+                    }
+                    className="ms-auto flex items-center gap-1 text-[9px] text-brand transition hover:underline"
+                  >
+                    <ExternalLink size={10} />
+                    github.com
+                  </button>
+                </div>
+                <p className="mt-1 text-[9px] leading-relaxed text-faint">
+                  {t.settings.tools.githubTokenHint}
+                </p>
+                <input
+                  type="password"
+                  value={merged.githubToken}
+                  onChange={(e) => set('githubToken', e.target.value)}
+                  placeholder={t.settings.tools.githubTokenPlaceholder}
+                  className="field mt-2 h-8 w-full px-2 text-[10px]"
+                  dir="ltr"
+                  autoComplete="off"
+                  spellCheck={false}
+                />
+              </div>
               <div className="flex items-center justify-between rounded-xl border border-line bg-elev/25 px-3 py-2.5">
                 <div className="flex items-center gap-2 text-[10.5px] text-muted">
                   <Cpu size={13} className="text-faint" />
@@ -606,12 +649,14 @@ function ToggleRow({
   title,
   hint,
   checked,
-  onChange
+  onChange,
+  disabled
 }: {
   title: string
   hint?: string
   checked: boolean
   onChange: (v: boolean) => void
+  disabled?: boolean
 }): React.JSX.Element {
   return (
     <div className="flex items-center gap-3 px-3 py-2.5">
@@ -619,7 +664,7 @@ function ToggleRow({
         <div className="text-[10.5px] font-medium">{title}</div>
         {hint ? <div className="mt-0.5 text-[9px] text-faint">{hint}</div> : null}
       </div>
-      <Toggle checked={checked} onChange={onChange} label={title} />
+      <Toggle checked={checked} onChange={onChange} label={title} disabled={disabled} />
     </div>
   )
 }

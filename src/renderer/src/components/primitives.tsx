@@ -336,11 +336,13 @@ export function Stat({
 export function Toggle({
   checked,
   onChange,
-  label
+  label,
+  disabled
 }: {
   checked: boolean
   onChange: (value: boolean) => void
   label?: string
+  disabled?: boolean
 }): React.JSX.Element {
   return (
     <button
@@ -348,12 +350,14 @@ export function Toggle({
       role="switch"
       aria-checked={checked}
       aria-label={label}
+      disabled={disabled}
       onClick={() => onChange(!checked)}
       className={cn(
         'relative h-6 w-11 shrink-0 rounded-full border transition-colors',
         checked
           ? 'border-brand/40 bg-brand/80'
-          : 'border-line2 bg-elev2'
+          : 'border-line2 bg-elev2',
+        disabled && 'cursor-not-allowed opacity-40'
       )}
     >
       <span

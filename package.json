@@ -1,6 +1,6 @@
 {
   "name": "pulse-download-manager",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "Pulse — a professional cross-platform download manager for direct links, YouTube videos and torrents.",
   "main": "./out/main/index.js",
   "author": "TheGreatAzizi",
@@ -57,9 +57,14 @@
       {
         "from": "LICENSE",
         "to": "LICENSE"
+      },
+      {
+        "from": "resources/icon.png",
+        "to": "icon.png"
       }
     ],
     "win": {
+      "icon": "icon.ico",
       "target": [
         {
           "target": "nsis",
@@ -77,15 +82,22 @@
     },
     "nsis": {
       "oneClick": false,
+      "perMachine": false,
+      "allowElevation": true,
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "runAfterFinish": true,
+      "deleteAppDataOnUninstall": false,
       "shortcutName": "Pulse",
-      "artifactName": "Pulse-Setup-${version}-${arch}.${ext}"
+      "artifactName": "Pulse-Setup-${version}-${arch}.${ext}",
+      "include": "installer.nsh"
     },
     "portable": {
       "artifactName": "Pulse-Portable-${version}-${arch}.${ext}"
     },
     "linux": {
+      "icon": "icon.png",
       "target": [
         "AppImage",
         "deb"
