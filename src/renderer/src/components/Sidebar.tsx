@@ -129,18 +129,17 @@ export function Sidebar(): React.JSX.Element {
             <Settings size={15} />
             {t.toolbar.settings}
           </button>
-          <button
-            type="button"
-            onClick={() => {
-              const order = ['en', 'fa', 'ja', 'ru'] as const
-              const next = order[(order.indexOf(settings.language) + 1) % order.length]
-              patchSettings({ language: next })
-            }}
-            className="chip h-9 rounded-lg! px-2.5! hover:border-line2 hover:text-ink"
+          <select
+            value={settings.language}
+            onChange={(e) => patchSettings({ language: e.target.value as 'en'|'fa'|'ja'|'ru' })}
+            className="chip h-9 rounded-lg! px-2! bg-elev2/70 text-[11px] font-semibold focus:outline-none"
             title={t.settings.appearance.language}
           >
-            {settings.language.toUpperCase()}
-          </button>
+            <option value="en">EN</option>
+            <option value="fa">FA</option>
+            <option value="ja">JA</option>
+            <option value="ru">RU</option>
+          </select>
         </div>
         {stats && stats.queuedCount > 0 ? (
           <div className="px-1 text-[10px] text-faint">

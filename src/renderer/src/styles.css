@@ -52,8 +52,8 @@
   --c-line: rgba(15, 23, 42, 0.075);
   --c-line2: rgba(15, 23, 42, 0.14);
   --c-text: #0d1526;
-  --c-muted: #5c6780;
-  --c-faint: #93a0b7;
+  --c-muted: #4a5568;
+  --c-faint: #6b7280;
   --c-brand: #5b5ef0;
   --c-brand2: #0ea5c6;
   --c-ok: #0e9f6e;
@@ -438,7 +438,7 @@ select {
   bottom: calc(100% + 8px);
   left: 50%;
   transform: translateX(-50%) translateY(4px);
-  background: color-mix(in srgb, var(--c-elev2) 96%, black);
+  background: var(--c-panel);
   color: var(--c-text);
   border: 1px solid var(--c-line2);
   font-size: 0.68rem;
@@ -463,6 +463,9 @@ select {
 .modal-backdrop {
   background: rgba(3, 5, 10, 0.66);
   backdrop-filter: blur(7px);
+}
+:root[data-theme='light'] .modal-backdrop {
+  background: rgba(15, 23, 42, 0.35);
 }
 
 .hide-scrollbar::-webkit-scrollbar {

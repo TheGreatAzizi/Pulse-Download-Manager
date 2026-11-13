@@ -1,100 +1,101 @@
 # Pulse — Download Manager
 
-مدیر دانلود حرفه‌ای و چندسکویی (ویندوز و لینوکس) با رابط چندزبانه.
+A fast, professional cross-platform download manager for direct links, YouTube videos, and BitTorrent. Built with Electron, React and TypeScript.
 
 [![GitHub](https://img.shields.io/badge/GitHub-TheGreatAzizi%2FPulse--Download--Manager-181717?logo=github)](https://github.com/TheGreatAzizi/Pulse-Download-Manager)
 [![License: GPL-3.0-or-later](https://img.shields.io/badge/License-GPL--3.0--or--later-blue.svg)](https://github.com/TheGreatAzizi/Pulse-Download-Manager/blob/main/LICENSE)
 
-## دانلود
+## Downloads
 
-آخرین نسخه‌ها را از صفحهٔ [Releases](https://github.com/TheGreatAzizi/Pulse-Download-Manager/releases) دریافت کنید:
+Get the latest releases from the [Releases page](https://github.com/TheGreatAzizi/Pulse-Download-Manager/releases).
 
-- **ویندوز**: نصب‌کنندهٔ `Pulse-Setup-*.exe` یا نسخهٔ بدون نصب `Pulse-Portable-*.exe`
-- **لینوکس**: `Pulse-*.AppImage` (قابل اجرا در اکثر توزیع‌ها از جمله Arch) و بستهٔ `Pulse-*.deb`
+**Windows**
+- `Pulse-Setup-*.exe` — NSIS installer with optional auto-start, desktop and Start Menu shortcuts
+- `Pulse-Portable-*.exe` — portable build, no installation required
 
-> **نکته برای Arch و توزیع‌های مشابه:** برای اجرای AppImage بستهٔ `fuse2` را نصب کنید (`sudo pacman -S fuse2`). اگر FUSE در دسترس نبود، فایل را با `./Pulse-*.AppImage --appimage-extract-and-run` اجرا کنید. بستهٔ `.deb` نیز با `debtap` یا ابزارهای مشابه قابل تبدیل است.
+**Linux**
+- `Pulse-*.AppImage` — runs on most distributions including Arch
+- `Pulse-*.deb` — Debian/Ubuntu package
 
-### نصب کامل و اجرای خودکار
+> Arch / similar distros: install `fuse2` for AppImage support `sudo pacman -S fuse2`. If FUSE is unavailable, run `./Pulse-*.AppImage --appimage-extract-and-run`. `.deb` can be converted with `debtap`.
 
-فایل `Pulse-Setup-*.exe` یک نصب‌کنندهٔ کامل NSIS است: مسیر نصب را می‌توانید انتخاب کنید، میان‌بر دسکتاپ و منوی Start ساخته می‌شود و برنامه در «Programs and Features» قابل حذف است. پس از نصب، Pulse به‌طور پیش‌فرض هنگام ورود به سیستم خودکار اجرا می‌شود؛ برای تغییر این رفتار به **Settings → General → Launch Pulse when the system starts** بروید. نسخهٔ `Pulse-Portable-*.exe` نیازی به نصب ندارد و اجرای خودکار برای آن غیرفعال است.
+### Installation and Auto-start
 
-## امکانات
+The Windows installer allows choosing the install directory, creates desktop and Start Menu shortcuts, and registers Pulse in Programs and Features. After install, Pulse launches at system start by default. Toggle this in **Settings → General → Launch Pulse when the system starts**. Portable builds do not enable auto-start.
 
-- **دانلود لینک مستقیم مانند IDM**: دانلود چنداتصاله با درخواست‌های `Range`، ادامهٔ دانلود پس از قطعی، صف هوشمند و محدودیت سرعت.
-- **ویدیو و صدا از یوتیوب و ۱۰۰۰+ سایت دیگر** با `yt-dlp`: انتخاب کیفیت، استخراج صدا (MP3/M4A)، زیرنویس، تصویر بندانگشتی و دانلود پلی‌لیست (انتخاب تک‌قسمت یا «دانلود همه»).
-- **بیت‌تورنت**: لینک مگنت و فایل `.torrent`، انتخاب فایل‌ها، ادامهٔ امن، نمایش همتا/Seeder و نسبت آپلود.
-- **جست‌وجو و دانلود از گیت‌هاب**: جست‌وجوی مخزن‌های عمومی، دانلود ZIP سورس و فایل‌های Releases؛ با پشتیبانی از توکن شخصی برای افزایش محدودیت API.
-- **رابط چندزبانه**: فارسی (RTL)، انگلیسی، ژاپنی و روسی؛ تم تاریک/روشن.
-- **ابزارهای داخلی**: نصب خودکار `yt-dlp`، تشخیص `ffmpeg` و موتور تورنت.
-- **اجرای خودکار هنگام بوت**: نسخهٔ نصب‌شده می‌تواند پس از ورود به ویندوز یا لینوکس خودکار اجرا شود (قابل خاموش‌کردن در تنظیمات).
-- **مانیتور کلیپ‌بورد**: وقتی لینکی کپی می‌کنید، پیشنهاد افزودن آن را می‌دهد.
+## Features
 
-## گیت‌هاب
+- **Multi-connection HTTP downloads** — Range requests, resume on disconnect, smart queue, speed limit
+- **YouTube & 1000+ sites** via `yt-dlp` — quality selection, audio extraction, subtitles, thumbnails, playlists
+- **BitTorrent** — magnet and .torrent files, file selection, secure resume, peer/seeder stats, upload ratio
+- **GitHub browser** — search public repositories, download source ZIPs, release assets and archives. Optional GitHub token raises API limits
+- **Multilingual UI** — English, Persian RTL, Japanese, Russian; Light/Dark theme
+- **Built-in tools** — automatic `yt-dlp` installer, `ffmpeg` detection, torrent engine management
+- **Auto-start** — optional launch on Windows login and Linux autostart
+- **Clipboard monitor** — suggests adding copied links
 
-از بخش **GitHub** در نوار کناری می‌توانید مخزن‌های عمومی را جست‌وجو کنید، آرشیو ZIP شاخهٔ پیش‌فرض یا هر Release را دانلود کنید و فایل‌های ضمیمهٔ انتشارها را مستقیم به صف اضافه کنید. برای عبور از محدودیت ۶۰ درخواستی API، در **تنظیمات → ابزارها** یک توکن دسترسی شخصی (بدون نیاز به دسترسی نوشتن) وارد کنید.
+## GitHub Integration
 
-## اجرای پروژه
+Open **GitHub** in the sidebar to search public repositories, download ZIP archives of default branches or tags, and fetch release assets directly into the download queue. Add a personal access token in **Settings → Tools → GitHub token** to increase API rate limits from 60 to 5,000 requests/hour.
+
+## Development
 
 ```bash
 npm install
-npm run dev        # اجرای حالت توسعه
-npm run typecheck  # بررسی نوع‌ها
-npm run build      # ساخت خروجی تولید
-npm start          # اجرای خروجی ساخته‌شده
+npm run dev        # development mode
+npm run typecheck  # type check
+npm run build      # production build
+npm start          # run built app
 ```
 
-## ساخت نسخهٔ نهایی
+Build distributions:
 
 ```bash
-npm run dist:win     # ویندوز: نصب‌کننده NSIS + نسخه Portable
-npm run dist:linux   # لینوکس: AppImage + deb
+npm run dist:win   # Windows NSIS + Portable
+npm run dist:linux # AppImage + deb
 ```
 
-خروجی در پوشهٔ `dist/` ساخته می‌شود. برای ساخت نسخهٔ لینوکس بهتر است دستور را روی خودِ لینوکس اجرا کنید.
+Output is written to `dist/`.
 
-### فایل‌های اختیاری همراه برنامه
+Optional binaries can be placed in `resources/bin/` — `yt-dlp` and `ffmpeg` — to be bundled with the app. Otherwise Pulse discovers them from system paths or user data.
 
-می‌توانید `yt-dlp` و `ffmpeg` را در `resources/bin/` قرار دهید تا همراه برنامه بسته‌بندی شوند. در غیر این صورت Pulse آن‌ها را از مسیر سیستم یا پوشهٔ دادهٔ کاربر (`Settings → Tools`) پیدا می‌کند.
+## YouTube bot detection
 
-## یوتیوب و پیام «Sign in to confirm you're not a bot»
+If YouTube returns “Sign in to confirm you’re not a bot”:
 
-اگر YouTube برای IP شما تأیید هویت بخواهد:
+1. Update `yt-dlp` in **Settings → Tools**
+2. Provide authentication:
+   - Browser cookies: choose a logged-in browser
+   - Cookies file: load a `cookies.txt` exported with an extension such as “Get cookies.txt LOCALLY”
+3. Re-analyze the link
 
-1. جدیدترین `yt-dlp` را از **تنظیمات → ابزارها** نصب کنید.
-2. در همان بخش، در «احراز هویت یوتیوب» یکی از این دو راه را انتخاب کنید:
-   - **خواندن کوکی از مرورگر**: مرورگری را انتخاب کنید که در آن به YouTube وارد شده‌اید. اگر خطای «Could not copy Chrome cookie database» دیدید، ابتدا مرورگر را کامل ببندید.
-   - **فایل کوکی**: یک فایل `cookies.txt` صادرشده (مثلاً با افزونهٔ «Get cookies.txt LOCALLY») انتخاب کنید. این فایل بر گزینهٔ مرورگر اولویت دارد.
-3. سپس دوباره روی «تحلیل» بزنید.
+Keep `yt-dlp` newer than 2025.11 for JavaScript runtime support.
 
-اگر نسخهٔ `yt-dlp` شما قدیمی‌تر از ۲۰۲۵.۱۱ باشد، Pulse پرچم مربوط به JavaScript runtime را اضافه نمی‌کند؛ به‌روزرسانی از داخل برنامه توصیه می‌شود.
-
-## ساختار پروژه
+## Project Structure
 
 ```
 src/
-  main/       فرایند اصلی Electron: موتور HTTP، یوتیوب، تورنت، صف، ذخیره‌سازی
-  preload/    پل امن window.pulse
-  renderer/   رابط React + Tailwind (فارسی/انگلیسی/ژاپنی/روسی)
-  shared/     قراردادهای مشترک و کانال‌های IPC
-resources/bin/  باینری‌های اختیاری yt-dlp و ffmpeg
+  main/       Electron main process: HTTP, YouTube, torrent engines, queue, persistence
+  preload/    Secure window.pulse bridge
+  renderer/   React + Tailwind UI
+  shared/     Types and IPC contracts
+resources/bin/  Optional bundled binaries
 ```
 
-## نکته‌ها
+- State is persisted in `userData/pulse-state.json`
+- Unfinished HTTP downloads use `.pulse-part` and `.pulse-meta` sidecars
+- Global speed limit is configurable in **Settings → Speed** or the status bar
 
-- داده‌های برنامه (وظیفه‌ها و تنظیمات) در `userData/pulse-state.json` ذخیره می‌شود.
-- دانلودهای نیمه‌تمام HTTP با فایل‌های کنارِ `.pulse-part` و `.pulse-meta` قابل ادامه هستند.
-- سرعت کل از **تنظیمات → سرعت** یا نوار وضعیت قابل تنظیم است.
+## Contributing
 
-## مشارکت
+Repository: [github.com/TheGreatAzizi/Pulse-Download-Manager](https://github.com/TheGreatAzizi/Pulse-Download-Manager)
 
-مخزن پروژه: [github.com/TheGreatAzizi/Pulse-Download-Manager](https://github.com/TheGreatAzizi/Pulse-Download-Manager)
+Report bugs and request features via [Issues](https://github.com/TheGreatAzizi/Pulse-Download-Manager/issues). Pull requests are welcome.
 
-برای گزارش باگ یا پیشنهاد ویژگی، از بخش [Issues](https://github.com/TheGreatAzizi/Pulse-Download-Manager/issues) استفاده کنید. Pull Requestها خوش‌آمد هستند.
+## License
 
-## مجوز
-
-این پروژه تحت **GNU General Public License v3.0 or later** منتشر می‌شود.
+GNU General Public License v3.0 or later
 
 Copyright (C) 2026 TheGreatAzizi
 
-متن کامل مجوز در فایل [LICENSE](LICENSE) موجود است. Pulse نرم‌افزار آزاد است و می‌توانید آن را تحت شرایط GPL-3.0 بازتوزیع یا تغییر دهید.
+See [LICENSE](LICENSE) for full text. Pulse is free software; you may redistribute and modify it under GPL-3.0 terms.
