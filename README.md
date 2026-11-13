@@ -26,37 +26,37 @@ The Windows installer allows choosing the install directory, creates desktop and
 ## Screenshots
 
 ### Main Dashboard
-![Main Dashboard](https://raw.githubusercontent.com/TheGreatAzizi/Pulse-Download-Manager/main/docs/screenshots/Pulse%20%E2%80%94%20Download%20Manager%2023_08_1405%2001_03_54.png)
+![Main Dashboard](https://github.com/TheGreatAzizi/Pulse-Download-Manager/blob/main/docs/screenshots/Pulse%20%E2%80%94%20Download%20Manager%2023_08_1405%2001_03_54.png)
 
 ### YouTube Downloader
-![YouTube Downloader](https://raw.githubusercontent.com/TheGreatAzizi/Pulse-Download-Manager/main/docs/screenshots/Pulse%20%E2%80%94%20Download%20Manager%2023_08_1405%2001_04_10.png)
+![YouTube Downloader](https://github.com/TheGreatAzizi/Pulse-Download-Manager/blob/main/docs/screenshots/Pulse%20%E2%80%94%20Download%20Manager%2023_08_1405%2001_04_10.png)
 
 ### GitHub Browser
-![GitHub Browser](https://raw.githubusercontent.com/TheGreatAzizi/Pulse-Download-Manager/main/docs/screenshots/Pulse%20%E2%80%94%20Download%20Manager%2023_08_1405%2001_04_18.png)
+![GitHub Browser](https://github.com/TheGreatAzizi/Pulse-Download-Manager/blob/main/docs/screenshots/Pulse%20%E2%80%94%20Download%20Manager%2023_08_1405%2001_04_18.png)
 
 ### Torrent Details
-![Torrent Details](https://raw.githubusercontent.com/TheGreatAzizi/Pulse-Download-Manager/main/docs/screenshots/Pulse%20%E2%80%94%20Download%20Manager%2023_08_1405%2001_04_23.png)
+![Torrent Details](https://github.com/TheGreatAzizi/Pulse-Download-Manager/blob/main/docs/screenshots/Pulse%20%E2%80%94%20Download%20Manager%2023_08_1405%2001_04_23.png)
 
 ### Settings & Appearance
-![Settings](https://raw.githubusercontent.com/TheGreatAzizi/Pulse-Download-Manager/main/docs/screenshots/Pulse%20%E2%80%94%20Download%20Manager%2023_08_1405%2001_04_26.png)
+![Settings](https://github.com/TheGreatAzizi/Pulse-Download-Manager/blob/main/docs/screenshots/Pulse%20%E2%80%94%20Download%20Manager%2023_08_1405%2001_04_26.png)
 
 ### Download List
-![Download List](https://raw.githubusercontent.com/TheGreatAzizi/Pulse-Download-Manager/main/docs/screenshots/Pulse%20%E2%80%94%20Download%20Manager%2023_08_1405%2001_04_42.png)
+![Download List](https://github.com/TheGreatAzizi/Pulse-Download-Manager/blob/main/docs/screenshots/Pulse%20%E2%80%94%20Download%20Manager%2023_08_1405%2001_04_42.png)
 
 ### Speed Limit
-![Speed Limit](https://raw.githubusercontent.com/TheGreatAzizi/Pulse-Download-Manager/main/docs/screenshots/Pulse%20%E2%80%94%20Download%20Manager%2023_08_1405%2001_04_45.png)
+![Speed Limit](https://github.com/TheGreatAzizi/Pulse-Download-Manager/blob/main/docs/screenshots/Pulse%20%E2%80%94%20Download%20Manager%2023_08_1405%2001_04_45.png)
 
 ### Add Download Modal
-![Add Download](https://raw.githubusercontent.com/TheGreatAzizi/Pulse-Download-Manager/main/docs/screenshots/Pulse%20%E2%80%94%20Download%20Manager%2023_08_1405%2001_04_48.png)
+![Add Download](https://github.com/TheGreatAzizi/Pulse-Download-Manager/blob/main/docs/screenshots/Pulse%20%E2%80%94%20Download%20Manager%2023_08_1405%2001_04_48.png)
 
 ### Tools
-![Tools](https://raw.githubusercontent.com/TheGreatAzizi/Pulse-Download-Manager/main/docs/screenshots/Pulse%20%E2%80%94%20Download%20Manager%2023_08_1405%2001_05_06.png)
+![Tools](https://github.com/TheGreatAzizi/Pulse-Download-Manager/blob/main/docs/screenshots/Pulse%20%E2%80%94%20Download%20Manager%2023_08_1405%2001_05_06.png)
 
 ### About
-![About](https://raw.githubusercontent.com/TheGreatAzizi/Pulse-Download-Manager/main/docs/screenshots/Pulse%20%E2%80%94%20Download%20Manager%2023_08_1405%2001_05_11.png)
+![About](https://github.com/TheGreatAzizi/Pulse-Download-Manager/blob/main/docs/screenshots/Pulse%20%E2%80%94%20Download%20Manager%2023_08_1405%2001_05_11.png)
 
 ### Tray / System Integration
-![Tray](https://raw.githubusercontent.com/TheGreatAzizi/Pulse-Download-Manager/main/docs/screenshots/Pulse%20%E2%80%94%20Download%20Manager%2023_08_1405%2001_05_40.png)
+![Tray](https://github.com/TheGreatAzizi/Pulse-Download-Manager/blob/main/docs/screenshots/Pulse%20%E2%80%94%20Download%20Manager%2023_08_1405%2001_05_40.png)
 
 ## Features
 
