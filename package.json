@@ -65,8 +65,6 @@
     ],
     "win": {
       "icon": "icon.ico",
-      "certificateFile": "${env.WIN_CERT_FILE}",
-      "certificatePassword": "${env.WIN_CERT_PASSWORD}",
       "target": [
         {
           "target": "nsis",
