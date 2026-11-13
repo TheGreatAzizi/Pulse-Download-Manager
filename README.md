@@ -23,6 +23,20 @@ Get the latest releases from the [Releases page](https://github.com/TheGreatAziz
 
 The Windows installer allows choosing the install directory, creates desktop and Start Menu shortcuts, and registers Pulse in Programs and Features. After install, Pulse launches at system start by default. Toggle this in **Settings → General → Launch Pulse when the system starts**. Portable builds do not enable auto-start.
 
+## Screenshots
+
+### Main Dashboard
+![Main Dashboard](https://via.placeholder.com/1200x700?text=Pulse+Main+Dashboard+-+Downloads+List)
+
+### YouTube Downloader
+![YouTube Downloader](https://via.placeholder.com/1200x700?text=Pulse+YouTube+Downloader)
+
+### GitHub Browser
+![GitHub Browser](https://via.placeholder.com/1200x700?text=Pulse+GitHub+Repository+Browser)
+
+### Settings & Themes
+![Settings](https://via.placeholder.com/1200x700?text=Pulse+Settings+-+Language+and+Theme)
+
 ## Features
 
 - **Multi-connection HTTP downloads** — Range requests, resume on disconnect, smart queue, speed limit
