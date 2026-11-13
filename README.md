@@ -26,16 +26,37 @@ The Windows installer allows choosing the install directory, creates desktop and
 ## Screenshots
 
 ### Main Dashboard
-![Main Dashboard](https://via.placeholder.com/1200x700?text=Pulse+Main+Dashboard+-+Downloads+List)
+![Main Dashboard](docs/screenshots/Pulse - Download Manager 23_08_1405 01_03_54.png)
 
 ### YouTube Downloader
-![YouTube Downloader](https://via.placeholder.com/1200x700?text=Pulse+YouTube+Downloader)
+![YouTube Downloader](docs/screenshots/Pulse - Download Manager 23_08_1405 01_04_10.png)
 
 ### GitHub Browser
-![GitHub Browser](https://via.placeholder.com/1200x700?text=Pulse+GitHub+Repository+Browser)
+![GitHub Browser](docs/screenshots/Pulse - Download Manager 23_08_1405 01_04_18.png)
 
-### Settings & Themes
-![Settings](https://via.placeholder.com/1200x700?text=Pulse+Settings+-+Language+and+Theme)
+### Torrent Details
+![Torrent Details](docs/screenshots/Pulse - Download Manager 23_08_1405 01_04_23.png)
+
+### Settings & Appearance
+![Settings](docs/screenshots/Pulse - Download Manager 23_08_1405 01_04_26.png)
+
+### Download List
+![Download List](docs/screenshots/Pulse - Download Manager 23_08_1405 01_04_42.png)
+
+### Speed Limit
+![Speed Limit](docs/screenshots/Pulse - Download Manager 23_08_1405 01_04_45.png)
+
+### Add Download Modal
+![Add Download](docs/screenshots/Pulse - Download Manager 23_08_1405 01_04_48.png)
+
+### Tools
+![Tools](docs/screenshots/Pulse - Download Manager 23_08_1405 01_05_06.png)
+
+### About
+![About](docs/screenshots/Pulse - Download Manager 23_08_1405 01_05_11.png)
+
+### Tray / System Integration
+![Tray](docs/screenshots/Pulse - Download Manager 23_08_1405 01_05_40.png)
 
 ## Features
 
