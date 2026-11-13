@@ -29,6 +29,20 @@ interface RawFormat {
   protocol?: string
 }
 
+function friendlyYoutubeError(raw: string): string {
+  const text = (raw || '').replace(/\s+/g, ' ').trim()
+  if (/sign in to confirm|not a bot|confirm you.{0,3}re not a bot/i.test(text)) {
+    return 'YouTube requested a sign-in check. Open Settings → Tools and add cookies (pick your browser or a cookies.txt file), then retry.'
+  }
+  if (/private video|members[- ]only|join this channel/i.test(text)) {
+    return 'This video is private or members-only. Add cookies from an account with access in Settings → Tools.'
+  }
+  if (/age[- ]restricted|confirm your age/i.test(text)) {
+    return 'This video is age-restricted. Add cookies from a signed-in account in Settings → Tools.'
+  }
+  return text
+}
+
 function runCapture(
   cmd: string,
   args: string[],
@@ -262,7 +276,7 @@ export class YoutubeEngine {
     const res = await runCapture(bin.cmd, args, 90_000)
     if (res.code !== 0 || !res.stdout.trim()) {
       const tail = res.stderr.trim().split('\n').filter(Boolean).slice(-3).join(' ')
-      throw new Error(tail || 'yt-dlp could not read this URL')
+      throw new Error(friendlyYoutubeError(tail) || 'yt-dlp could not read this URL')
     }
     let info: Record<string, unknown>
     try {
@@ -607,7 +621,7 @@ export class YoutubeEngine {
         finish(() => {
           handle.patch({
             status: 'error',
-            error: tail || `yt-dlp exited with code ${code}`,
+            error: friendlyYoutubeError(tail) || `yt-dlp exited with code ${code}`,
             speed: 0,
             eta: 0,
             connections: 0

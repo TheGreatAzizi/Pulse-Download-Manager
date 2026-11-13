@@ -1,13 +1,25 @@
 # Pulse — Download Manager
 
-مدیر دانلود حرفه‌ای و چندسکویی (ویندوز و لینوکس) با رابط فارسی و راست‌به‌چپ.
+مدیر دانلود حرفه‌ای و چندسکویی (ویندوز و لینوکس) با رابط چندزبانه.
+
+[![GitHub](https://img.shields.io/badge/GitHub-TheGreatAzizi%2FPulse--Download--Manager-181717?logo=github)](https://github.com/TheGreatAzizi/Pulse-Download-Manager)
+[![License: GPL-3.0-or-later](https://img.shields.io/badge/License-GPL--3.0--or--later-blue.svg)](https://github.com/TheGreatAzizi/Pulse-Download-Manager/blob/main/LICENSE)
+
+## دانلود
+
+آخرین نسخه‌ها را از صفحهٔ [Releases](https://github.com/TheGreatAzizi/Pulse-Download-Manager/releases) دریافت کنید:
+
+- **ویندوز**: نصب‌کنندهٔ `Pulse-Setup-*.exe` یا نسخهٔ بدون نصب `Pulse-Portable-*.exe`
+- **لینوکس**: `Pulse-*.AppImage` (قابل اجرا در اکثر توزیع‌ها از جمله Arch) و بستهٔ `Pulse-*.deb`
+
+> **نکته برای Arch و توزیع‌های مشابه:** برای اجرای AppImage بستهٔ `fuse2` را نصب کنید (`sudo pacman -S fuse2`). اگر FUSE در دسترس نبود، فایل را با `./Pulse-*.AppImage --appimage-extract-and-run` اجرا کنید. بستهٔ `.deb` نیز با `debtap` یا ابزارهای مشابه قابل تبدیل است.
 
 ## امکانات
 
 - **دانلود لینک مستقیم مانند IDM**: دانلود چنداتصاله با درخواست‌های `Range`، ادامهٔ دانلود پس از قطعی، صف هوشمند و محدودیت سرعت.
 - **ویدیو و صدا از یوتیوب و ۱۰۰۰+ سایت دیگر** با `yt-dlp`: انتخاب کیفیت، استخراج صدا (MP3/M4A)، زیرنویس، تصویر بندانگشتی و دانلود پلی‌لیست (انتخاب تک‌قسمت یا «دانلود همه»).
 - **بیت‌تورنت**: لینک مگنت و فایل `.torrent`، انتخاب فایل‌ها، ادامهٔ امن، نمایش همتا/Seeder و نسبت آپلود.
-- **رابط دو زبانه**: فارسی (پیش‌فرض، RTL) و انگلیسی (LTR)، تم تاریک/روشن.
+- **رابط چندزبانه**: فارسی (RTL)، انگلیسی، ژاپنی و روسی؛ تم تاریک/روشن.
 - **ابزارهای داخلی**: نصب خودکار `yt-dlp`، تشخیص `ffmpeg` و موتور تورنت.
 - **مانیتور کلیپ‌بورد**: وقتی لینکی کپی می‌کنید، پیشنهاد افزودن آن را می‌دهد.
 
@@ -52,7 +64,7 @@ npm run dist:linux   # لینوکس: AppImage + deb
 src/
   main/       فرایند اصلی Electron: موتور HTTP، یوتیوب، تورنت، صف، ذخیره‌سازی
   preload/    پل امن window.pulse
-  renderer/   رابط React + Tailwind (فارسی/انگلیسی)
+  renderer/   رابط React + Tailwind (فارسی/انگلیسی/ژاپنی/روسی)
   shared/     قراردادهای مشترک و کانال‌های IPC
 resources/bin/  باینری‌های اختیاری yt-dlp و ffmpeg
 ```
@@ -62,3 +74,17 @@ resources/bin/  باینری‌های اختیاری yt-dlp و ffmpeg
 - داده‌های برنامه (وظیفه‌ها و تنظیمات) در `userData/pulse-state.json` ذخیره می‌شود.
 - دانلودهای نیمه‌تمام HTTP با فایل‌های کنارِ `.pulse-part` و `.pulse-meta` قابل ادامه هستند.
 - سرعت کل از **تنظیمات → سرعت** یا نوار وضعیت قابل تنظیم است.
+
+## مشارکت
+
+مخزن پروژه: [github.com/TheGreatAzizi/Pulse-Download-Manager](https://github.com/TheGreatAzizi/Pulse-Download-Manager)
+
+برای گزارش باگ یا پیشنهاد ویژگی، از بخش [Issues](https://github.com/TheGreatAzizi/Pulse-Download-Manager/issues) استفاده کنید. Pull Requestها خوش‌آمد هستند.
+
+## مجوز
+
+این پروژه تحت **GNU General Public License v3.0 or later** منتشر می‌شود.
+
+Copyright (C) 2026 TheGreatAzizi
+
+متن کامل مجوز در فایل [LICENSE](LICENSE) موجود است. Pulse نرم‌افزار آزاد است و می‌توانید آن را تحت شرایط GPL-3.0 بازتوزیع یا تغییر دهید.

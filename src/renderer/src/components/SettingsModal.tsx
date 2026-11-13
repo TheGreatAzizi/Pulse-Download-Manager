@@ -5,6 +5,7 @@ import {
   ChevronRight,
   Cpu,
   Download,
+  ExternalLink,
   FolderOpen,
   Gauge,
   Globe2,
@@ -118,7 +119,7 @@ export function SettingsModal(): React.JSX.Element {
             </button>
           ))}
           <div className="mt-auto rounded-lg bg-elev/50 p-2.5 text-[9px] leading-relaxed text-faint">
-            Pulse v1.0 · {system?.platform === 'linux' ? 'Linux' : 'Windows'}
+            Pulse v{system?.appVersion ?? '1.0.0'} · {system?.platform === 'linux' ? 'Linux' : 'Windows'}
           </div>
         </div>
 
@@ -508,9 +509,25 @@ export function SettingsModal(): React.JSX.Element {
               </div>
               <p className="mt-3 max-w-md text-[10px] leading-relaxed text-faint">{t.settings.about.features}</p>
               <div className="mt-5 w-full max-w-sm divide-y divide-line/60 overflow-hidden rounded-xl border border-line text-start">
-                <Row label={t.settings.about.version} value="1.0.0" />
+                <Row label={t.settings.about.version} value={system?.appVersion ?? '1.0.0'} />
                 <Row label={t.settings.about.platform} value={`${system?.platform} ${system?.version}`} />
                 <Row label={t.settings.about.electron} value={`Electron ${system?.runtime?.electron ?? ''}`} />
+                <LinkRow
+                  label={t.settings.about.repository}
+                  value="TheGreatAzizi/Pulse-Download-Manager"
+                  onClick={() =>
+                    window.pulse.openExternal('https://github.com/TheGreatAzizi/Pulse-Download-Manager')
+                  }
+                />
+                <LinkRow
+                  label={t.settings.about.license}
+                  value="GPL-3.0-or-later"
+                  onClick={() =>
+                    window.pulse.openExternal(
+                      'https://github.com/TheGreatAzizi/Pulse-Download-Manager/blob/main/LICENSE'
+                    )
+                  }
+                />
               </div>
               <p className="mt-4 text-[10px] text-faint">{t.settings.about.made}</p>
             </div>
@@ -706,5 +723,29 @@ function Row({ label, value }: { label: string; value: string }): React.JSX.Elem
         {value}
       </span>
     </div>
+  )
+}
+
+function LinkRow({
+  label,
+  value,
+  onClick
+}: {
+  label: string
+  value: string
+  onClick: () => void
+}): React.JSX.Element {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="flex w-full items-center justify-between px-3 py-2 text-start transition hover:bg-elev/50"
+    >
+      <span className="text-[9.5px] text-faint">{label}</span>
+      <span className="flex max-w-[60%] items-center gap-1 text-[9.5px] font-medium text-brand" dir="ltr">
+        <span className="truncate">{value}</span>
+        <ExternalLink size={10} className="shrink-0" />
+      </span>
+    </button>
   )
 }

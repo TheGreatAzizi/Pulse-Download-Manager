@@ -1,4 +1,4 @@
-import { BrowserWindow, dialog, ipcMain, shell } from 'electron'
+import { BrowserWindow, app, dialog, ipcMain, shell } from 'electron'
 import { statfs } from 'node:fs/promises'
 import type { AddDownloadInput, AddTorrentInput, AppSnapshot, Settings } from '@shared/types'
 import { IP } from '@shared/ipc'
@@ -33,7 +33,7 @@ export function registerIpc(manager: DownloadManager, getWindow: () => BrowserWi
       system: {
         platform: process.platform,
         version: process.getSystemVersion?.() || '',
-        appVersion: process.env.npm_package_version || '1.0.0',
+        appVersion: app.getVersion(),
         freeDisk,
         downloadDir: settings.downloadDir,
         defaultDir: settings.downloadDir,

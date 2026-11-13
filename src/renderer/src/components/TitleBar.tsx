@@ -3,13 +3,13 @@ import { useApp } from '../state'
 import { Logo } from './primitives'
 
 export function TitleBar(): React.JSX.Element {
-  const { maximized, settings, stats, t } = useApp()
+  const { maximized, settings, stats, system, t } = useApp()
   return (
     <header className="drag relative z-30 flex h-11 shrink-0 items-center justify-between border-b border-line/70 bg-panel/45 px-3">
       <div className="flex items-center gap-2.5">
         <Logo size={24} glow={false} />
         <span className="text-[13.5px] font-extrabold tracking-tight">Pulse</span>
-        <span className="chip py-0! text-[9.5px]!">v1.0</span>
+        <span className="chip py-0! text-[9.5px]!">v{system?.appVersion ?? '1.0.0'}</span>
         {stats?.torrentEngine === 'ready' ? (
           <span className="ms-2 hidden items-center gap-1.5 text-[10px] text-faint sm:flex">
             <span className="live-dot h-1.5 w-1.5 rounded-full bg-ok" />

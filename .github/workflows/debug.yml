@@ -1,9 +1,7 @@
 name: Debug Build
 
 on:
-  push:
-    tags:
-      - 'v*'
+  workflow_dispatch:
 
 jobs:
   debug-windows:

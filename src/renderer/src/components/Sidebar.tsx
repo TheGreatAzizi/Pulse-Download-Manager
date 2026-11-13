@@ -26,7 +26,7 @@ const isActive = (t: DownloadTask): boolean =>
   t.status === 'downloading' || t.status === 'connecting' || t.status === 'verifying'
 
 export function Sidebar(): React.JSX.Element {
-  const { t, view, setView, tasks, stats, system, setSettingsOpen, settings, patchSettings, lang } =
+  const { t, view, setView, tasks, stats, system, setSettingsOpen, settings, patchSettings } =
     useApp()
 
   const counts = useMemo(() => {
@@ -129,11 +129,15 @@ export function Sidebar(): React.JSX.Element {
           </button>
           <button
             type="button"
-            onClick={() => patchSettings({ language: settings.language === 'fa' ? 'en' : 'fa' })}
+            onClick={() => {
+              const order = ['en', 'fa', 'ja', 'ru'] as const
+              const next = order[(order.indexOf(settings.language) + 1) % order.length]
+              patchSettings({ language: next })
+            }}
             className="chip h-9 rounded-lg! px-2.5! hover:border-line2 hover:text-ink"
             title={t.settings.appearance.language}
           >
-            {lang === 'fa' ? 'EN' : 'فا'}
+            {settings.language.toUpperCase()}
           </button>
         </div>
         {stats && stats.queuedCount > 0 ? (

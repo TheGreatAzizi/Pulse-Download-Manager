@@ -19,7 +19,7 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
 
       - name: Install dependencies
-        run: npm install --ignore-scripts
+        run: npm ci --ignore-scripts
 
       - name: Install Electron binary
         run: node node_modules/electron/install.js
@@ -37,8 +37,10 @@ jobs:
         with:
           name: pulse-win
           path: |
-            dist/Pulse-*-win64.exe
-            dist/Pulse-*-win64.exe.blockmap
+            dist/Pulse-Setup-*.exe
+            dist/Pulse-Setup-*.exe.blockmap
+            dist/Pulse-Portable-*.exe
+          if-no-files-found: error
 
   build-linux:
     runs-on: ubuntu-latest
@@ -53,7 +55,7 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
 
       - name: Install dependencies
-        run: npm install --ignore-scripts
+        run: npm ci --ignore-scripts
 
       - name: Install Electron binary
         run: node node_modules/electron/install.js
@@ -64,15 +66,16 @@ jobs:
           npm run build
 
       - name: Package for Linux
-        run: npx electron-builder --linux AppImage --publish never
+        run: npx electron-builder --linux --publish never
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: pulse-linux
           path: |
-            dist/Pulse-*-x86_64.AppImage
-            dist/*.deb
+            dist/Pulse-*.AppImage
+            dist/Pulse-*.deb
+          if-no-files-found: error
 
   release:
     needs: [build-windows, build-linux]
@@ -94,7 +97,7 @@ jobs:
           path: artifacts/linux
 
       - name: Create Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           files: |
             artifacts/win/*

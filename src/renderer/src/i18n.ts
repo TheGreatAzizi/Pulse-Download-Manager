@@ -250,6 +250,8 @@ const en = {
       version: 'Version',
       platform: 'Platform',
       electron: 'Runtime',
+      repository: 'GitHub repository',
+      license: 'License',
       made: 'Crafted for speed.'
     },
     save: 'Save changes',
@@ -543,6 +545,8 @@ const fa: typeof en = {
       version: 'نسخه',
       platform: 'پلتفرم',
       electron: 'محیط اجرا',
+      repository: 'مخزن گیت‌هاب',
+      license: 'مجوز',
       made: 'برای سرعت ساخته شده.'
     },
     save: 'ذخیره تغییرات',
@@ -836,6 +840,8 @@ const ja: typeof en = {
       version: 'バージョン',
       platform: 'プラットフォーム',
       electron: 'ランタイム',
+      repository: 'GitHub リポジトリ',
+      license: 'ライセンス',
       made: '高速のために作られました。'
     },
     save: '変更を保存',
@@ -1129,6 +1135,8 @@ const ru: typeof en = {
       version: 'Версия',
       platform: 'Платформа',
       electron: 'Среда выполнения',
+      repository: 'Репозиторий GitHub',
+      license: 'Лицензия',
       made: 'Сделано для скорости.'
     },
     save: 'Сохранить изменения',

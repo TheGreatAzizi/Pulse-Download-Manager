@@ -1,10 +1,10 @@
 {
   "name": "pulse-download-manager",
-  "version": "1.0.0",
+  "version": "1.0.5",
   "description": "Pulse — a professional cross-platform download manager for direct links, YouTube videos and torrents.",
   "main": "./out/main/index.js",
-  "author": "Pulse",
-  "license": "MIT",
+  "author": "TheGreatAzizi",
+  "license": "GPL-3.0-or-later",
   "private": true,
   "scripts": {
     "dev": "electron-vite dev",
@@ -50,24 +50,46 @@
       {
         "from": "resources/bin",
         "to": "bin",
-        "filter": ["**/*"]
+        "filter": [
+          "**/*"
+        ]
+      },
+      {
+        "from": "LICENSE",
+        "to": "LICENSE"
       }
     ],
     "win": {
       "target": [
-        { "target": "nsis", "arch": ["x64"] },
-        { "target": "portable", "arch": ["x64"] }
-      ],
-      "artifactName": "Pulse-${version}-${arch}.${ext}"
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
     },
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
-      "shortcutName": "Pulse"
+      "shortcutName": "Pulse",
+      "artifactName": "Pulse-Setup-${version}-${arch}.${ext}"
+    },
+    "portable": {
+      "artifactName": "Pulse-Portable-${version}-${arch}.${ext}"
     },
     "linux": {
-      "target": ["AppImage", "deb"],
+      "target": [
+        "AppImage",
+        "deb"
+      ],
       "category": "Network",
       "artifactName": "Pulse-${version}-${arch}.${ext}",
       "maintainer": "Pulse"
