@@ -26,37 +26,37 @@ The Windows installer allows choosing the install directory, creates desktop and
 ## Screenshots
 
 ### Main Dashboard
-![Main Dashboard](docs/screenshots/Pulse — Download Manager 23_08_1405 01_03_54.png)
+![Main Dashboard](https://raw.githubusercontent.com/TheGreatAzizi/Pulse-Download-Manager/main/docs/screenshots/Pulse%20%E2%80%94%20Download%20Manager%2023_08_1405%2001_03_54.png)
 
 ### YouTube Downloader
-![YouTube Downloader](docs/screenshots/Pulse — Download Manager 23_08_1405 01_04_10.png)
+![YouTube Downloader](https://raw.githubusercontent.com/TheGreatAzizi/Pulse-Download-Manager/main/docs/screenshots/Pulse%20%E2%80%94%20Download%20Manager%2023_08_1405%2001_04_10.png)
 
 ### GitHub Browser
-![GitHub Browser](docs/screenshots/Pulse — Download Manager 23_08_1405 01_04_18.png)
+![GitHub Browser](https://raw.githubusercontent.com/TheGreatAzizi/Pulse-Download-Manager/main/docs/screenshots/Pulse%20%E2%80%94%20Download%20Manager%2023_08_1405%2001_04_18.png)
 
 ### Torrent Details
-![Torrent Details](docs/screenshots/Pulse — Download Manager 23_08_1405 01_04_23.png)
+![Torrent Details](https://raw.githubusercontent.com/TheGreatAzizi/Pulse-Download-Manager/main/docs/screenshots/Pulse%20%E2%80%94%20Download%20Manager%2023_08_1405%2001_04_23.png)
 
 ### Settings & Appearance
-![Settings](docs/screenshots/Pulse — Download Manager 23_08_1405 01_04_26.png)
+![Settings](https://raw.githubusercontent.com/TheGreatAzizi/Pulse-Download-Manager/main/docs/screenshots/Pulse%20%E2%80%94%20Download%20Manager%2023_08_1405%2001_04_26.png)
 
 ### Download List
-![Download List](docs/screenshots/Pulse — Download Manager 23_08_1405 01_04_42.png)
+![Download List](https://raw.githubusercontent.com/TheGreatAzizi/Pulse-Download-Manager/main/docs/screenshots/Pulse%20%E2%80%94%20Download%20Manager%2023_08_1405%2001_04_42.png)
 
 ### Speed Limit
-![Speed Limit](docs/screenshots/Pulse — Download Manager 23_08_1405 01_04_45.png)
+![Speed Limit](https://raw.githubusercontent.com/TheGreatAzizi/Pulse-Download-Manager/main/docs/screenshots/Pulse%20%E2%80%94%20Download%20Manager%2023_08_1405%2001_04_45.png)
 
 ### Add Download Modal
-![Add Download](docs/screenshots/Pulse — Download Manager 23_08_1405 01_04_48.png)
+![Add Download](https://raw.githubusercontent.com/TheGreatAzizi/Pulse-Download-Manager/main/docs/screenshots/Pulse%20%E2%80%94%20Download%20Manager%2023_08_1405%2001_04_48.png)
 
 ### Tools
-![Tools](docs/screenshots/Pulse — Download Manager 23_08_1405 01_05_06.png)
+![Tools](https://raw.githubusercontent.com/TheGreatAzizi/Pulse-Download-Manager/main/docs/screenshots/Pulse%20%E2%80%94%20Download%20Manager%2023_08_1405%2001_05_06.png)
 
 ### About
-![About](docs/screenshots/Pulse — Download Manager 23_08_1405 01_05_11.png)
+![About](https://raw.githubusercontent.com/TheGreatAzizi/Pulse-Download-Manager/main/docs/screenshots/Pulse%20%E2%80%94%20Download%20Manager%2023_08_1405%2001_05_11.png)
 
 ### Tray / System Integration
-![Tray](docs/screenshots/Pulse — Download Manager 23_08_1405 01_05_40.png)
+![Tray](https://raw.githubusercontent.com/TheGreatAzizi/Pulse-Download-Manager/main/docs/screenshots/Pulse%20%E2%80%94%20Download%20Manager%2023_08_1405%2001_05_40.png)
 
 ## Features
 
