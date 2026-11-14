@@ -138,7 +138,6 @@ function createTray(): void {
     {
       label: 'Quit',
       click: () => {
-        quitting = true
         electronApp.quit()
       }
     }
