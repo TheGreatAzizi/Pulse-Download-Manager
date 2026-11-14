@@ -25,7 +25,7 @@ export function defaultSettings(): Settings {
     notifyOnComplete: true,
     ytDlpPath: '',
     ffmpegPath: '',
-    torrentPort: 51413,
+    torrentPort: 0,
     seedAfterComplete: false,
     proxy: '',
     userAgent: DEFAULT_UA,

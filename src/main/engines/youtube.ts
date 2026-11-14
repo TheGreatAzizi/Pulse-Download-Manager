@@ -1,6 +1,6 @@
 import { spawn, type ChildProcess } from 'node:child_process'
 import { existsSync, promises as fs } from 'node:fs'
-import { join } from 'node:path'
+import { isAbsolute, join, resolve as resolvePath } from 'node:path'
 import { app } from 'electron'
 import type { Settings, YoutubeFormatOption, YoutubeProbe, YoutubeMeta } from '@shared/types'
 import type { EngineHost, TaskHandle } from './http'
@@ -167,14 +167,31 @@ export class YoutubeEngine {
       bundledBin('ffmpeg'),
       process.platform === 'win32' ? 'ffmpeg.exe' : 'ffmpeg'
     ].filter(Boolean)
-    for (const candidate of candidates) {
-      if (candidate.includes('\\') || candidate.includes('/')) {
-        if (!existsSync(candidate)) continue
+
+    const locate = async (cmd: string): Promise<string | null> => {
+      if (isAbsolute(cmd) || cmd.includes('\\') || cmd.includes('/')) {
+        return existsSync(cmd) ? resolvePath(cmd) : null
       }
-      const res = await runCapture(candidate, ['-version'], 10_000)
+      // `where`/`which` gives yt-dlp the absolute path it needs for
+      // --ffmpeg-location (a bare "ffmpeg.exe" would be resolved against CWD).
+      const finder = process.platform === 'win32' ? 'where.exe' : 'which'
+      const found = await runCapture(finder, [cmd], 6_000)
+      if (found.code !== 0) return null
+      return (
+        found.stdout
+          .split(/\r?\n/)
+          .map((line) => line.trim())
+          .find(Boolean) || null
+      )
+    }
+
+    for (const candidate of candidates) {
+      const path = await locate(candidate)
+      if (!path) continue
+      const res = await runCapture(path, ['-version'], 10_000)
       if (res.code === 0 && /ffmpeg version/i.test(res.stdout + res.stderr)) {
-        this.ffmpegCache = candidate
-        return candidate
+        this.ffmpegCache = path
+        return path
       }
     }
     this.ffmpegCache = null
@@ -597,11 +614,19 @@ export class YoutubeEngine {
         }
         if (code === 0) {
           const found = await this.findOutput(task.dir, task.youtube?.videoId || '', startedAt)
+          let finalSize = lastSize
+          if (found) {
+            try {
+              finalSize = (await fs.stat(found)).size
+            } catch {
+              /* keep the downloaded byte count */
+            }
+          }
           finish(() => {
             handle.patch({
               status: 'completed',
-              downloaded: lastSize,
-              size: lastSize,
+              downloaded: finalSize,
+              size: finalSize,
               completedAt: Date.now(),
               speed: 0,
               eta: 0,
