@@ -1,4 +1,5 @@
 import { app, BrowserWindow, Menu, clipboard, nativeTheme, shell, Tray, nativeImage } from 'electron'
+import { existsSync, readFileSync, unlinkSync } from 'node:fs'
 import { join } from 'node:path'
 import { app as electronApp } from 'electron'
 import { Store } from './store'
@@ -15,6 +16,17 @@ let clipboardTimer: NodeJS.Timeout | null = null
 let lastClipboard = ''
 let tray: Tray | null = null
 
+// Windows reads the taskbar name and icon from the AppUserModelID at process
+// start. Setting these before `ready` is what makes the taskbar show "Pulse"
+// and the Pulse icon instead of Electron's defaults. The explicit userData
+// path keeps existing profiles at %APPDATA%\pulse-download-manager.
+electronApp.setName('Pulse')
+electronApp.setAppUserModelId('com.pulse.downloadmanager.app')
+electronApp.setPath(
+  'userData',
+  join(electronApp.getPath('appData'), 'pulse-download-manager')
+)
+
 const gotLock = electronApp.requestSingleInstanceLock()
 if (!gotLock) {
   electronApp.quit()
@@ -23,6 +35,45 @@ function send(event: MainEvent): void {
   if (mainWindow && !mainWindow.isDestroyed()) {
     mainWindow.webContents.send(IP.event, event)
   }
+}
+
+/**
+ * Early development builds could leave an "Electron.lnk" in the Start Menu
+ * that points at node_modules\electron\dist\electron.exe but carries Pulse's
+ * AppUserModelID. Windows then uses that shortcut's name and Electron icon for
+ * the taskbar button, even when the packaged Pulse.exe is running.
+ */
+function removeStaleElectronShortcut(): void {
+  if (process.platform !== 'win32') return
+  const programs = join(
+    electronApp.getPath('appData'),
+    'Microsoft',
+    'Windows',
+    'Start Menu',
+    'Programs'
+  )
+  const aumids = ['com.pulse.downloadmanager', 'com.pulse.downloadmanager.app'].map((id) =>
+    Buffer.from(id, 'utf16le')
+  )
+  const electronExe = Buffer.from('electron.exe', 'utf16le')
+  for (const name of ['Electron.lnk', 'Pulse.lnk']) {
+    const file = join(programs, name)
+    try {
+      if (!existsSync(file)) continue
+      const data = readFileSync(file)
+      if (aumids.some((id) => data.includes(id)) && data.includes(electronExe)) {
+        unlinkSync(file)
+      }
+    } catch {
+      /* The shortcut may be locked; the window icon still applies. */
+    }
+  }
+}
+
+function appIconPath(): string {
+  return electronApp.isPackaged
+    ? join(process.resourcesPath, process.platform === 'win32' ? 'icon.ico' : 'icon.png')
+    : join(__dirname, '../../resources', process.platform === 'win32' ? 'icon.ico' : 'icon.png')
 }
 
 function createWindow(): void {
@@ -35,9 +86,7 @@ function createWindow(): void {
     frame: false,
     backgroundColor: store.settings.theme === 'dark' ? '#0a0c12' : '#f4f6fb',
     title: 'Pulse',
-    icon: electronApp.isPackaged
-      ? join(process.resourcesPath, process.platform === 'win32' ? 'icon.ico' : 'icon.png')
-      : join(__dirname, '../../resources', process.platform === 'win32' ? 'icon.ico' : 'icon.png'),
+    icon: appIconPath(),
     autoHideMenuBar: true,
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
@@ -49,6 +98,18 @@ function createWindow(): void {
       backgroundThrottling: false
     }
   })
+
+  if (process.platform === 'win32') {
+    // The taskbar button keeps its own app details. Without this, Windows can
+    // fall back to Electron's name/icon even though the window icon is Pulse.
+    mainWindow.setAppDetails({
+      appId: 'com.pulse.downloadmanager.app',
+      appIconPath: appIconPath(),
+      appIconIndex: 0,
+      relaunchCommand: process.env.PORTABLE_EXECUTABLE_FILE || process.execPath,
+      relaunchDisplayName: 'Pulse'
+    })
+  }
 
   mainWindow.once('ready-to-show', () => {
     mainWindow?.show()
@@ -117,10 +178,7 @@ function startClipboardWatcher(): void {
 }
 
 function createTray(): void {
-  const iconPath = electronApp.isPackaged
-    ? join(process.resourcesPath, process.platform === 'win32' ? 'icon.ico' : 'icon.png')
-    : join(__dirname, '../../resources', process.platform === 'win32' ? 'icon.ico' : 'icon.png')
-  const image = nativeImage.createFromPath(iconPath)
+  const image = nativeImage.createFromPath(appIconPath())
   tray = new Tray(image.resize({ width: 24, height: 24 }))
 
   const contextMenu = Menu.buildFromTemplate([
@@ -157,8 +215,6 @@ function createTray(): void {
 
 async function bootstrap(): Promise<void> {
   await electronApp.whenReady()
-  electronApp.setAppUserModelId('com.pulse.downloadmanager')
-  electronApp.setName('Pulse')
   Menu.setApplicationMenu(null)
 
   store = new Store()
@@ -170,6 +226,7 @@ async function bootstrap(): Promise<void> {
   await manager.init()
 
   registerIpc(manager, () => mainWindow)
+  removeStaleElectronShortcut()
   createWindow()
   createTray()
   startClipboardWatcher()

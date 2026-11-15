@@ -1,6 +1,6 @@
 {
   "name": "pulse-download-manager",
-  "version": "1.0.15",
+  "version": "1.0.16",
   "description": "Pulse — a professional cross-platform download manager for direct links, YouTube videos and torrents.",
   "main": "./out/main/index.js",
   "author": "TheGreatAzizi",
@@ -35,7 +35,7 @@
     "vite": "^8.3.8"
   },
   "build": {
-    "appId": "com.pulse.downloadmanager",
+    "appId": "com.pulse.downloadmanager.app",
     "productName": "Pulse",
     "npmRebuild": false,
     "directories": {
