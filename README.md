@@ -77,10 +77,11 @@ Open **GitHub** in the sidebar to search public repositories, download ZIP archi
 
 ```bash
 npm install
-npm run dev        # development mode
-npm run typecheck  # type check
-npm run build      # production build
-npm start          # run built app
+npx install-electron --no # download and install electron binary
+npm run dev               # development mode
+npm run typecheck         # type check
+npm run build             # production build
+npm start                 # run built app
 ```
 
 Build distributions:

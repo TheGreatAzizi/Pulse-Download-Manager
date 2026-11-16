@@ -59,7 +59,7 @@ export function SettingsModal(): React.JSX.Element {
   }
 
   const chooseDir = async (): Promise<void> => {
-    const chosen = await window.pulse.chooseDir(merged.downloadDir)
+    const chosen = await window.pulse.chooseDir(merged.downloadDir, t.add.chooseFolder, t.add.selectFolder)
     if (chosen) set('downloadDir', chosen)
   }
 

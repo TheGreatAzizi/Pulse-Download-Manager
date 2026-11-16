@@ -312,6 +312,7 @@ export type MainEvent =
   | { type: 'stats'; stats: GlobalStats }
   | { type: 'toast'; level: 'info' | 'success' | 'error'; message: string }
   | { type: 'clipboard:url'; url: string }
+  | { type: 'clipboard:batch'; urls: string[] }
   | { type: 'open-add'; url?: string }
   | { type: 'navigate'; view: string }
   | { type: 'window:state'; maximized: boolean }
@@ -332,7 +333,7 @@ export interface PulseAPI {
   openTask(id: string): Promise<void>
   clearCompleted(): Promise<void>
   updateSettings(patch: Partial<Settings>): Promise<Settings>
-  chooseDir(current?: string): Promise<string | null>
+  chooseDir(current?: string, title?: string, buttonLabel?: string): Promise<string | null>
   chooseTorrentFile(): Promise<string | null>
   chooseCookiesFile(): Promise<string | null>
   setSpeedLimit(bytesPerSecond: number): Promise<void>

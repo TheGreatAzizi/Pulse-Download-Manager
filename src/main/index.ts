@@ -8,6 +8,7 @@ import { registerIpc } from './ipc'
 import { applyLaunchAtStartup } from './autostart'
 import { IP } from '@shared/ipc'
 import type { MainEvent } from '@shared/types'
+import { isClipboardUrlCandidate, isDirectBatchUrl } from '@shared/urls'
 
 let mainWindow: BrowserWindow | null = null
 let manager: DownloadManager
@@ -164,6 +165,7 @@ function createWindow(): void {
   })
 }
 
+
 function startClipboardWatcher(): void {
   if (clipboardTimer) clearInterval(clipboardTimer)
   clipboardTimer = setInterval(async () => {
@@ -171,6 +173,27 @@ function startClipboardWatcher(): void {
     const text = (await clipboard.readText()).trim()
     if (!text || text === lastClipboard) return
     lastClipboard = text
+
+    // Treat a newline-separated list as a batch only when every entry is
+    // URL-shaped. Keep only direct HTTP(S) URLs: magnet and yt-dlp platforms
+    // are intentionally excluded from Batch Download.
+    const lines = text
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .filter((line) => line && !line.startsWith('#'))
+
+    if (lines.length > 1) {
+      if (lines.every(isClipboardUrlCandidate)) {
+        const urls = [...new Set(lines.filter(isDirectBatchUrl))]
+        if (urls.length > 1) {
+          send({ type: 'clipboard:batch', urls })
+        } else if (urls.length === 1) {
+          send({ type: 'clipboard:url', url: urls[0] })
+        }
+      }
+      return
+    }
+
     if (!/^(https?:\/\/|magnet:)/i.test(text) || text.length > 4096) return
     if (/^https?:\/\/(localhost|127\.0\.0\.1)/i.test(text)) return
     send({ type: 'clipboard:url', url: text })

@@ -31,7 +31,8 @@ const api: PulseAPI = {
   clearCompleted: () => ipcRenderer.invoke(IP.clearCompleted) as Promise<void>,
   updateSettings: (patch: Partial<Settings>) =>
     ipcRenderer.invoke(IP.updateSettings, patch) as Promise<Settings>,
-  chooseDir: (current?: string) => ipcRenderer.invoke(IP.chooseDir, current) as Promise<string | null>,
+  chooseDir: (current?: string, title?: string, buttonLabel?: string) =>
+    ipcRenderer.invoke(IP.chooseDir, current, title, buttonLabel) as Promise<string | null>,
   chooseTorrentFile: () => ipcRenderer.invoke(IP.chooseTorrent) as Promise<string | null>,
   chooseCookiesFile: () => ipcRenderer.invoke(IP.chooseCookies) as Promise<string | null>,
   setSpeedLimit: (bytes: number) => ipcRenderer.invoke(IP.setSpeedLimit, bytes) as Promise<void>,
