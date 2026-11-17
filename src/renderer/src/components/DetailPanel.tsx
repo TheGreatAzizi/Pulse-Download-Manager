@@ -36,11 +36,10 @@ export function DetailPanel(): React.JSX.Element {
 
   if (!selected) {
     return (
-      <aside className="hidden w-[330px] shrink-0 flex-col border-s border-line/70 bg-panel/35 lg:flex">
+      <aside className="hidden w-[330px] shrink-0 flex-col border-s border-line/70 bg-panel lg:flex">
         <div className="flex flex-1 flex-col items-center justify-center gap-3 p-8 text-center">
-          <div className="relative grid h-16 w-16 place-items-center rounded-2xl border border-line bg-elev/60">
+          <div className="grid h-16 w-16 place-items-center rounded-xl2 border border-line bg-elev/60">
             <Info size={22} className="text-faint" />
-            <span className="absolute -end-1 -top-1 h-2 w-2 rounded-full bg-brand/70 live-dot" />
           </div>
           <div>
             <h3 className="text-[12.5px] font-semibold">{t.detail.selectFile}</h3>
@@ -60,20 +59,20 @@ export function DetailPanel(): React.JSX.Element {
 
   const copy = async (text: string): Promise<void> => {
     try {
-      await navigator.clipboard.writeText(text)
+      await window.pulse.writeClipboard(text)
       pushToast('success', t.toast.copied)
     } catch {
-      pushToast('error', 'Clipboard unavailable')
+      pushToast('error', t.toast.copyFailed)
     }
   }
 
   return (
-    <aside className="hidden w-[330px] shrink-0 flex-col border-s border-line/70 bg-panel/35 lg:flex">
+    <aside className="hidden w-[330px] shrink-0 flex-col border-s border-line/70 bg-panel lg:flex">
       <div className="flex shrink-0 items-center justify-between px-4 pb-2 pt-3.5">
-        <div className="text-[10px] font-bold uppercase tracking-[0.14em] text-faint">
+        <div className="text-[10.5px] font-semibold text-muted">
           {t.detail.title}
         </div>
-        <button type="button" className="icon-btn" onClick={() => setSelectedId(null)}>
+        <button type="button" className="icon-btn" onClick={() => setSelectedId(null)} aria-label={t.common.close}>
           <X size={15} />
         </button>
       </div>
@@ -112,8 +111,8 @@ export function DetailPanel(): React.JSX.Element {
           <div className="mt-4 flex items-center justify-center gap-5 rounded-xl2 border border-line/70 bg-elev/40 py-4">
             <Ring percent={percent} size={112} stroke={8} tone={tone}>
               <div className="text-center">
-                <div className="text-[20px] font-extrabold leading-none tabular">
-                  {task.size > 0 ? Math.round(percent) : '—'}
+                <div className="text-[20px] font-semibold leading-none tabular">
+                  {task.size > 0 ? Math.round(percent) : '-'}
                   <span className="text-[11px] font-semibold text-muted">%</span>
                 </div>
                 <div className="mt-1 text-[9px] text-faint tabular">
@@ -122,11 +121,11 @@ export function DetailPanel(): React.JSX.Element {
               </div>
             </Ring>
             <div className="space-y-2">
-              <MiniStat label={t.detail.speed} value={active ? formatSpeed(task.speed) : '—'} accent={active} />
+              <MiniStat label={t.detail.speed} value={active ? formatSpeed(task.speed) : '-'} accent={active} />
               <MiniStat label={t.detail.size} value={task.size ? formatBytes(task.size) : '?'} />
               <MiniStat
                 label={t.detail.eta}
-                value={active ? formatEta(task.eta, lang) : '—'}
+                value={active ? formatEta(task.eta, lang) : '-'}
               />
             </div>
           </div>
@@ -159,6 +158,7 @@ export function DetailPanel(): React.JSX.Element {
               type="button"
               className="icon-btn h-8! w-8! border border-line"
               title={t.row.folder}
+              aria-label={t.row.folder}
               onClick={() => void window.pulse.revealTask(task.id)}
             >
               <FolderOpen size={14} />
@@ -167,6 +167,7 @@ export function DetailPanel(): React.JSX.Element {
               type="button"
               className="icon-btn h-8! w-8! border border-line"
               title={t.row.copy}
+              aria-label={t.row.copy}
               onClick={() => void copy(task.url)}
             >
               <Copy size={13} />
@@ -176,19 +177,19 @@ export function DetailPanel(): React.JSX.Element {
           {task.kind === 'http' && task.segments && task.segments.length > 1 ? (
             <div className="mt-4">
               <SectionTitle icon={<Zap size={12} />} label={t.detail.segments} />
-              <div className="flex h-2.5 w-full gap-[2px] overflow-hidden rounded-full">
+              <div className="flex h-2.5 w-full gap-[2px] overflow-hidden rounded-sm">
                 {task.segments.map((seg, i) => {
                   const span = Math.max(1, seg.end - seg.start)
                   const pct = Math.max(0, Math.min(100, ((seg.position - seg.start) / span) * 100))
                   return (
                     <div
                       key={i}
-                      className="relative h-full overflow-hidden rounded-full bg-elev2"
+                      className="relative h-full overflow-hidden rounded-sm bg-elev2"
                       style={{ flexGrow: span, flexBasis: 0 }}
                       title={`#${i + 1} · ${pct.toFixed(0)}%`}
                     >
                       <div
-                        className={cn('h-full rounded-full', pct >= 100 ? 'bg-ok' : 'bg-brand')}
+                        className={cn('h-full rounded-sm', pct >= 100 ? 'bg-ok' : 'bg-brand')}
                         style={{ width: `${pct}%` }}
                       />
                     </div>
@@ -227,7 +228,7 @@ export function DetailPanel(): React.JSX.Element {
                         <span className="truncate" dir="auto">
                           {file.name}
                         </span>
-                        <span className="ms-auto shrink-0 text-[9px] text-faint tabular">
+                        <span className="ms-auto shrink-0 text-[9px] text-faint tabular" dir="ltr">
                           {formatBytes(file.length)}
                         </span>
                       </div>
@@ -309,6 +310,7 @@ export function DetailPanel(): React.JSX.Element {
                   type="button"
                   className="ms-auto text-muted hover:text-ink"
                   onClick={() => void copy(task.url)}
+                  aria-label={t.row.copy}
                 >
                   <Copy size={11} />
                 </button>
@@ -343,9 +345,11 @@ function MiniStat({
 }): React.JSX.Element {
   return (
     <div>
-      <div className="text-[8.5px] uppercase tracking-wider text-faint">{label}</div>
-      <div className={cn('text-[11px] font-semibold tabular', accent ? 'text-brand2' : 'text-ink')}>
-        {value}
+      <div className="text-[9.5px] text-faint">{label}</div>
+      <div className={cn('text-[11px] font-semibold tabular', accent ? 'text-brand' : 'text-ink')}>
+        <span dir="ltr" className="inline-block">
+          {value}
+        </span>
       </div>
     </div>
   )
@@ -353,7 +357,7 @@ function MiniStat({
 
 function SectionTitle({ icon, label }: { icon: React.ReactNode; label: string }): React.JSX.Element {
   return (
-    <div className="mb-1.5 flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-[0.12em] text-faint">
+    <div className="mb-1.5 flex items-center gap-1.5 text-[10px] font-semibold text-muted">
       {icon}
       {label}
     </div>

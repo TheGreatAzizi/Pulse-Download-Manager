@@ -13,6 +13,7 @@ import { SettingsModal } from './components/SettingsModal'
 import { GithubBrowser } from './components/GithubBrowser'
 import { Toasts } from './components/Toasts'
 import { Logo } from './components/primitives'
+import { cleanIpcError } from './lib/format'
 
 function base64(buffer: ArrayBuffer): string {
   const bytes = new Uint8Array(buffer)
@@ -65,7 +66,7 @@ export function App(): React.JSX.Element {
           })
           pushToast('success', t.toast.added)
         } catch (err) {
-          pushToast('error', (err as Error).message)
+          pushToast('error', cleanIpcError(err, t.add.errorTorrent))
         }
         return
       }
@@ -93,13 +94,11 @@ export function App(): React.JSX.Element {
   if (!ready) {
     return (
       <div className="app-bg flex h-full flex-col items-center justify-center gap-5">
-        <div className="anim-pop">
-          <Logo size={62} />
-        </div>
+        <Logo size={62} glow={false} />
         <div className="h-1 w-32 overflow-hidden rounded-full bg-elev2">
           <div className="indeterminate h-full rounded-full" />
         </div>
-        <div className="text-[10px] uppercase tracking-[0.3em] text-faint">Pulse</div>
+        <div className="text-[12px] font-medium text-muted">Pulse</div>
       </div>
     )
   }
@@ -120,7 +119,7 @@ export function App(): React.JSX.Element {
                 <div className="flex min-w-0 flex-1 flex-col">
                   {loadError ? (
                     <div className="scroll-y flex-1 p-5">
-                      <div className="mx-auto mt-16 flex max-w-md items-start gap-3 rounded-xl border border-bad/30 bg-bad/8 p-4">
+                      <div className="mx-auto mt-16 flex max-w-md items-start gap-3 rounded-xl2 border border-bad/30 bg-bad/8 p-4">
                         <AlertTriangle size={18} className="mt-0.5 text-bad" />
                         <div>
                           <div className="text-[12px] font-semibold text-bad">Could not load the app state</div>
@@ -145,9 +144,9 @@ export function App(): React.JSX.Element {
       <Toasts />
 
       {dropping ? (
-        <div className="pointer-events-none fixed inset-0 z-[100] grid place-items-center bg-app/70 backdrop-blur-sm">
-          <div className="anim-pop flex flex-col items-center gap-3 rounded-2xl border border-brand/35 bg-panel/90 px-10 py-8 shadow-2xl">
-            <div className="grid h-14 w-14 place-items-center rounded-2xl bg-gradient-to-br from-brand to-brand2 text-white">
+        <div className="pointer-events-none fixed inset-0 z-[100] grid place-items-center bg-app/80">
+          <div className="anim-fade flex flex-col items-center gap-3 rounded-xl2 border border-line2 bg-panel px-10 py-8 shadow-[var(--shadow-overlay)]">
+            <div className="grid h-14 w-14 place-items-center rounded-lg bg-brand/12 text-brand">
               {dropKind === 'torrent' ? <Magnet size={24} /> : <ArrowDownToLine size={24} />}
             </div>
             <div className="text-[12.5px] font-semibold">

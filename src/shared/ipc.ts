@@ -25,5 +25,6 @@ export const IP = {
   revealDir: 'pulse:reveal-dir',
   windowControl: 'pulse:window',
   readClipboard: 'pulse:read-clipboard',
+  writeClipboard: 'pulse:write-clipboard',
   event: 'pulse:event'
 } as const

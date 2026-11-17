@@ -46,6 +46,7 @@ const api: PulseAPI = {
   windowControl: (action: 'minimize' | 'maximize' | 'close') =>
     ipcRenderer.invoke(IP.windowControl, action) as Promise<void>,
   readClipboard: () => ipcRenderer.invoke(IP.readClipboard) as Promise<string>,
+  writeClipboard: (text: string) => ipcRenderer.invoke(IP.writeClipboard, text) as Promise<void>,
   subscribe: (cb: (event: MainEvent) => void) => {
     const listener = (_event: unknown, payload: MainEvent): void => cb(payload)
     ipcRenderer.on(IP.event, listener)

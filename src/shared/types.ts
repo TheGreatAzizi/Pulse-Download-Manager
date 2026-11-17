@@ -344,6 +344,7 @@ export interface PulseAPI {
   revealDir(dir: string): Promise<void>
   windowControl(action: 'minimize' | 'maximize' | 'close'): Promise<void>
   readClipboard(): Promise<string>
+  writeClipboard(text: string): Promise<void>
   subscribe(cb: (event: MainEvent) => void): () => void
 }
 

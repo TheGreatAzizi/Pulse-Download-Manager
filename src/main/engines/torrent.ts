@@ -94,7 +94,7 @@ export class TorrentEngine {
           if (/EPERM|EACCES|EADDRINUSE/i.test(this.lastError)) {
             this.host.toast(
               'error',
-              'Torrent port is busy — downloads will continue over outgoing connections.'
+              'Torrent port is busy. Downloads will continue over outgoing connections.'
             )
           }
         })

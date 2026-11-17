@@ -13,14 +13,14 @@ import {
   Plus,
   Search,
   ShieldCheck,
-  Sparkles,
   Video as Youtube,
+  X,
   Zap
 } from 'lucide-react'
 import type { ProbeResult, YoutubeFormatOption, YoutubeProbe } from '@shared/types'
 import { useApp } from '../state'
 import { Modal } from './Modal'
-import { cn, formatBytes, formatDuration, hostOf } from '../lib/format'
+import { cleanIpcError, cn, formatBytes, formatDuration, hostOf } from '../lib/format'
 
 type Tab = 'link' | 'video' | 'torrent'
 
@@ -131,7 +131,7 @@ export function AddDownloadModal(): React.JSX.Element {
       if (!/^magnet:/i.test(target)) setUrl(result.finalUrl || target)
     } catch (err) {
       setProbe(null)
-      setError((err as Error).message || t.add.errorProbe)
+      setError(cleanIpcError(err, t.add.errorProbe))
     } finally {
       setAnalyzing(false)
     }
@@ -157,7 +157,7 @@ export function AddDownloadModal(): React.JSX.Element {
       }
     } catch (err) {
       setYt(null)
-      setError((err as Error).message || t.add.errorProbe)
+      setError(cleanIpcError(err, t.add.errorProbe))
     } finally {
       setAnalyzing(false)
     }
@@ -275,7 +275,7 @@ export function AddDownloadModal(): React.JSX.Element {
       pushToast('success', `${added} ${t.add.items} · ${t.toast.added}`)
       closeAdd()
     } catch (err) {
-      setError((err as Error).message || t.add.errorProbe)
+      setError(cleanIpcError(err, t.add.errorProbe))
     } finally {
       setBusy(false)
     }
@@ -359,7 +359,7 @@ export function AddDownloadModal(): React.JSX.Element {
         finish(task.id)
       }
     } catch (err) {
-      setError((err as Error).message || t.add.errorTorrent)
+      setError(cleanIpcError(err, t.add.errorTorrent))
     } finally {
       setBusy(false)
     }
@@ -376,7 +376,7 @@ export function AddDownloadModal(): React.JSX.Element {
   const audioFormats = yt?.formats.filter((f) => f.audioOnly) || []
 
   return (
-    <Modal open={addOpen} onClose={requestClose} width={800} className="flex max-h-[90vh] flex-col">
+    <Modal open={addOpen} onClose={requestClose} width={800} className="flex max-h-[90vh] flex-col" label={t.add.title}>
       <div
         className="relative shrink-0 overflow-hidden px-6 pb-4 pt-5"
         onDragOver={(e) => {
@@ -386,9 +386,8 @@ export function AddDownloadModal(): React.JSX.Element {
         onDragLeave={() => setDragOver(false)}
         onDrop={(e) => void onDrop(e)}
       >
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(600px_200px_at_20%_-60%,var(--glow),transparent)]" />
         <div className="relative flex items-center gap-3">
-          <div className="grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-brand to-brand2 text-white shadow-lg shadow-brand/25">
+          <div className="grid h-10 w-10 place-items-center rounded-lg bg-brand/12 text-brand">
             <ArrowDownToLine size={19} />
           </div>
           <div>
@@ -409,7 +408,7 @@ export function AddDownloadModal(): React.JSX.Element {
               className={cn(
                 'flex items-center justify-center gap-2 rounded-lg py-2 text-[11.5px] font-semibold transition',
                 tab === item.id
-                  ? 'bg-panel text-ink shadow-sm ring-1 ring-line2'
+                  ? 'bg-panel text-ink ring-1 ring-line2'
                   : 'text-muted hover:text-ink'
               )}
             >
@@ -419,7 +418,7 @@ export function AddDownloadModal(): React.JSX.Element {
           ))}
         </div>
         {dragOver ? (
-          <div className="pointer-events-none absolute inset-0 z-30 grid place-items-center rounded-t-2xl border-2 border-dashed border-brand/60 bg-brand/10 backdrop-blur-sm">
+          <div className="pointer-events-none absolute inset-0 z-30 grid place-items-center rounded-t-xl2 border-2 border-dashed border-brand/60 bg-brand/10">
             <div className="flex items-center gap-2 text-[12px] font-semibold text-brand">
               <FileUp size={18} />
               {t.add.dropTorrent}
@@ -433,8 +432,13 @@ export function AddDownloadModal(): React.JSX.Element {
           <div className="mb-3 flex items-start gap-2 rounded-xl border border-bad/25 bg-bad/8 px-3 py-2 text-[11px] text-bad">
             <AlertCircle size={14} className="mt-[1px] shrink-0" />
             <span className="min-w-0 flex-1">{error}</span>
-            <button type="button" onClick={() => setError(null)} className="text-bad/70 hover:text-bad">
-              ×
+            <button
+              type="button"
+              onClick={() => setError(null)}
+              className="text-bad/70 hover:text-bad"
+              aria-label={t.common.close}
+            >
+              <X size={13} />
             </button>
           </div>
         ) : null}
@@ -457,6 +461,7 @@ export function AddDownloadModal(): React.JSX.Element {
                       if (e.key === 'Enter') void analyzeLink()
                     }}
                     placeholder="https://example.com/file.zip"
+                    aria-label={t.add.url}
                     className="field h-10 w-full ps-9 pe-2 text-[12px]"
                     dir="ltr"
                   />
@@ -494,7 +499,7 @@ export function AddDownloadModal(): React.JSX.Element {
                     <div className="mt-0.5 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[10px] text-muted">
                       <span>{hostOf(probe.finalUrl)}</span>
                       <span>·</span>
-                      <span className="tabular">{probe.size ? formatBytes(probe.size) : t.row.unknownSize}</span>
+                      <span className="tabular" dir="ltr">{probe.size ? formatBytes(probe.size) : t.row.unknownSize}</span>
                       <span className="chip py-0! text-[9px]!">
                         <ShieldCheck size={9} />
                         {probe.resumable ? t.add.resumable : t.add.noResume}
@@ -511,6 +516,7 @@ export function AddDownloadModal(): React.JSX.Element {
                   value={fileName}
                   onChange={(e) => setFileName(e.target.value)}
                   placeholder={probe?.fileName || 'file.zip'}
+                  aria-label={t.add.fileName}
                   className="field h-9 w-full px-3 text-[11.5px]"
                   dir="auto"
                 />
@@ -520,10 +526,11 @@ export function AddDownloadModal(): React.JSX.Element {
                   <input
                     value={dir}
                     onChange={(e) => setDir(e.target.value)}
+                    aria-label={t.add.saveTo}
                     className="field h-9 min-w-0 flex-1 px-3 text-[10.5px]"
                     dir="ltr"
                   />
-                  <button type="button" className="icon-btn h-9! w-9! border border-line" onClick={() => void chooseDir()}>
+                  <button type="button" className="icon-btn h-9! w-9! border border-line" onClick={() => void chooseDir()} aria-label={t.add.browse}>
                     <FolderOpen size={14} />
                   </button>
                 </div>
@@ -541,6 +548,7 @@ export function AddDownloadModal(): React.JSX.Element {
                 max={32}
                 value={connections}
                 onChange={(e) => setConnections(Number(e.target.value))}
+                aria-label={t.add.connections}
                 className="mt-2.5 w-full accent-[var(--c-brand)]"
                 disabled={!!probe && !probe.resumable}
               />
@@ -558,13 +566,13 @@ export function AddDownloadModal(): React.JSX.Element {
             {advanced ? (
               <div className="anim-rise grid grid-cols-1 gap-2.5 rounded-xl border border-line bg-elev/25 p-3 sm:grid-cols-3">
                 <Labeled label={t.add.referer} small>
-                  <input value={referer} onChange={(e) => setReferer(e.target.value)} className="field h-8 w-full px-2 text-[10.5px]" dir="ltr" />
+                  <input value={referer} onChange={(e) => setReferer(e.target.value)} aria-label={t.add.referer} className="field h-8 w-full px-2 text-[10.5px]" dir="ltr" />
                 </Labeled>
                 <Labeled label={t.add.userAgent} small>
-                  <input value={ua} onChange={(e) => setUa(e.target.value)} className="field h-8 w-full px-2 text-[10.5px]" dir="ltr" />
+                  <input value={ua} onChange={(e) => setUa(e.target.value)} aria-label={t.add.userAgent} className="field h-8 w-full px-2 text-[10.5px]" dir="ltr" />
                 </Labeled>
                 <Labeled label={t.add.cookie} small>
-                  <input value={cookie} onChange={(e) => setCookie(e.target.value)} className="field h-8 w-full px-2 text-[10.5px]" dir="ltr" />
+                  <input value={cookie} onChange={(e) => setCookie(e.target.value)} aria-label={t.add.cookie} className="field h-8 w-full px-2 text-[10.5px]" dir="ltr" />
                 </Labeled>
               </div>
             ) : null}
@@ -588,6 +596,7 @@ export function AddDownloadModal(): React.JSX.Element {
                       if (e.key === 'Enter') void analyzeVideo()
                     }}
                     placeholder="https://www.youtube.com/watch?v=…"
+                    aria-label={t.add.videoUrl}
                     className="field h-10 w-full ps-9 pe-2 text-[12px]"
                     dir="ltr"
                   />
@@ -601,7 +610,7 @@ export function AddDownloadModal(): React.JSX.Element {
                   onClick={() => void analyzeVideo()}
                   disabled={analyzing}
                 >
-                  {analyzing ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
+                  {analyzing ? <Loader2 size={14} className="animate-spin" /> : <Search size={14} />}
                   {analyzing ? t.add.analyzing : t.add.analyze}
                 </button>
               </div>
@@ -686,7 +695,7 @@ export function AddDownloadModal(): React.JSX.Element {
                 </div>
 
                 <div>
-                  <div className="mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-faint">
+                  <div className="mb-1.5 text-[10.5px] font-semibold text-muted">
                     {t.add.selectQuality}
                   </div>
                   <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-3">
@@ -709,7 +718,7 @@ export function AddDownloadModal(): React.JSX.Element {
                           </span>
                           <span className="mt-0.5 flex items-center gap-1.5 text-[9px] text-faint">
                             <span className="uppercase">{option.ext}</span>
-                            {option.filesize ? <span>· {formatBytes(option.filesize)}</span> : null}
+                            {option.filesize ? <span dir="ltr">· {formatBytes(option.filesize)}</span> : null}
                           </span>
                           {active ? (
                             <span className="absolute end-1.5 top-1.5 grid h-4 w-4 place-items-center rounded-full bg-brand text-white">
@@ -724,7 +733,7 @@ export function AddDownloadModal(): React.JSX.Element {
 
                 {audioFormats.length ? (
                   <div>
-                    <div className="mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-faint">
+                    <div className="mb-1.5 text-[10.5px] font-semibold text-muted">
                       {t.add.audioTrack}
                     </div>
                     <div className="flex flex-wrap gap-1.5">
@@ -736,14 +745,14 @@ export function AddDownloadModal(): React.JSX.Element {
                             type="button"
                             onClick={() => setSelectedFormat(option.id)}
                             className={cn(
-                              'flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[10.5px] transition',
+                              'flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-[10.5px] transition',
                               active
                                 ? 'border-brand/50 bg-brand/10 font-semibold text-brand'
                                 : 'border-line bg-elev/25 text-muted hover:border-line2 hover:text-ink'
                             )}
                           >
                             <span className="uppercase">{option.label}</span>
-                            {option.filesize ? <span className="text-[9px] opacity-70">{formatBytes(option.filesize)}</span> : null}
+                            {option.filesize ? <span className="text-[9px] opacity-70" dir="ltr">{formatBytes(option.filesize)}</span> : null}
                           </button>
                         )
                       })}
@@ -779,8 +788,8 @@ export function AddDownloadModal(): React.JSX.Element {
 
             <Labeled label={t.add.saveTo}>
               <div className="flex gap-1.5">
-                <input value={dir} onChange={(e) => setDir(e.target.value)} className="field h-9 min-w-0 flex-1 px-3 text-[10.5px]" dir="ltr" />
-                <button type="button" className="icon-btn h-9! w-9! border border-line" onClick={() => void chooseDir()}>
+                <input value={dir} onChange={(e) => setDir(e.target.value)} aria-label={t.add.saveTo} className="field h-9 min-w-0 flex-1 px-3 text-[10.5px]" dir="ltr" />
+                <button type="button" className="icon-btn h-9! w-9! border border-line" onClick={() => void chooseDir()} aria-label={t.add.browse}>
                   <FolderOpen size={14} />
                 </button>
               </div>
@@ -790,26 +799,29 @@ export function AddDownloadModal(): React.JSX.Element {
 
         {tab === 'torrent' ? (
           <div className="space-y-3.5">
-            <div
-              onDragOver={(e) => {
-                e.preventDefault()
-                setDragOver(true)
-              }}
-              onDragLeave={() => setDragOver(false)}
-              onDrop={(e) => void onDrop(e)}
-              onClick={() => fileInputRef.current?.click()}
-              className={cn(
-                'flex cursor-pointer flex-col items-center gap-2 rounded-xl border-2 border-dashed px-4 py-7 text-center transition',
-                dragOver ? 'border-brand/60 bg-brand/10' : 'border-line2 bg-elev/20 hover:border-brand/40 hover:bg-elev/40'
-              )}
-            >
-              <div className="grid h-11 w-11 place-items-center rounded-xl bg-brand/12 text-brand">
-                <Magnet size={20} />
-              </div>
-              <div className="text-[11.5px] font-semibold">
-                {torrentPath ? torrentPath.split(/[\\/]/).pop() : t.add.dropTorrent}
-              </div>
-              <div className="text-[9.5px] text-faint">BitTorrent · DHT · magnet</div>
+            <div>
+              <button
+                type="button"
+                onDragOver={(e) => {
+                  e.preventDefault()
+                  setDragOver(true)
+                }}
+                onDragLeave={() => setDragOver(false)}
+                onDrop={(e) => void onDrop(e)}
+                onClick={() => fileInputRef.current?.click()}
+                className={cn(
+                  'flex w-full cursor-pointer flex-col items-center gap-2 rounded-xl border-2 border-dashed px-4 py-7 text-center transition',
+                  dragOver ? 'border-brand/60 bg-brand/10' : 'border-line2 bg-elev/20 hover:border-brand/40 hover:bg-elev/40'
+                )}
+              >
+                <span className="grid h-11 w-11 place-items-center rounded-xl bg-brand/12 text-brand">
+                  <Magnet size={20} />
+                </span>
+                <span className="text-[11.5px] font-semibold">
+                  {torrentPath ? torrentPath.split(/[\\/]/).pop() : t.add.dropTorrent}
+                </span>
+                <span className="text-[9.5px] text-faint">BitTorrent · DHT · magnet</span>
+              </button>
               <input
                 ref={fileInputRef}
                 type="file"
@@ -832,6 +844,7 @@ export function AddDownloadModal(): React.JSX.Element {
                   setTorrentName('')
                 }}
                 placeholder="magnet:?xt=urn:btih:…"
+                aria-label={t.add.magnet}
                 className="field h-10 w-full px-3 text-[11px]"
                 dir="ltr"
               />
@@ -840,8 +853,8 @@ export function AddDownloadModal(): React.JSX.Element {
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <Labeled label={t.add.saveTo}>
                 <div className="flex gap-1.5">
-                  <input value={dir} onChange={(e) => setDir(e.target.value)} className="field h-9 min-w-0 flex-1 px-3 text-[10.5px]" dir="ltr" />
-                  <button type="button" className="icon-btn h-9! w-9! border border-line" onClick={() => void chooseDir()}>
+                  <input value={dir} onChange={(e) => setDir(e.target.value)} aria-label={t.add.saveTo} className="field h-9 min-w-0 flex-1 px-3 text-[10.5px]" dir="ltr" />
+                  <button type="button" className="icon-btn h-9! w-9! border border-line" onClick={() => void chooseDir()} aria-label={t.add.browse}>
                     <FolderOpen size={14} />
                   </button>
                 </div>

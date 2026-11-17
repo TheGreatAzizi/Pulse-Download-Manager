@@ -1,6 +1,6 @@
-# Pulse — Download Manager
+# Pulse Download Manager
 
-A fast, professional cross-platform download manager for direct links, YouTube videos, and BitTorrent. Built with Electron, React and TypeScript.
+A cross-platform download manager for direct links, YouTube videos, and BitTorrent. Built with Electron, React and TypeScript.
 
 [![GitHub](https://img.shields.io/badge/GitHub-TheGreatAzizi%2FPulse--Download--Manager-181717?logo=github)](https://github.com/TheGreatAzizi/Pulse-Download-Manager)
 [![License: GPL-3.0-or-later](https://img.shields.io/badge/License-GPL--3.0--or--later-blue.svg)](https://github.com/TheGreatAzizi/Pulse-Download-Manager/blob/main/LICENSE)
@@ -10,12 +10,12 @@ A fast, professional cross-platform download manager for direct links, YouTube v
 Get the latest releases from the [Releases page](https://github.com/TheGreatAzizi/Pulse-Download-Manager/releases).
 
 **Windows**
-- `Pulse-Setup-*.exe` — NSIS installer with optional auto-start, desktop and Start Menu shortcuts
-- `Pulse-Portable-*.exe` — portable build, no installation required
+- `Pulse-Setup-*.exe`: NSIS installer with optional auto-start, desktop and Start Menu shortcuts
+- `Pulse-Portable-*.exe`: portable build, no installation required
 
 **Linux**
-- `Pulse-*.AppImage` — runs on most distributions including Arch
-- `Pulse-*.deb` — Debian/Ubuntu package
+- `Pulse-*.AppImage`: runs on most distributions including Arch
+- `Pulse-*.deb`: Debian/Ubuntu package
 
 > Arch / similar distros: install `fuse2` for AppImage support `sudo pacman -S fuse2`. If FUSE is unavailable, run `./Pulse-*.AppImage --appimage-extract-and-run`. `.deb` can be converted with `debtap`.
 
@@ -26,48 +26,39 @@ The Windows installer allows choosing the install directory, creates desktop and
 ## Screenshots
 
 ### Main Dashboard
-![Main Dashboard](https://raw.githubusercontent.com/TheGreatAzizi/Pulse-Download-Manager/main/docs/screenshots/Pulse%20%E2%80%94%20Download%20Manager%2023_08_1405%2001_03_54.png)
+![Main Dashboard](https://raw.githubusercontent.com/TheGreatAzizi/Pulse-Download-Manager/main/docs/screenshots/final/main-light.png)
 
-### YouTube Downloader
-![YouTube Downloader](https://raw.githubusercontent.com/TheGreatAzizi/Pulse-Download-Manager/main/docs/screenshots/Pulse%20%E2%80%94%20Download%20Manager%2023_08_1405%2001_04_10.png)
+### Dark Theme
+![Dark Theme](https://raw.githubusercontent.com/TheGreatAzizi/Pulse-Download-Manager/main/docs/screenshots/final/main-dark.png)
+
+### Persian RTL
+![Persian RTL](https://raw.githubusercontent.com/TheGreatAzizi/Pulse-Download-Manager/main/docs/screenshots/final/main-fa.png)
+
+### Settings
+![Settings](https://raw.githubusercontent.com/TheGreatAzizi/Pulse-Download-Manager/main/docs/screenshots/final/settings-general-light.png)
+
+### Add Download
+![Add Download](https://raw.githubusercontent.com/TheGreatAzizi/Pulse-Download-Manager/main/docs/screenshots/final/add-download-en.png)
 
 ### GitHub Browser
-![GitHub Browser](https://raw.githubusercontent.com/TheGreatAzizi/Pulse-Download-Manager/main/docs/screenshots/Pulse%20%E2%80%94%20Download%20Manager%2023_08_1405%2001_04_18.png)
+![GitHub Browser](https://raw.githubusercontent.com/TheGreatAzizi/Pulse-Download-Manager/main/docs/screenshots/final/github-browser.png)
 
-### Torrent Details
-![Torrent Details](https://raw.githubusercontent.com/TheGreatAzizi/Pulse-Download-Manager/main/docs/screenshots/Pulse%20%E2%80%94%20Download%20Manager%2023_08_1405%2001_04_23.png)
-
-### Settings & Appearance
-![Settings](https://raw.githubusercontent.com/TheGreatAzizi/Pulse-Download-Manager/main/docs/screenshots/Pulse%20%E2%80%94%20Download%20Manager%2023_08_1405%2001_04_26.png)
-
-### Download List
-![Download List](https://raw.githubusercontent.com/TheGreatAzizi/Pulse-Download-Manager/main/docs/screenshots/Pulse%20%E2%80%94%20Download%20Manager%2023_08_1405%2001_04_42.png)
-
-### Speed Limit
-![Speed Limit](https://raw.githubusercontent.com/TheGreatAzizi/Pulse-Download-Manager/main/docs/screenshots/Pulse%20%E2%80%94%20Download%20Manager%2023_08_1405%2001_04_45.png)
-
-### Add Download Modal
-![Add Download](https://raw.githubusercontent.com/TheGreatAzizi/Pulse-Download-Manager/main/docs/screenshots/Pulse%20%E2%80%94%20Download%20Manager%2023_08_1405%2001_04_48.png)
-
-### Tools
-![Tools](https://raw.githubusercontent.com/TheGreatAzizi/Pulse-Download-Manager/main/docs/screenshots/Pulse%20%E2%80%94%20Download%20Manager%2023_08_1405%2001_05_06.png)
+### Empty State
+![Empty State](https://raw.githubusercontent.com/TheGreatAzizi/Pulse-Download-Manager/main/docs/screenshots/final/empty-paused.png)
 
 ### About
-![About](https://raw.githubusercontent.com/TheGreatAzizi/Pulse-Download-Manager/main/docs/screenshots/Pulse%20%E2%80%94%20Download%20Manager%2023_08_1405%2001_05_11.png)
-
-### Tray / System Integration
-![Tray](https://raw.githubusercontent.com/TheGreatAzizi/Pulse-Download-Manager/main/docs/screenshots/Pulse%20%E2%80%94%20Download%20Manager%2023_08_1405%2001_05_40.png)
+![About](https://raw.githubusercontent.com/TheGreatAzizi/Pulse-Download-Manager/main/docs/screenshots/final/settings-about-light.png)
 
 ## Features
 
-- **Multi-connection HTTP downloads** — Range requests, resume on disconnect, smart queue, speed limit
-- **YouTube & 1000+ sites** via `yt-dlp` — quality selection, audio extraction, subtitles, thumbnails, playlists
-- **BitTorrent** — magnet and .torrent files, file selection, secure resume, peer/seeder stats, upload ratio
-- **GitHub browser** — search public repositories, download source ZIPs, release assets and archives. Optional GitHub token raises API limits
-- **Multilingual UI** — English, Persian RTL, Japanese, Russian; Light/Dark theme
-- **Built-in tools** — automatic `yt-dlp` installer, `ffmpeg` detection, torrent engine management
-- **Auto-start** — optional launch on Windows login and Linux autostart
-- **Clipboard monitor** — suggests adding copied links
+- **Multi-connection HTTP downloads**: Range requests, resume on disconnect, smart queue, speed limit
+- **YouTube & 1000+ sites** via `yt-dlp`: quality selection, audio extraction, subtitles, thumbnails, playlists
+- **BitTorrent**: magnet and .torrent files, file selection, secure resume, peer/seeder stats, upload ratio
+- **GitHub browser**: search public repositories, download source ZIPs, release assets and archives. Optional GitHub token raises API limits
+- **Multilingual UI**: English, Persian RTL, Japanese, Russian; Light/Dark theme
+- **Built-in tools**: automatic `yt-dlp` installer, `ffmpeg` detection, torrent engine management
+- **Auto-start**: optional launch on Windows login and Linux autostart
+- **Clipboard monitor**: suggests adding copied links
 
 ## GitHub Integration
 
@@ -92,7 +83,7 @@ npm run dist:linux # AppImage + deb
 
 Output is written to `dist/`.
 
-Optional binaries can be placed in `resources/bin/` — `yt-dlp` and `ffmpeg` — to be bundled with the app. Otherwise Pulse discovers them from system paths or user data.
+Optional binaries can be placed in `resources/bin/` (`yt-dlp` and `ffmpeg`) to be bundled with the app. Otherwise Pulse discovers them from system paths or user data.
 
 ## YouTube bot detection
 

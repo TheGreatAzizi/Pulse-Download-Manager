@@ -48,45 +48,34 @@ export function KindIcon({ task, size = 42 }: { task: DownloadTask; size?: numbe
   const base = {
     width: size,
     height: size,
-    borderRadius: Math.max(10, Math.round(size * 0.3))
+    borderRadius: Math.max(8, Math.round(size * 0.22))
   } as CSSProperties
 
   let Icon: typeof Globe = Globe
-  let gradient = 'linear-gradient(145deg, #6366f1, #8b5cf6)'
-  let isImage = false
 
   if (task.kind === 'youtube') {
     Icon = Youtube
-    gradient = 'linear-gradient(145deg, #ef4444, #f97316)'
   } else if (task.kind === 'torrent') {
     Icon = Magnet
-    gradient = 'linear-gradient(145deg, #0ea5e9, #22d3ee)'
   } else {
     switch (task.category) {
       case 'video':
         Icon = Film
-        gradient = 'linear-gradient(145deg, #8b5cf6, #6366f1)'
         break
       case 'audio':
         Icon = Music
-        gradient = 'linear-gradient(145deg, #ec4899, #f43f5e)'
         break
       case 'image':
         Icon = ImageIcon
-        gradient = 'linear-gradient(145deg, #14b8a6, #22d3ee)'
-        isImage = true
         break
       case 'archive':
         Icon = FileArchive
-        gradient = 'linear-gradient(145deg, #f59e0b, #f97316)'
         break
       case 'document':
         Icon = FileText
-        gradient = 'linear-gradient(145deg, #3b82f6, #6366f1)'
         break
       case 'app':
         Icon = AppWindow
-        gradient = 'linear-gradient(145deg, #10b981, #14b8a6)'
         break
       default:
         Icon = Globe
@@ -95,37 +84,31 @@ export function KindIcon({ task, size = 42 }: { task: DownloadTask; size?: numbe
   }
 
   return (
-    <div
-      className="relative grid shrink-0 place-items-center overflow-hidden text-white shadow-lg shadow-black/20"
+    <span
+      className="relative grid shrink-0 place-items-center overflow-hidden border border-line bg-elev2 text-muted"
       style={base}
     >
-      {isImage && task.thumbnail ? (
+      {task.category === 'image' && task.thumbnail ? (
         <img src={task.thumbnail} alt="" className="h-full w-full object-cover" />
       ) : (
-        <>
-          <div className="absolute inset-0" style={{ background: gradient }} />
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.35),transparent_55%)]" />
-          <Icon size={iconSize} strokeWidth={2.1} className="relative" />
-        </>
+        <Icon size={iconSize} strokeWidth={1.9} />
       )}
-    </div>
+    </span>
   )
 }
 
 export function StatusPill({ status, label }: { status: TaskStatus; label: string }): React.JSX.Element {
   const tone = STATUS_TONE[status]
-  const live = status === 'downloading' || status === 'connecting' || status === 'verifying'
   return (
     <span
       className={cn(
-        'inline-flex items-center gap-1.5 rounded-full border px-2 py-[2px] text-[10.5px] font-semibold',
+        'inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-md border px-2 py-[2px] text-[10.5px] font-semibold',
         TONE_CLASS[tone]
       )}
     >
       <span
         className={cn(
           'h-1.5 w-1.5 rounded-full',
-          live && 'live-dot',
           tone === 'brand' && 'bg-brand',
           tone === 'ok' && 'bg-ok',
           tone === 'warn' && 'bg-warn',
@@ -153,13 +136,13 @@ export function ProgressBar({
   const paused = task.status === 'paused' || task.status === 'queued'
   const error = task.status === 'error'
   return (
-    <div className="progress-track w-full" style={{ height }}>
+    <span className="progress-track block w-full" style={{ height }}>
       {indeterminate ? (
-        <div className="indeterminate h-full rounded-full" />
+        <span className="indeterminate block h-full rounded-full" />
       ) : (
-        <div
+        <span
           className={cn(
-            'progress-fill',
+            'progress-fill block',
             active && 'is-active',
             done && 'is-done',
             paused && 'is-paused',
@@ -168,7 +151,7 @@ export function ProgressBar({
           style={{ width: `${Math.max(done ? 100 : percent, percent > 0 ? 1.5 : 0)}%` }}
         />
       )}
-    </div>
+    </span>
   )
 }
 
@@ -205,23 +188,17 @@ export function Ring({
           stroke="color-mix(in srgb, var(--c-line2) 75%, transparent)"
           strokeWidth={stroke}
         />
-        <defs>
-          <linearGradient id={`ring-${tone}`} x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor={colors[tone]} />
-            <stop offset="100%" stopColor="var(--c-brand2)" />
-          </linearGradient>
-        </defs>
         <circle
           cx={size / 2}
           cy={size / 2}
           r={radius}
           fill="none"
-          stroke={`url(#ring-${tone})`}
+          stroke={colors[tone]}
           strokeWidth={stroke}
           strokeLinecap="round"
           strokeDasharray={circumference}
           strokeDashoffset={circumference - (clamped / 100) * circumference}
-          style={{ transition: 'stroke-dashoffset .5s cubic-bezier(.22,1,.36,1)' }}
+          style={{ transition: 'stroke-dashoffset .35s ease' }}
         />
       </svg>
       <div className="absolute inset-0 grid place-items-center">{children}</div>
@@ -232,7 +209,7 @@ export function Ring({
 export function Sparkline({
   values,
   height = 44,
-  color = 'var(--c-brand2)',
+  color = 'var(--c-brand)',
   className
 }: {
   values: number[]
@@ -279,26 +256,21 @@ export function Sparkline({
 
 export function EmptyArt(): React.JSX.Element {
   return (
-    <div className="relative grid h-36 w-36 place-items-center">
-      <svg viewBox="0 0 160 160" className="absolute inset-0 h-full w-full">
-        <defs>
-          <linearGradient id="empty-g" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor="var(--c-brand)" stopOpacity="0.55" />
-            <stop offset="100%" stopColor="var(--c-brand2)" stopOpacity="0.25" />
-          </linearGradient>
-        </defs>
-        <circle cx="80" cy="80" r="64" fill="none" stroke="url(#empty-g)" strokeWidth="1.5" strokeDasharray="4 6" />
-        <circle cx="80" cy="80" r="46" fill="var(--c-elev)" stroke="var(--c-line2)" />
-        <path
-          d="M80 56v44m0 0-15-15m15 15 15-15"
-          stroke="url(#empty-g)"
-          strokeWidth="4"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
+    <div className="grid h-28 w-28 place-items-center rounded-xl2 border border-line bg-elev/40">
+      <svg
+        width="34"
+        height="34"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="var(--c-faint)"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        aria-hidden="true"
+      >
+        <path d="M12 4v11m0 0-4-4m4 4 4-4" />
+        <path d="M5 19h14" />
       </svg>
-      <div className="absolute -right-1 top-6 h-2 w-2 rounded-full bg-brand2/70 live-dot" />
-      <div className="absolute left-2 bottom-8 h-1.5 w-1.5 rounded-full bg-brand/70 live-dot" />
     </div>
   )
 }
@@ -317,16 +289,20 @@ export function Stat({
   accent?: string
 }): React.JSX.Element {
   return (
-    <div className="panel relative flex items-center gap-3 overflow-hidden rounded-xl2 px-4 py-3 shadow-[var(--shadow-panel)]">
+    <div className="panel relative flex items-center gap-3 overflow-hidden rounded-xl2 px-4 py-3">
       <div
-        className="grid h-10 w-10 shrink-0 place-items-center rounded-xl"
-        style={{ background: accent ?? 'color-mix(in srgb, var(--c-brand) 14%, transparent)' }}
+        className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-elev2"
+        style={accent ? { background: accent } : undefined}
       >
         {icon}
       </div>
       <div className="min-w-0">
-        <div className="text-[10.5px] font-medium uppercase tracking-wider text-muted">{label}</div>
-        <div className="mt-0.5 truncate text-[17px] font-bold leading-tight tabular">{value}</div>
+        <div className="text-[11px] font-medium text-muted">{label}</div>
+        <div className="mt-0.5 truncate text-[18px] font-semibold leading-tight tabular">
+          <span dir="ltr" className="inline-block">
+            {value}
+          </span>
+        </div>
         {hint ? <div className="mt-0.5 text-[10.5px] text-faint">{hint}</div> : null}
       </div>
     </div>

@@ -8,7 +8,7 @@ export function StatusBar(): React.JSX.Element {
   const limited = settings.globalSpeedLimit > 0
 
   return (
-    <footer className="flex h-[30px] shrink-0 items-center gap-3 border-t border-line/70 bg-panel/55 px-3 text-[9.5px] text-faint">
+    <footer className="flex h-[30px] shrink-0 items-center gap-3 border-t border-line/70 bg-panel px-3 text-[9.5px] text-faint">
       <div className="flex items-center gap-2.5">
         <span className="flex items-center gap-1" title="yt-dlp">
           <span className={cn('h-1.5 w-1.5 rounded-full', stats?.ytdlp.available ? 'bg-ok' : 'bg-bad')} />
@@ -27,7 +27,7 @@ export function StatusBar(): React.JSX.Element {
               stats?.torrentEngine === 'ready'
                 ? 'bg-ok'
                 : stats?.torrentEngine === 'starting'
-                  ? 'bg-warn live-dot'
+                  ? 'bg-warn'
                   : 'bg-faint'
             )}
           />
@@ -57,8 +57,8 @@ export function StatusBar(): React.JSX.Element {
           {t.statusbar.limit}:{' '}
           {limited ? formatSpeed(settings.globalSpeedLimit) : t.statusbar.unlimited}
         </span>
-        <span className="flex items-center gap-1 tabular text-brand2">
-          <span className="h-1.5 w-1.5 rounded-full bg-brand2 live-dot" />
+        <span className="flex items-center gap-1 tabular text-brand">
+          <span className="h-1.5 w-1.5 rounded-full bg-brand" />
           {formatSpeed(stats?.downSpeed ?? 0)}
         </span>
         <span className="hidden tabular md:inline">↑ {formatSpeed(stats?.upSpeed ?? 0)}</span>
@@ -66,7 +66,7 @@ export function StatusBar(): React.JSX.Element {
           <CircleCheck size={10} className="text-ok" />
           {stats?.completedCount ?? 0}
         </span>
-        <span className="rounded bg-elev2/70 px-1.5 py-[1px] font-mono text-[8.5px] uppercase text-faint">
+        <span className="rounded bg-elev2/70 px-1.5 py-[1px] text-[9px] font-semibold uppercase text-faint">
           {lang}
         </span>
       </div>

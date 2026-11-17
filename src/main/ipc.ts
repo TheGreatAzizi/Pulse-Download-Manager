@@ -1,4 +1,4 @@
-import { BrowserWindow, app, dialog, ipcMain, shell } from 'electron'
+import { BrowserWindow, app, clipboard, dialog, ipcMain, shell } from 'electron'
 import { statfs } from 'node:fs/promises'
 import type { AddDownloadInput, AddTorrentInput, AppSnapshot, Settings } from '@shared/types'
 import { IP } from '@shared/ipc'
@@ -91,6 +91,7 @@ export function registerIpc(manager: DownloadManager, getWindow: () => BrowserWi
   )
 
   handle(IP.readClipboard, () => manager.readClipboardUrl())
+  handle(IP.writeClipboard, (text: string) => clipboard.writeText(text))
 
   handle(IP.chooseDir, async (current?: string) => {
     const win = getWindow()

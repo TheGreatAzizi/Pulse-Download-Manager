@@ -65,7 +65,7 @@ export function Sidebar(): React.JSX.Element {
   const free = system?.freeDisk || 0
 
   return (
-    <aside className="flex w-[236px] shrink-0 flex-col border-e border-line/70 bg-panel/55">
+    <aside className="flex w-[236px] shrink-0 flex-col border-e border-line/70 bg-panel">
       <nav className="scroll-y flex-1 px-2.5 py-3.5">
         <Section title={t.nav.library}>
           <Item icon={<LayoutGrid size={16} />} label={t.nav.all} count={counts.all} active={view === 'all'} onClick={() => setView('all')} />
@@ -103,15 +103,19 @@ export function Sidebar(): React.JSX.Element {
         <button
           type="button"
           onClick={() => void window.pulse.revealDir(settings.downloadDir)}
-          className="group w-full rounded-xl border border-line/80 bg-elev/50 p-2.5 text-start transition hover:border-line2 hover:bg-elev2/70"
+          className="group w-full rounded-lg border border-line/80 bg-elev/50 p-2.5 text-start transition hover:border-line2 hover:bg-elev2/70"
         >
           <div className="flex items-center gap-2">
-            <div className="grid h-7 w-7 place-items-center rounded-lg bg-brand/12 text-brand">
+            <div className="grid h-7 w-7 place-items-center rounded-md bg-elev2 text-muted">
               <HardDrive size={14} />
             </div>
             <div className="min-w-0 flex-1">
               <div className="text-[10px] text-muted">{t.stats.free}</div>
-              <div className="text-[12px] font-semibold tabular">{formatBytes(free)}</div>
+              <div className="text-[12px] font-semibold tabular">
+                <span dir="ltr" className="inline-block">
+                  {formatBytes(free)}
+                </span>
+              </div>
             </div>
             <FolderOpen size={14} className="text-faint transition group-hover:text-ink" />
           </div>
@@ -132,8 +136,9 @@ export function Sidebar(): React.JSX.Element {
           <select
             value={settings.language}
             onChange={(e) => patchSettings({ language: e.target.value as 'en'|'fa'|'ja'|'ru' })}
-            className="chip h-9 rounded-lg! px-2! bg-elev2/70 text-[11px] font-semibold focus:outline-none"
+            className="chip h-9 rounded-lg! px-2! bg-elev2/70 text-[11px] font-semibold"
             title={t.settings.appearance.language}
+            aria-label={t.settings.appearance.language}
           >
             <option value="en">EN</option>
             <option value="fa">FA</option>
@@ -154,7 +159,7 @@ export function Sidebar(): React.JSX.Element {
 function Section({ title, children }: { title: string; children: React.ReactNode }): React.JSX.Element {
   return (
     <div className="mb-4">
-      <div className="mb-1.5 px-2.5 text-[9.5px] font-bold uppercase tracking-[0.14em] text-faint">
+      <div className="mb-1.5 px-2.5 text-[10px] font-semibold text-faint">
         {title}
       </div>
       <div className="space-y-0.5">{children}</div>
@@ -183,16 +188,14 @@ function Item({
     <button
       type="button"
       onClick={onClick}
+      aria-current={active ? 'page' : undefined}
       className={cn(
         'group relative flex w-full items-center gap-2.5 rounded-lg px-2.5 py-[7px] text-[12px] transition',
         active
-          ? 'bg-brand/12 font-semibold text-ink'
+          ? 'bg-elev2 font-semibold text-ink'
           : 'font-medium text-muted hover:bg-elev2/70 hover:text-ink'
       )}
     >
-      {active ? (
-        <span className="absolute inset-y-1.5 start-0 w-[3px] rounded-full bg-gradient-to-b from-brand to-brand2" />
-      ) : null}
       <span
         className={cn(
           'relative transition',
@@ -201,14 +204,15 @@ function Item({
       >
         {icon}
         {live ? (
-          <span className="absolute -end-1 -top-1 h-1.5 w-1.5 rounded-full bg-ok live-dot" />
+          <span className="absolute -end-1 -top-1 h-1.5 w-1.5 rounded-full bg-ok" />
         ) : null}
+
       </span>
       <span className="flex-1 truncate text-start">{label}</span>
       {count > 0 ? (
         <span
           className={cn(
-            'min-w-[20px] rounded-md px-1 py-[1px] text-center text-[9.5px] font-semibold tabular',
+            'min-w-[20px] rounded px-1 py-[1px] text-center text-[9.5px] font-semibold tabular',
             active ? 'bg-brand/20 text-brand' : 'bg-elev2/80 text-faint'
           )}
         >

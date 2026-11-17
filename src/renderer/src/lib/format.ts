@@ -5,6 +5,12 @@ export function cn(...parts: Array<string | false | null | undefined>): string {
   return parts.filter(Boolean).join(' ')
 }
 
+export function cleanIpcError(error: unknown, fallback: string): string {
+  const message = error instanceof Error ? error.message : String(error || '')
+  const cleaned = message.replace(/^Error invoking remote method '[^']+':\s*(?:Error:\s*)?/, '')
+  return cleaned || fallback
+}
+
 const UNITS = ['B', 'KB', 'MB', 'GB', 'TB']
 
 export function formatBytes(bytes: number, digits = 1): string {
@@ -15,12 +21,12 @@ export function formatBytes(bytes: number, digits = 1): string {
 }
 
 export function formatSpeed(bytes: number): string {
-  if (!bytes) return '—'
+  if (!bytes) return '0 B/s'
   return `${formatBytes(bytes, 1)}/s`
 }
 
 export function formatEta(seconds: number, lang: Lang): string {
-  if (!Number.isFinite(seconds) || seconds <= 0) return '—'
+  if (!Number.isFinite(seconds) || seconds <= 0) return '-'
   const s = Math.round(seconds)
   if (s < 60) return lang === 'fa' ? `${s} ثانیه` : `${s}s`
   const m = Math.floor(s / 60)
@@ -31,7 +37,7 @@ export function formatEta(seconds: number, lang: Lang): string {
 }
 
 export function formatDuration(seconds?: number): string {
-  if (!seconds || seconds <= 0) return '—'
+  if (!seconds || seconds <= 0) return '-'
   const s = Math.round(seconds)
   const h = Math.floor(s / 3600)
   const m = Math.floor((s % 3600) / 60)

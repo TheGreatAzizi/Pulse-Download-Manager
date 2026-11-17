@@ -81,6 +81,7 @@ const en = {
     title: 'Nothing here yet',
     desc: 'Paste a direct link, a video URL or a magnet link to start downloading.',
     filtered: 'No downloads match this filter.',
+    filteredDesc: 'Try a different search, or show all downloads.',
     add: 'Add your first download'
   },
   detail: {
@@ -121,7 +122,7 @@ const en = {
   },
   add: {
     title: 'Add download',
-    subtitle: 'Direct links, online video and torrents — one engine.',
+    subtitle: 'Direct links, online video and torrents in one engine.',
     tabs: {
       link: 'Direct link',
       video: 'Online video',
@@ -217,7 +218,7 @@ const en = {
   },
   settings: {
     title: 'Settings',
-    subtitle: 'Tune Pulse to your connection and taste.',
+    subtitle: 'Download folder, connections, and startup behavior.',
     tabs: {
       general: 'General',
       speed: 'Bandwidth',
@@ -294,7 +295,7 @@ const en = {
       githubTokenPlaceholder: 'ghp_… (optional)'
     },
     about: {
-      built: 'A modern download manager for Windows and Linux.',
+      built: 'Download manager for Windows and Linux.',
       features: 'Multi-connection HTTP engine · yt-dlp video engine · BitTorrent · GitHub browser · RTL interface',
       version: 'Version',
       platform: 'Platform',
@@ -322,6 +323,7 @@ const en = {
     resumed: 'Download resumed',
     removed: 'Download removed',
     copied: 'Link copied',
+    copyFailed: 'Could not copy the link',
     settingsSaved: 'Settings saved',
     clipboard: 'Link detected in clipboard',
     addThis: 'Add',
@@ -335,10 +337,17 @@ const en = {
     deleteFile: 'Delete file too',
     confirm: 'Confirm',
     close: 'Close',
+    minimize: 'Minimize',
+    maximize: 'Maximize',
+    restore: 'Restore',
+    clearSearch: 'Clear search',
+    showAll: 'Show all downloads',
     removeTitle: 'Remove download?',
     removeDesc: 'The downloaded file will be kept on disk unless you choose to delete it.',
     requiredTools: 'Required tools',
     back: 'Back',
+    decrease: 'Decrease',
+    increase: 'Increase',
     search: 'Search',
     none: 'None'
   }
@@ -425,6 +434,7 @@ const fa: typeof en = {
     title: 'هنوز چیزی اینجا نیست',
     desc: 'یک لینک مستقیم، آدرس ویدیو یا لینک مگنت جای‌گذاری کنید تا دانلود شروع شود.',
     filtered: 'هیچ دانلودی با این فیلتر مطابقت ندارد.',
+    filteredDesc: 'جست‌وجوی دیگری را امتحان کنید یا همه دانلودها را نمایش دهید.',
     add: 'افزودن اولین دانلود'
   },
   detail: {
@@ -465,7 +475,7 @@ const fa: typeof en = {
   },
   add: {
     title: 'افزودن دانلود',
-    subtitle: 'لینک مستقیم، ویدیوی آنلاین و تورنت — یک موتور یکپارچه.',
+    subtitle: 'لینک مستقیم، ویدیوی آنلاین و تورنت در یک موتور یکپارچه.',
     tabs: {
       link: 'لینک مستقیم',
       video: 'ویدیوی آنلاین',
@@ -561,7 +571,7 @@ const fa: typeof en = {
   },
   settings: {
     title: 'تنظیمات',
-    subtitle: 'پالس را مطابق اتصال و سلیقه‌تان تنظیم کنید.',
+    subtitle: 'پوشه دانلود، تعداد اتصال‌ها و رفتار هنگام شروع.',
     tabs: {
       general: 'عمومی',
       speed: 'پهنای باند',
@@ -638,7 +648,7 @@ const fa: typeof en = {
       githubTokenPlaceholder: 'ghp_… (اختیاری)'
     },
     about: {
-      built: 'یک دانلود منیجر مدرن برای ویندوز و لینوکس.',
+      built: 'دانلود منیجر برای ویندوز و لینوکس.',
       features: 'موتور HTTP چنداتصاله · موتور ویدیو yt-dlp · بیت‌تورنت · مرورگر گیت‌هاب · رابط راست‌به‌چپ',
       version: 'نسخه',
       platform: 'پلتفرم',
@@ -666,6 +676,7 @@ const fa: typeof en = {
     resumed: 'دانلود ادامه یافت',
     removed: 'دانلود حذف شد',
     copied: 'لینک کپی شد',
+    copyFailed: 'کپی لینک انجام نشد',
     settingsSaved: 'تنظیمات ذخیره شد',
     clipboard: 'لینکی در حافظه موقت پیدا شد',
     addThis: 'افزودن',
@@ -679,10 +690,17 @@ const fa: typeof en = {
     deleteFile: 'حذف فایل هم انجام شود',
     confirm: 'تأیید',
     close: 'بستن',
+    minimize: 'کوچک کردن',
+    maximize: 'بزرگ کردن',
+    restore: 'بازگرداندن',
+    clearSearch: 'پاک کردن جست‌وجو',
+    showAll: 'نمایش همه دانلودها',
     removeTitle: 'حذف دانلود؟',
     removeDesc: 'فایل دانلودشده روی دیسک می‌ماند مگر اینکه حذف آن را انتخاب کنید.',
     requiredTools: 'ابزارهای لازم',
     back: 'بازگشت',
+    decrease: 'کاهش',
+    increase: 'افزایش',
     search: 'جست‌وجو',
     none: 'هیچ'
   }
@@ -769,6 +787,7 @@ const ja: typeof en = {
     title: 'まだ何もありません',
     desc: 'ダイレクトリンク、動画URL、またはマグネットリンクを貼り付けてダウンロードを開始してください。',
     filtered: 'このフィルターに一致するダウンロードはありません。',
+    filteredDesc: '別の検索を試すか、すべてのダウンロードを表示してください。',
     add: '最初のダウンロードを追加'
   },
   detail: {
@@ -809,7 +828,7 @@ const ja: typeof en = {
   },
   add: {
     title: 'ダウンロードを追加',
-    subtitle: 'ダイレクトリンク、オンライン動画、トレント — ひとつのエンジンで。',
+    subtitle: 'ダイレクトリンク、オンライン動画、トレントをひとつのエンジンで。',
     tabs: {
       link: 'ダイレクトリンク',
       video: 'オンライン動画',
@@ -905,7 +924,7 @@ const ja: typeof en = {
   },
   settings: {
     title: '設定',
-    subtitle: 'Pulse をご自身の接続と好みに合わせて調整してください。',
+    subtitle: '保存先、接続数、起動時の動作を設定します。',
     tabs: {
       general: '一般',
       speed: '帯域幅',
@@ -982,7 +1001,7 @@ const ja: typeof en = {
       githubTokenPlaceholder: 'ghp_…（任意）'
     },
     about: {
-      built: 'Windows と Linux 向けのモダンなダウンロードマネージャー。',
+      built: 'Windows と Linux 向けのダウンロードマネージャー。',
       features: 'マルチコネクション HTTP エンジン · yt-dlp 動画エンジン · BitTorrent · GitHub ブラウザ · RTL インターフェース',
       version: 'バージョン',
       platform: 'プラットフォーム',
@@ -1010,6 +1029,7 @@ const ja: typeof en = {
     resumed: 'ダウンロード再開',
     removed: 'ダウンロード削除',
     copied: 'リンクをコピーしました',
+    copyFailed: 'リンクをコピーできませんでした',
     settingsSaved: '設定を保存しました',
     clipboard: 'クリップボードにリンクが検出されました',
     addThis: '追加',
@@ -1023,10 +1043,17 @@ const ja: typeof en = {
     deleteFile: 'ファイルも削除',
     confirm: '確認',
     close: '閉じる',
+    minimize: '最小化',
+    maximize: '最大化',
+    restore: '元に戻す',
+    clearSearch: '検索をクリア',
+    showAll: 'すべてのダウンロードを表示',
     removeTitle: 'ダウンロードを削除しますか？',
     removeDesc: 'ダウンロード済みファイルはディスクに残ります。削除する場合は選択してください。',
     requiredTools: '必要なツール',
     back: '戻る',
+    decrease: '減らす',
+    increase: '増やす',
     search: '検索',
     none: 'なし'
   }
@@ -1113,6 +1140,7 @@ const ru: typeof en = {
     title: 'Пока ничего нет',
     desc: 'Вставьте прямую ссылку, URL видео или магнет-ссылку, чтобы начать скачивание.',
     filtered: 'Загрузки по этому фильтру не найдены.',
+    filteredDesc: 'Попробуйте другой запрос или покажите все загрузки.',
     add: 'Добавьте первую загрузку'
   },
   detail: {
@@ -1153,7 +1181,7 @@ const ru: typeof en = {
   },
   add: {
     title: 'Добавить загрузку',
-    subtitle: 'Прямые ссылки, онлайн-видео и торренты — один движок.',
+    subtitle: 'Прямые ссылки, онлайн-видео и торренты в одном движке.',
     tabs: {
       link: 'Прямая ссылка',
       video: 'Онлайн-видео',
@@ -1249,7 +1277,7 @@ const ru: typeof en = {
   },
   settings: {
     title: 'Настройки',
-    subtitle: 'Настройте Pulse под ваше соединение и вкус.',
+    subtitle: 'Папка загрузки, подключения и поведение при запуске.',
     tabs: {
       general: 'Основное',
       speed: 'Пропускная способность',
@@ -1326,7 +1354,7 @@ const ru: typeof en = {
       githubTokenPlaceholder: 'ghp_… (необязательно)'
     },
     about: {
-      built: 'Современный скачиватель для Windows и Linux.',
+      built: 'Скачиватель для Windows и Linux.',
       features: 'Многопоточный HTTP-движок · Видео-движок yt-dlp · BitTorrent · Обозреватель GitHub · Интерфейс RTL',
       version: 'Версия',
       platform: 'Платформа',
@@ -1354,6 +1382,7 @@ const ru: typeof en = {
     resumed: 'Загрузка возобновлена',
     removed: 'Загрузка удалена',
     copied: 'Ссылка скопирована',
+    copyFailed: 'Не удалось скопировать ссылку',
     settingsSaved: 'Настройки сохранены',
     clipboard: 'Ссылка найдена в буфере обмена',
     addThis: 'Добавить',
@@ -1367,10 +1396,17 @@ const ru: typeof en = {
     deleteFile: 'Также удалить файл',
     confirm: 'Подтвердить',
     close: 'Закрыть',
+    minimize: 'Свернуть',
+    maximize: 'Развернуть',
+    restore: 'Восстановить',
+    clearSearch: 'Очистить поиск',
+    showAll: 'Показать все загрузки',
     removeTitle: 'Удалить загрузку?',
     removeDesc: 'Скачанный файл останется на диске, если вы не выберете его удаление.',
     requiredTools: 'Необходимые инструменты',
     back: 'Назад',
+    decrease: 'Уменьшить',
+    increase: 'Увеличить',
     search: 'Поиск',
     none: 'Нет'
   }

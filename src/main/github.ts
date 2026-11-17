@@ -85,7 +85,7 @@ async function ghFetch<T>(url: string, token: string, attempt = 0): Promise<T> {
       await new Promise((resolve) => setTimeout(resolve, 400 * (attempt + 1)))
       return ghFetch<T>(url, token, attempt + 1)
     }
-    throw new Error(`Could not reach GitHub: ${(err as Error).message || 'network error'}`)
+    throw new Error('Could not reach GitHub. Check your connection and try again.')
   }
   if (!res.ok) {
     let message = ''

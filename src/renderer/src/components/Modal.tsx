@@ -2,6 +2,7 @@ import { useEffect, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import { X } from 'lucide-react'
 import { cn } from '../lib/format'
+import { useApp } from '../state'
 
 export function Modal({
   open,
@@ -9,7 +10,8 @@ export function Modal({
   children,
   width = 760,
   className,
-  hideClose = false
+  hideClose = false,
+  label
 }: {
   open: boolean
   onClose: () => void
@@ -17,7 +19,9 @@ export function Modal({
   width?: number
   className?: string
   hideClose?: boolean
+  label?: string
 }): React.JSX.Element | null {
+  const { t } = useApp()
   useEffect(() => {
     if (!open) return
     const onKey = (e: KeyboardEvent): void => {
@@ -37,7 +41,10 @@ export function Modal({
       }}
     >
       <div
-        className={cn('glass anim-rise relative w-full overflow-hidden rounded-2xl shadow-2xl', className)}
+        role="dialog"
+        aria-modal="true"
+        aria-label={label}
+        className={cn('panel anim-fade relative w-full overflow-hidden rounded-xl2 shadow-[var(--shadow-overlay)]', className)}
         style={{ maxWidth: width, maxHeight: '90vh' }}
       >
         {!hideClose ? (
@@ -45,7 +52,7 @@ export function Modal({
             type="button"
             onClick={onClose}
             className="icon-btn absolute end-3 top-3 z-20"
-            aria-label="Close"
+            aria-label={t.common.close}
           >
             <X size={16} />
           </button>

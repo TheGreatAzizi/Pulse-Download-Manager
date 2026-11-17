@@ -81,6 +81,7 @@ export function TopBar(): React.JSX.Element {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder={t.toolbar.search}
+              aria-label={t.toolbar.search}
               className="field h-9 w-[230px] ps-8 pe-8 text-[12px] lg:w-[270px]"
             />
             {query ? (
@@ -88,6 +89,7 @@ export function TopBar(): React.JSX.Element {
                 type="button"
                 className="absolute end-2 top-1/2 -translate-y-1/2 text-faint hover:text-ink"
                 onClick={() => setQuery('')}
+                aria-label={t.common.clearSearch}
               >
                 <X size={13} />
               </button>
@@ -108,14 +110,16 @@ export function TopBar(): React.JSX.Element {
               currentLimit > 0 && 'text-warn'
             )}
             title={t.settings.speed.title}
+            aria-label={t.settings.speed.title}
+            aria-expanded={limitOpen}
           >
             <Gauge size={15} />
             <span className="hidden tabular sm:inline">{limitLabel}</span>
             <ChevronDown size={12} className={cn('transition', limitOpen && 'rotate-180')} />
           </button>
           {limitOpen ? (
-            <div className="glass anim-rise absolute end-0 top-11 z-50 w-[190px] rounded-xl p-1.5 shadow-2xl">
-              <div className="px-2 py-1 text-[9.5px] font-bold uppercase tracking-wider text-faint">
+            <div className="panel anim-fade absolute end-0 top-11 z-50 w-[190px] rounded-lg p-1.5 shadow-[var(--shadow-overlay)]">
+              <div className="px-2 py-1 text-[10px] font-semibold text-muted">
                 {t.settings.speed.title}
               </div>
               {LIMITS.map((item) => (
@@ -155,6 +159,7 @@ export function TopBar(): React.JSX.Element {
           onClick={() => setSettingsOpen(true)}
           className="icon-btn hidden h-9 w-9 md:grid"
           title={t.toolbar.settings}
+          aria-label={t.toolbar.settings}
         >
           <Settings size={16} />
         </button>

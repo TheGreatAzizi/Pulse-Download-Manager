@@ -481,7 +481,7 @@ export class YoutubeEngine {
     if (!ffmpeg && selector.includes('+')) {
       // Without ffmpeg yt-dlp cannot merge separate video/audio streams.
       selector = 'best[ext=mp4]/best'
-      handle.toast('info', 'ffmpeg is missing — downloading the best single-file format instead.')
+      handle.toast('info', 'ffmpeg is missing. Downloading the best single-file format instead.')
     }
     const outputTemplate = join(task.dir, '%(title).120B [%(id)s].%(ext)s')
     const args = [

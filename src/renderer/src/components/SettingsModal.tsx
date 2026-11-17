@@ -17,12 +17,12 @@ import {
   RefreshCw,
   Settings2,
   ShieldCheck,
-  Sparkles,
   Sun,
   Wrench
 } from 'lucide-react'
 import type { Settings } from '@shared/types'
 import { useApp } from '../state'
+import { dictionaries } from '../i18n'
 import { Modal } from './Modal'
 import { Logo, Toggle } from './primitives'
 import { cn } from '../lib/format'
@@ -54,7 +54,7 @@ export function SettingsModal(): React.JSX.Element {
 
   const save = (): void => {
     patchSettings(draft)
-    pushToast('success', t.toast.settingsSaved)
+    pushToast('success', dictionaries[merged.language].toast.settingsSaved)
     setSettingsOpen(false)
   }
 
@@ -91,7 +91,7 @@ export function SettingsModal(): React.JSX.Element {
   const ffmpeg = stats?.ffmpeg
 
   return (
-    <Modal open={settingsOpen} onClose={() => setSettingsOpen(false)} width={880} className="flex h-[600px] max-h-[88vh] flex-col">
+    <Modal open={settingsOpen} onClose={() => setSettingsOpen(false)} width={880} className="flex h-[600px] max-h-[88vh] flex-col" label={t.settings.title}>
       <div className="flex shrink-0 items-center gap-3 border-b border-line/70 px-6 py-4">
         <div className="grid h-9 w-9 place-items-center rounded-xl bg-brand/12 text-brand">
           <Settings2 size={17} />
@@ -119,7 +119,7 @@ export function SettingsModal(): React.JSX.Element {
               <ChevronRight size={12} className={cn('ms-auto text-faint flip-x', tab === item.id ? 'opacity-100' : 'opacity-0')} />
             </button>
           ))}
-          <div className="mt-auto rounded-lg bg-elev/50 p-2.5 text-[9px] leading-relaxed text-faint">
+          <div className="mt-auto px-1 pb-1 text-[9px] leading-relaxed text-faint">
             Pulse v{system?.appVersion ?? '1.0.0'} · {system?.platform === 'linux' ? 'Linux' : 'Windows'}
           </div>
         </div>
@@ -132,6 +132,7 @@ export function SettingsModal(): React.JSX.Element {
                   <input
                     value={merged.downloadDir}
                     onChange={(e) => set('downloadDir', e.target.value)}
+                    aria-label={t.settings.general.dir}
                     className="field h-9 min-w-0 flex-1 px-3 text-[10.5px]"
                     dir="ltr"
                   />
@@ -159,6 +160,7 @@ export function SettingsModal(): React.JSX.Element {
                       max={32}
                       value={merged.connections}
                       onChange={(e) => set('connections', Number(e.target.value))}
+                      aria-label={t.settings.general.connections}
                       className="flex-1 accent-[var(--c-brand)]"
                     />
                     <span className="chip text-[10px]! text-brand! tabular">{merged.connections}</span>
@@ -257,6 +259,7 @@ export function SettingsModal(): React.JSX.Element {
                           set('globalSpeedLimit', Number.isFinite(n) && n > 0 ? Math.round(n * 1024 * 1024) : 0)
                         }}
                         placeholder="0"
+                        aria-label={t.settings.speed.custom}
                         className="field h-9 w-full px-3 pe-16 text-[11px] tabular"
                         dir="ltr"
                       />
@@ -267,10 +270,6 @@ export function SettingsModal(): React.JSX.Element {
                   </div>
                   <div className="pb-2 text-[9.5px] text-faint">{t.settings.speed.note}</div>
                 </div>
-              </div>
-              <div className="flex items-center gap-2 rounded-xl border border-warn/20 bg-warn/5 px-3 py-2.5 text-[10px] text-muted">
-                <Activity size={13} className="text-warn" />
-                {t.settings.speed.desc}
               </div>
             </div>
           ) : null}
@@ -283,14 +282,14 @@ export function SettingsModal(): React.JSX.Element {
                     active={merged.theme === 'dark'}
                     label={t.settings.appearance.dark}
                     icon={<Moon size={16} />}
-                    preview="linear-gradient(145deg,#0b0e15,#161b27)"
+                    preview={{ bg: '#0d1017', bar: 'rgba(255,255,255,0.16)', accent: '#4a7df0' }}
                     onClick={() => set('theme', 'dark')}
                   />
                   <ThemeCard
                     active={merged.theme === 'light'}
                     label={t.settings.appearance.light}
                     icon={<Sun size={16} />}
-                    preview="linear-gradient(145deg,#ffffff,#e8edf7)"
+                    preview={{ bg: '#ffffff', bar: 'rgba(15,23,42,0.14)', accent: '#2f5fd0' }}
                     onClick={() => set('theme', 'light')}
                   />
                 </div>
@@ -422,6 +421,7 @@ export function SettingsModal(): React.JSX.Element {
                       type="number"
                       value={merged.torrentPort}
                       onChange={(e) => set('torrentPort', Number(e.target.value) || 51413)}
+                      aria-label={t.settings.tools.port}
                       className="field h-7 w-[76px] px-2 text-[10px] tabular"
                       dir="ltr"
                     />
@@ -514,6 +514,7 @@ export function SettingsModal(): React.JSX.Element {
                   value={merged.githubToken}
                   onChange={(e) => set('githubToken', e.target.value)}
                   placeholder={t.settings.tools.githubTokenPlaceholder}
+                  aria-label={t.settings.tools.githubToken}
                   className="field mt-2 h-8 w-full px-2 text-[10px]"
                   dir="ltr"
                   autoComplete="off"
@@ -539,13 +540,11 @@ export function SettingsModal(): React.JSX.Element {
 
           {tab === 'about' ? (
             <div className="flex flex-col items-center py-6 text-center">
-              <Logo size={64} />
-              <h3 className="mt-4 text-[19px] font-extrabold tracking-tight">
-                Pulse <span className="text-gradient">Download Manager</span>
-              </h3>
+              <Logo size={64} glow={false} />
+              <h3 className="mt-4 text-[19px] font-semibold tracking-tight">Pulse Download Manager</h3>
               <p className="mt-1 max-w-sm text-[11px] leading-relaxed text-muted">{t.settings.about.built}</p>
               <div className="mt-3 flex flex-wrap justify-center gap-1.5">
-                <span className="chip"><Sparkles size={10} /> HTTP ×{merged.connections}</span>
+                <span className="chip"><Activity size={10} /> HTTP ×{merged.connections}</span>
                 <span className="chip"><Globe2 size={10} /> yt-dlp</span>
                 <span className="chip"><Activity size={10} /> BitTorrent</span>
                 <span className="chip"><Moon size={10} /> RTL</span>
@@ -572,7 +571,6 @@ export function SettingsModal(): React.JSX.Element {
                   }
                 />
               </div>
-              <p className="mt-4 text-[10px] text-faint">{t.settings.about.made}</p>
             </div>
           ) : null}
         </div>
@@ -582,10 +580,12 @@ export function SettingsModal(): React.JSX.Element {
         <button type="button" className="btn btn-ghost h-9 px-3.5 text-[11px]" onClick={() => setSettingsOpen(false)}>
           {t.settings.close}
         </button>
-        <button type="button" className="btn btn-primary h-9 px-4 text-[11px]" onClick={save}>
-          <Check size={14} />
-          {t.settings.save}
-        </button>
+        {tab !== 'about' ? (
+          <button type="button" className="btn btn-primary h-9 px-4 text-[11px]" onClick={save}>
+            <Check size={14} />
+            {t.settings.save}
+          </button>
+        ) : null}
       </div>
     </Modal>
   )
@@ -622,11 +622,13 @@ function Stepper({
   max: number
   onChange: (v: number) => void
 }): React.JSX.Element {
+  const { t } = useApp()
   return (
     <div className="flex items-center gap-1.5">
       <button
         type="button"
         onClick={() => onChange(Math.max(min, value - 1))}
+        aria-label={t.common.decrease}
         className="icon-btn h-8! w-8! border border-line text-[14px]"
       >
         −
@@ -637,6 +639,7 @@ function Stepper({
       <button
         type="button"
         onClick={() => onChange(Math.min(max, value + 1))}
+        aria-label={t.common.increase}
         className="icon-btn h-8! w-8! border border-line text-[14px]"
       >
         +
@@ -679,13 +682,14 @@ function ThemeCard({
   active: boolean
   label: string
   icon: React.ReactNode
-  preview: string
+  preview: { bg: string; bar: string; accent: string }
   onClick: () => void
 }): React.JSX.Element {
   return (
     <button
       type="button"
       onClick={onClick}
+      aria-pressed={active}
       className={cn(
         'group flex items-center gap-3 rounded-xl border p-2.5 text-start transition',
         active ? 'border-brand/50 bg-brand/8' : 'border-line bg-elev/25 hover:border-line2'
@@ -693,11 +697,20 @@ function ThemeCard({
     >
       <div
         className="relative h-11 w-16 overflow-hidden rounded-lg border border-line2"
-        style={{ background: preview }}
+        style={{ background: preview.bg }}
       >
-        <div className="absolute inset-x-1.5 top-1.5 h-1 rounded-full bg-white/20" />
-        <div className="absolute inset-x-1.5 top-3.5 h-1 rounded-full bg-white/10" />
-        <div className="absolute inset-x-1.5 top-5.5 h-1 rounded-full bg-brand/60" />
+        <div
+          className="absolute inset-x-1.5 top-1.5 h-1 rounded-full"
+          style={{ background: preview.bar }}
+        />
+        <div
+          className="absolute inset-x-1.5 top-3.5 h-1 rounded-full"
+          style={{ background: preview.bar }}
+        />
+        <div
+          className="absolute inset-x-1.5 top-5.5 h-1 rounded-full"
+          style={{ background: preview.accent }}
+        />
       </div>
       <div className="flex-1">
         <div className={cn('flex items-center gap-1.5 text-[11px] font-semibold', active && 'text-brand')}>
@@ -735,7 +748,7 @@ function ToolCard({
         <span
           className={cn(
             'mt-1 h-2 w-2 shrink-0 rounded-full',
-            ready ? 'bg-ok live-dot' : 'bg-faint'
+            ready ? 'bg-ok' : 'bg-faint'
           )}
         />
         <div className="min-w-0 flex-1">

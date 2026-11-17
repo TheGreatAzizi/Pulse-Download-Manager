@@ -1,14 +1,14 @@
 import { useMemo, useState } from 'react'
 import {
   ArrowDownUp,
-  CircleCheck,
   Copy,
   ExternalLink,
   FolderOpen,
+  LayoutGrid,
   Pause,
   Play,
+  Plus,
   RotateCw,
-  Search,
   Trash2,
   Trash,
   X
@@ -102,11 +102,14 @@ export function DownloadList(): React.JSX.Element {
   return (
     <section className="flex min-h-0 flex-1 flex-col">
       <div className="flex shrink-0 items-center gap-2 px-5 pb-2 pt-0.5">
-        <div className="text-[10px] font-medium uppercase tracking-wider text-faint">
+        <div className="text-[10.5px] font-medium text-faint">
           {filtered.length} {t.stats.tasks}
           {filtered.length > 0 ? (
             <span className="ms-1.5 normal-case tracking-normal text-faint/80">
-              · {formatBytes(filtered.reduce((acc, x) => acc + (x.size || 0), 0))}
+              ·{' '}
+              <span dir="ltr" className="inline-block">
+                {formatBytes(filtered.reduce((acc, x) => acc + (x.size || 0), 0))}
+              </span>
             </span>
           ) : null}
         </div>
@@ -120,6 +123,7 @@ export function DownloadList(): React.JSX.Element {
           <select
             value={sort}
             onChange={(e) => setSort(e.target.value as SortId)}
+            aria-label={t.toolbar.sort}
             className="field h-7 cursor-pointer appearance-none bg-transparent border-transparent! px-1.5 text-[10.5px] text-muted hover:border-line2!"
           >
             {sortOptions.map((opt) => (
@@ -150,7 +154,7 @@ export function DownloadList(): React.JSX.Element {
             filtered={tasks.length > 0}
             onAdd={() => openAdd()}
             title={tasks.length > 0 ? t.empty.filtered : t.empty.title}
-            desc={tasks.length > 0 ? '' : t.empty.desc}
+            desc={tasks.length > 0 ? t.empty.filteredDesc : t.empty.desc}
             addLabel={t.empty.add}
           />
         ) : (
@@ -182,6 +186,7 @@ export function DownloadList(): React.JSX.Element {
         onClose={() => setRemoveTarget(null)}
         width={430}
         hideClose
+        label={t.common.removeTitle}
       >
         <div className="p-5">
           <div className="flex items-start gap-3">
@@ -274,99 +279,99 @@ function TaskRow({
 
   const copyLink = async (): Promise<void> => {
     try {
-      await navigator.clipboard.writeText(task.url)
+      await window.pulse.writeClipboard(task.url)
       onToast('success', t.toast.copied)
     } catch {
-      onToast('error', 'Clipboard unavailable')
+      onToast('error', t.toast.copyFailed)
     }
   }
 
   return (
     <div
-      role="button"
-      tabIndex={0}
-      onClick={onSelect}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter') onSelect()
-      }}
-      onDoubleClick={() => {
-        if (completed) void window.pulse.openTask(task.id)
-      }}
       className={cn(
-        'row-hover group relative cursor-pointer overflow-hidden rounded-xl2 border border-line/70 bg-panel/55 px-3.5 py-2.5',
+        'row-hover group relative overflow-hidden rounded-xl2 border border-line/70 bg-panel',
         selected && 'row-selected'
       )}
     >
-      {selected ? (
-        <span className="absolute inset-y-3 start-0 w-[3px] rounded-full bg-gradient-to-b from-brand to-brand2" />
-      ) : null}
-      <div className="flex items-center gap-3">
-        <KindIcon task={task} />
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2">
-            <span className="truncate text-[12.5px] font-semibold leading-tight" title={task.name}>
-              {task.name}
+      <div className="flex items-center gap-3 px-3.5 py-2.5">
+        <button
+          type="button"
+          onClick={onSelect}
+          onDoubleClick={() => {
+            if (completed) void window.pulse.openTask(task.id)
+          }}
+          aria-label={`${task.name}, ${t.status[task.status]}, ${Math.round(percent)}%`}
+          className="flex min-w-0 flex-1 items-center gap-3 rounded-md text-start"
+        >
+          <KindIcon task={task} />
+          <span className="min-w-0 flex-1">
+            <span className="flex items-center gap-2">
+              <span className="truncate text-[12.5px] font-semibold leading-tight" title={task.name}>
+                {task.name}
+              </span>
+              <StatusPill status={task.status} label={t.status[task.status]} />
+              {task.kind === 'youtube' && task.youtube?.audioOnly ? (
+                <span className="chip py-0! text-[9px]!">audio</span>
+              ) : null}
+              {task.kind === 'torrent' && task.torrent?.seeding ? (
+                <span className="chip border-ok/25! py-0! text-[9px]! text-ok!">seed</span>
+              ) : null}
             </span>
-            <StatusPill status={task.status} label={t.status[task.status]} />
-            {task.kind === 'youtube' && task.youtube?.audioOnly ? (
-              <span className="chip py-0! text-[9px]!">audio</span>
-            ) : null}
-            {task.kind === 'torrent' && task.torrent?.seeding ? (
-              <span className="chip border-ok/25! py-0! text-[9px]! text-ok!">seed</span>
-            ) : null}
-          </div>
-          <div className="mt-0.5 flex items-center gap-1.5 truncate text-[10.5px] text-muted">
-            <span className="truncate" dir="auto">
-              {metaParts.join(' · ')}
+            <span className="mt-0.5 flex items-center gap-1.5 truncate text-[10.5px] text-muted">
+              <span className="truncate" dir="auto">
+                {metaParts.join(' · ')}
+              </span>
             </span>
-          </div>
-          <div className="mt-2 flex items-center gap-2.5">
-            <div className="flex-1">
-              <ProgressBar task={task} />
-            </div>
-            <span className="w-9 shrink-0 text-end text-[10px] font-medium tabular text-muted">
-              {task.size > 0 ? `${percent.toFixed(percent >= 10 ? 0 : 1)}%` : '—'}
+            <span className="mt-2 flex items-center gap-2.5">
+              <span className="flex-1">
+                <ProgressBar task={task} />
+              </span>
+              <span className="w-9 shrink-0 text-end text-[10px] font-medium tabular text-muted">
+                {task.size > 0 ? `${percent.toFixed(percent >= 10 ? 0 : 1)}%` : '-'}
+              </span>
             </span>
-          </div>
-        </div>
+          </span>
 
-        <div className="flex w-[112px] shrink-0 flex-col items-end justify-center gap-0.5">
-          <div
-            className={cn(
-              'text-[11.5px] font-semibold tabular',
-              active ? 'text-brand2' : completed ? 'text-ok' : 'text-muted'
-            )}
-          >
-            {active
-              ? formatSpeed(task.speed)
-              : completed
-                ? formatBytes(task.size)
-                : task.size > 0
+          <span className="hidden w-[112px] shrink-0 flex-col items-end justify-center gap-0.5 xl:flex">
+            <span
+              dir="ltr"
+              className={cn(
+                'text-[11.5px] font-semibold tabular',
+                active ? 'text-brand2' : completed ? 'text-ok' : 'text-muted'
+              )}
+            >
+              {active
+                ? formatSpeed(task.speed)
+                : completed
                   ? formatBytes(task.size)
-                  : '—'}
-          </div>
-          <div className="text-[9.5px] text-faint tabular">
-            {active
-              ? `${t.row.eta} ${formatEta(task.eta, lang)}`
-              : task.status === 'paused'
-                ? `${formatBytes(task.downloaded)} / ${task.size ? formatBytes(task.size) : '?'}`
-                : task.status === 'queued'
-                  ? t.status.queued
-                  : task.status === 'connecting'
-                    ? t.row.processing
-                    : task.status === 'error'
-                      ? (task.error || '').slice(0, 24)
-                      : task.kind === 'torrent'
-                        ? `${task.torrent?.peers ?? 0} ${t.row.peers}`
-                        : t.status[task.status]}
-          </div>
-        </div>
+                  : task.size > 0
+                    ? formatBytes(task.size)
+                    : '-'}
+            </span>
+            <span className="text-[9.5px] text-faint tabular" dir={task.status === 'paused' ? 'ltr' : undefined}>
+              {active
+                ? `${t.row.eta} ${formatEta(task.eta, lang)}`
+                : task.status === 'paused'
+                  ? `${formatBytes(task.downloaded)} / ${task.size ? formatBytes(task.size) : '?'}`
+                  : task.status === 'queued'
+                    ? t.status.queued
+                    : task.status === 'connecting'
+                      ? t.row.processing
+                      : task.status === 'error'
+                        ? (task.error || '').slice(0, 24)
+                        : task.kind === 'torrent'
+                          ? `${task.torrent?.peers ?? 0} ${t.row.peers}`
+                          : t.status[task.status]}
+            </span>
+          </span>
+        </button>
 
         <div className="flex shrink-0 items-center gap-0.5 opacity-70 transition group-hover:opacity-100">
           <button
             type="button"
             className="icon-btn"
             title={completed ? t.row.open : active ? t.row.pause : t.row.resume}
+            aria-label={completed ? t.row.open : active ? t.row.pause : t.row.resume}
             onClick={(e) => {
               e.stopPropagation()
               primaryAction()
@@ -386,6 +391,7 @@ function TaskRow({
             type="button"
             className="icon-btn hidden sm:grid"
             title={t.row.folder}
+            aria-label={t.row.folder}
             onClick={(e) => {
               e.stopPropagation()
               void window.pulse.revealTask(task.id)
@@ -397,6 +403,7 @@ function TaskRow({
             type="button"
             className="icon-btn hidden lg:grid"
             title={t.row.copy}
+            aria-label={t.row.copy}
             onClick={(e) => {
               e.stopPropagation()
               void copyLink()
@@ -408,6 +415,7 @@ function TaskRow({
             type="button"
             className="icon-btn hover:text-bad!"
             title={t.row.remove}
+            aria-label={t.row.remove}
             onClick={(e) => {
               e.stopPropagation()
               onRemove()
@@ -434,7 +442,7 @@ function EmptyState({
   addLabel: string
   onAdd: () => void
 }): React.JSX.Element {
-  const { t } = useApp()
+  const { t, setQuery, setView } = useApp()
   return (
     <div className="anim-fade flex h-full min-h-[280px] flex-col items-center justify-center gap-4 py-10 text-center">
       <EmptyArt />
@@ -444,14 +452,21 @@ function EmptyState({
       </div>
       {!filtered ? (
         <button type="button" onClick={onAdd} className="btn btn-soft h-9 px-3.5 text-[11.5px]">
-          <Search size={14} />
+          <Plus size={14} />
           {addLabel}
         </button>
       ) : (
-        <div className="flex items-center gap-1.5 text-[10.5px] text-faint">
-          <CircleCheck size={13} />
-          {t.toolbar.clear}
-        </div>
+        <button
+          type="button"
+          onClick={() => {
+            setQuery('')
+            setView('all')
+          }}
+          className="btn btn-soft h-9 px-3.5 text-[11.5px]"
+        >
+          <LayoutGrid size={14} />
+          {t.common.showAll}
+        </button>
       )}
     </div>
   )

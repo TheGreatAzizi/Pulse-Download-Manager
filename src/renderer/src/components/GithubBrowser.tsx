@@ -21,7 +21,7 @@ import type {
   GithubSearchResult
 } from '@shared/types'
 import { useApp } from '../state'
-import { cn, formatBytes } from '../lib/format'
+import { cleanIpcError, cn, formatBytes } from '../lib/format'
 
 const POPULAR_QUERY = 'stars:>10000'
 
@@ -32,9 +32,9 @@ function compact(n: number): string {
 }
 
 function shortDate(iso: string): string {
-  if (!iso) return '—'
+  if (!iso) return '-'
   const date = new Date(iso)
-  if (Number.isNaN(date.getTime())) return '—'
+  if (Number.isNaN(date.getTime())) return '-'
   return date.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })
 }
 
@@ -73,7 +73,7 @@ export function GithubBrowser(): React.JSX.Element {
         setResult(res)
       } catch (err) {
         if (id !== requestId.current) return
-        const message = (err as Error).message || t.github.error
+        const message = cleanIpcError(err, t.github.error)
         setError(message)
         setRateLimited(/rate limit|403/i.test(message))
         setResult(null)
@@ -99,7 +99,7 @@ export function GithubBrowser(): React.JSX.Element {
       )
       setPage((p) => p + 1)
     } catch (err) {
-      pushToast('error', (err as Error).message)
+      pushToast('error', cleanIpcError(err, t.github.error))
     } finally {
       setMoreLoading(false)
     }
@@ -111,7 +111,7 @@ export function GithubBrowser(): React.JSX.Element {
       const details = await window.pulse.githubRepo(repo.fullName)
       setSelected(details)
     } catch (err) {
-      pushToast('error', (err as Error).message)
+      pushToast('error', cleanIpcError(err, t.github.error))
     } finally {
       setRepoLoading(false)
     }
@@ -123,7 +123,7 @@ export function GithubBrowser(): React.JSX.Element {
       await window.pulse.addDownload({ url, fileName, dir: settings.downloadDir })
       pushToast('success', t.github.added)
     } catch (err) {
-      pushToast('error', (err as Error).message)
+      pushToast('error', cleanIpcError(err, t.github.error))
     } finally {
       setBusy(null)
     }
@@ -159,6 +159,7 @@ export function GithubBrowser(): React.JSX.Element {
               value={term}
               onChange={(e) => setTerm(e.target.value)}
               placeholder={t.github.searchPlaceholder}
+              aria-label={t.github.searchPlaceholder}
               className="field h-10 w-full ps-9 pe-3 text-[12px]"
               dir="auto"
             />
@@ -169,7 +170,7 @@ export function GithubBrowser(): React.JSX.Element {
           </button>
         </form>
         <div className="mt-2 flex flex-wrap items-center gap-1.5">
-          <span className="text-[9px] font-semibold uppercase tracking-wider text-faint">
+          <span className="text-[10px] font-semibold text-faint">
             {t.github.quick}
           </span>
           {quickSearches.map((item) => (
@@ -180,7 +181,7 @@ export function GithubBrowser(): React.JSX.Element {
                 setTerm(item.query)
                 void runSearch(item.query)
               }}
-              className="chip h-6 rounded-full! px-2.5! text-[9.5px] transition hover:border-brand/40 hover:text-ink"
+              className="chip h-6 rounded-md! px-2.5! text-[9.5px] transition hover:border-brand/40 hover:text-ink"
             >
               {item.label}
             </button>
@@ -331,21 +332,21 @@ function RepoCard({
             ) : null}
           </div>
           <p className="mt-0.5 line-clamp-2 min-h-[2.1em] text-[10px] leading-relaxed text-muted">
-            {repo.description || '—'}
+            {repo.description || '-'}
           </p>
         </div>
       </div>
 
       <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[9px] text-faint">
         <span className="flex items-center gap-1 tabular">
-          <Star size={10} className="text-warn/80" /> {compact(repo.stars)}
+          <Star size={10} className="text-muted" /> {compact(repo.stars)}
         </span>
         <span className="flex items-center gap-1 tabular">
           <GitFork size={10} /> {compact(repo.forks)}
         </span>
         {repo.language ? (
           <span className="flex items-center gap-1">
-            <span className="h-1.5 w-1.5 rounded-full bg-brand/70" /> {repo.language}
+            {repo.language}
           </span>
         ) : null}
         {repo.license ? <span className="truncate">{repo.license}</span> : null}
@@ -375,6 +376,7 @@ function RepoCard({
           onClick={() => void window.pulse.openExternal(repo.htmlUrl)}
           className="icon-btn ms-auto h-7 w-7"
           title={t.github.open}
+          aria-label={t.github.open}
         >
           <ExternalLink size={12} />
         </button>
@@ -400,7 +402,12 @@ function RepoDetails({
   return (
     <div className="mx-auto max-w-4xl">
       <div className="flex items-start gap-3">
-        <button type="button" onClick={onBack} className="icon-btn mt-0.5 h-8 w-8 shrink-0">
+        <button
+          type="button"
+          onClick={onBack}
+          className="icon-btn mt-0.5 h-8 w-8 shrink-0"
+          aria-label={t.common.back}
+        >
           <ArrowLeft size={15} />
         </button>
         {repo.ownerAvatar ? (
@@ -412,10 +419,10 @@ function RepoDetails({
         ) : null}
         <div className="min-w-0 flex-1">
           <h2 className="truncate text-[15px] font-bold tracking-tight">{repo.fullName}</h2>
-          <p className="mt-0.5 text-[10.5px] leading-relaxed text-muted">{repo.description || '—'}</p>
+          <p className="mt-0.5 text-[10.5px] leading-relaxed text-muted">{repo.description || '-'}</p>
           <div className="mt-2 flex flex-wrap items-center gap-2 text-[9.5px] text-faint">
             <span className="chip h-5.5 rounded-md! px-2!">
-              <Star size={10} className="text-warn/80" /> {compact(repo.stars)}
+              <Star size={10} className="text-muted" /> {compact(repo.stars)}
             </span>
             <span className="chip h-5.5 rounded-md! px-2!">
               <GitFork size={10} /> {compact(repo.forks)}
@@ -558,7 +565,7 @@ function ReleaseCard({
                 {asset.name}
               </span>
               {asset.size > 0 ? (
-                <span className="text-faint tabular">({formatBytes(asset.size)})</span>
+                <span className="text-faint tabular" dir="ltr">({formatBytes(asset.size)})</span>
               ) : null}
             </button>
           ))

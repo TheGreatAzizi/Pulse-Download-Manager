@@ -3,16 +3,16 @@ import { useApp } from '../state'
 import { Logo } from './primitives'
 
 export function TitleBar(): React.JSX.Element {
-  const { maximized, settings, stats, system, t } = useApp()
+  const { maximized, stats, system, t } = useApp()
   return (
-    <header className="drag relative z-30 flex h-11 shrink-0 items-center justify-between border-b border-line/70 bg-panel/45 px-3">
+    <header className="drag relative z-30 flex h-11 shrink-0 items-center justify-between border-b border-line/70 bg-panel px-3">
       <div className="flex items-center gap-2.5">
         <Logo size={24} glow={false} />
         <span className="text-[13.5px] font-extrabold tracking-tight">Pulse</span>
         <span className="chip py-0! text-[9.5px]!">v{system?.appVersion ?? '1.0.0'}</span>
         {stats?.torrentEngine === 'ready' ? (
           <span className="ms-2 hidden items-center gap-1.5 text-[10px] text-faint sm:flex">
-            <span className="live-dot h-1.5 w-1.5 rounded-full bg-ok" />
+            <span className="h-1.5 w-1.5 rounded-full bg-ok" />
             {t.stats.enginesOnline}
           </span>
         ) : null}
@@ -22,7 +22,7 @@ export function TitleBar(): React.JSX.Element {
           type="button"
           className="grid h-8 w-10 place-items-center rounded-md text-muted transition hover:bg-elev2 hover:text-ink"
           onClick={() => void window.pulse.windowControl('minimize')}
-          aria-label="Minimize"
+          aria-label={t.common.minimize}
         >
           <Minus size={15} />
         </button>
@@ -30,7 +30,7 @@ export function TitleBar(): React.JSX.Element {
           type="button"
           className="grid h-8 w-10 place-items-center rounded-md text-muted transition hover:bg-elev2 hover:text-ink"
           onClick={() => void window.pulse.windowControl('maximize')}
-          aria-label={maximized ? 'Restore' : 'Maximize'}
+          aria-label={maximized ? t.common.restore : t.common.maximize}
         >
           {maximized ? <RestoreIcon /> : <Maximize2 size={13} />}
         </button>
@@ -38,11 +38,10 @@ export function TitleBar(): React.JSX.Element {
           type="button"
           className="grid h-8 w-10 place-items-center rounded-md text-muted transition hover:bg-bad hover:text-white"
           onClick={() => void window.pulse.windowControl('close')}
-          aria-label="Close"
+          aria-label={t.common.close}
         >
           <X size={15} />
         </button>
-        <span className="sr-only">{settings.theme}</span>
       </div>
     </header>
   )

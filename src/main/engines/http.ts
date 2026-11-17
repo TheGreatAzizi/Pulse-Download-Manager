@@ -176,7 +176,7 @@ export class HttpEngine {
     }
 
     if (resume && existsSync(finalPath) && !existsSync(partPath)) {
-      // Nothing left to do — the file is already complete on disk.
+      // Nothing left to do. The file is already complete on disk.
       const size = await fileSize(finalPath)
       handle.patch({
         status: 'completed',
@@ -421,7 +421,7 @@ export class HttpEngine {
         await fs.unlink(partPath).catch(() => undefined)
         await fs.unlink(metaPath).catch(() => undefined)
         if (message === 'RANGE_CHANGED') {
-          handle.toast('info', 'The file changed on the server — restarting the download.')
+          handle.toast('info', 'The file changed on the server. Restarting the download.')
         }
         await this.start({ ...handle, task: { ...task, filePath: undefined } }, false)
         return
