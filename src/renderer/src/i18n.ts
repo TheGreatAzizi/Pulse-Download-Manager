@@ -125,7 +125,24 @@ const en = {
     tabs: {
       link: 'Direct link',
       video: 'Online video',
-      torrent: 'Torrent'
+      torrent: 'Torrent',
+      batch: 'Batch'
+    },
+    batch: {
+      linksLabel: 'Download links',
+      linksHint: 'One direct HTTP or HTTPS URL per line',
+      entered: '{count} entered',
+      valid: '{count} valid',
+      invalid: '{count} invalid',
+      duplicatesRemoved: '{count} duplicates removed',
+      saveHint: 'Applied to every download in this batch',
+      validLinks: '{count} valid links',
+      addCount: 'Add {count} downloads',
+      skippedCount: '{count} skipped',
+      emptyError: 'Enter at least one valid direct HTTP or HTTPS link.',
+      unknownError: 'Unknown error',
+      noneAddedError: 'No downloads could be added.',
+      failedError: 'Batch download failed.'
     },
     url: 'Download link',
     urlHint: 'Paste any HTTP, HTTPS, FTP or magnet link',
@@ -136,6 +153,8 @@ const en = {
     fileName: 'File name',
     saveTo: 'Save to',
     browse: 'Browse',
+    chooseFolder: 'Choose download folder',
+    selectFolder: 'Select Folder',
     connections: 'Parallel connections',
     connectionsHint: 'More connections can be faster on servers that support ranges.',
     advanced: 'Advanced options',
@@ -324,7 +343,9 @@ const en = {
     copied: 'Link copied',
     settingsSaved: 'Settings saved',
     clipboard: 'Link detected in clipboard',
+    clipboardBatch: '{count} links detected in clipboard',
     addThis: 'Add',
+    addBatch: 'Add batch',
     dismiss: 'Dismiss',
     ytdlpInstalled: 'yt-dlp is ready to use',
     limitSet: 'Speed limit updated'
@@ -469,7 +490,24 @@ const fa: typeof en = {
     tabs: {
       link: 'لینک مستقیم',
       video: 'ویدیوی آنلاین',
-      torrent: 'تورنت'
+      torrent: 'تورنت',
+      batch: 'دسته‌جمعی'
+    },
+    batch: {
+      linksLabel: 'لینک‌های دانلود',
+      linksHint: 'هر خط یک لینک مستقیم HTTP یا HTTPS',
+      entered: '{count} واردشده',
+      valid: '{count} معتبر',
+      invalid: '{count} نامعتبر',
+      duplicatesRemoved: '{count} تکراری حذف‌شده',
+      saveHint: 'این مسیر برای همه دانلودهای این مجموعه استفاده می‌شود',
+      validLinks: '{count} لینک معتبر',
+      addCount: 'افزودن {count} دانلود',
+      skippedCount: '{count} مورد رد شد',
+      emptyError: 'حداقل یک لینک مستقیم HTTP یا HTTPS معتبر وارد کنید.',
+      unknownError: 'خطای ناشناخته',
+      noneAddedError: 'هیچ دانلودی اضافه نشد.',
+      failedError: 'افزودن گروهی دانلودها ناموفق بود.'
     },
     url: 'لینک دانلود',
     urlHint: 'هر لینک HTTP، HTTPS، FTP یا مگنت را جای‌گذاری کنید',
@@ -480,6 +518,8 @@ const fa: typeof en = {
     fileName: 'نام فایل',
     saveTo: 'ذخیره در',
     browse: 'انتخاب پوشه',
+    chooseFolder: 'انتخاب پوشه دانلود',
+    selectFolder: 'انتخاب پوشه',
     connections: 'اتصال‌های موازی',
     connectionsHint: 'در سرورهایی که Range را پشتیبانی می‌کنند، اتصال بیشتر سرعت را بالا می‌برد.',
     advanced: 'تنظیمات پیشرفته',
@@ -668,7 +708,9 @@ const fa: typeof en = {
     copied: 'لینک کپی شد',
     settingsSaved: 'تنظیمات ذخیره شد',
     clipboard: 'لینکی در حافظه موقت پیدا شد',
+    clipboardBatch: '{count} لینک در حافظه موقت شناسایی شد',
     addThis: 'افزودن',
+    addBatch: 'افزودن گروهی',
     dismiss: 'بستن',
     ytdlpInstalled: 'yt-dlp آماده استفاده است',
     limitSet: 'محدودیت سرعت به‌روز شد'
@@ -813,7 +855,24 @@ const ja: typeof en = {
     tabs: {
       link: 'ダイレクトリンク',
       video: 'オンライン動画',
-      torrent: 'トレント'
+      torrent: 'トレント',
+      batch: '一括'
+    },
+    batch: {
+      linksLabel: 'ダウンロードリンク',
+      linksHint: '1行に1つの直接HTTPまたはHTTPS URL',
+      entered: '{count} 件入力',
+      valid: '{count} 件有効',
+      invalid: '{count} 件無効',
+      duplicatesRemoved: '重複を{count}件削除',
+      saveHint: 'この一括ダウンロード内のすべてに適用されます',
+      validLinks: '有効なリンク：{count}件',
+      addCount: '{count}件のダウンロードを追加',
+      skippedCount: '{count}件をスキップ',
+      emptyError: '有効な直接HTTPまたはHTTPSリンクを1つ以上入力してください。',
+      unknownError: '不明なエラー',
+      noneAddedError: 'ダウンロードを追加できませんでした。',
+      failedError: '一括ダウンロードに失敗しました。'
     },
     url: 'ダウンロードリンク',
     urlHint: 'HTTP、HTTPS、FTP、またはマグネットリンクを貼り付け',
@@ -824,6 +883,8 @@ const ja: typeof en = {
     fileName: 'ファイル名',
     saveTo: '保存先',
     browse: '参照',
+    chooseFolder: '保存先フォルダーを選択',
+    selectFolder: 'フォルダーを選択',
     connections: '並列接続数',
     connectionsHint: 'レンジをサポートするサーバーでは接続を増やすと速くなる場合があります。',
     advanced: '詳細オプション',
@@ -1012,7 +1073,9 @@ const ja: typeof en = {
     copied: 'リンクをコピーしました',
     settingsSaved: '設定を保存しました',
     clipboard: 'クリップボードにリンクが検出されました',
+    clipboardBatch: 'クリップボードに{count}件のリンクが見つかりました',
     addThis: '追加',
+    addBatch: '一括追加',
     dismiss: '閉じる',
     ytdlpInstalled: 'yt-dlp を使用できるようになりました',
     limitSet: '速度制限を更新しました'
@@ -1157,7 +1220,24 @@ const ru: typeof en = {
     tabs: {
       link: 'Прямая ссылка',
       video: 'Онлайн-видео',
-      torrent: 'Торрент'
+      torrent: 'Торрент',
+      batch: 'Пакетно'
+    },
+    batch: {
+      linksLabel: 'Ссылки для загрузки',
+      linksHint: 'Одна прямая HTTP- или HTTPS-ссылка на строку',
+      entered: 'Введено: {count}',
+      valid: 'Действительных: {count}',
+      invalid: 'Недействительных: {count}',
+      duplicatesRemoved: 'Удалено повторов: {count}',
+      saveHint: 'Применяется ко всем загрузкам в этой группе',
+      validLinks: 'Действительных ссылок: {count}',
+      addCount: 'Добавить загрузки: {count}',
+      skippedCount: 'Пропущено: {count}',
+      emptyError: 'Введите хотя бы одну действительную прямую HTTP- или HTTPS-ссылку.',
+      unknownError: 'Неизвестная ошибка',
+      noneAddedError: 'Не удалось добавить ни одной загрузки.',
+      failedError: 'Не удалось добавить загрузки списком.'
     },
     url: 'Ссылка для скачивания',
     urlHint: 'Вставьте HTTP, HTTPS, FTP или магнет-ссылку',
@@ -1168,6 +1248,8 @@ const ru: typeof en = {
     fileName: 'Имя файла',
     saveTo: 'Сохранить в',
     browse: 'Обзор',
+    chooseFolder: 'Выбрать папку для загрузки',
+    selectFolder: 'Выбрать папку',
     connections: 'Параллельных подключений',
     connectionsHint: 'Больше подключений может быть быстрее на серверах, поддерживающих диапазоны.',
     advanced: 'Дополнительные параметры',
@@ -1356,7 +1438,9 @@ const ru: typeof en = {
     copied: 'Ссылка скопирована',
     settingsSaved: 'Настройки сохранены',
     clipboard: 'Ссылка найдена в буфере обмена',
+    clipboardBatch: 'В буфере обмена найдено ссылок: {count}',
     addThis: 'Добавить',
+    addBatch: 'Добавить пакетом',
     dismiss: 'Закрыть',
     ytdlpInstalled: 'yt-dlp готов к использованию',
     limitSet: 'Лимит скорости обновлён'
