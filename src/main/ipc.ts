@@ -93,10 +93,11 @@ export function registerIpc(manager: DownloadManager, getWindow: () => BrowserWi
   handle(IP.readClipboard, () => manager.readClipboardUrl())
   handle(IP.writeClipboard, (text: string) => clipboard.writeText(text))
 
-  handle(IP.chooseDir, async (current?: string) => {
+  handle(IP.chooseDir, async (current?: string, title?: string, buttonLabel?: string) => {
     const win = getWindow()
     const result = await dialog.showOpenDialog(win!, {
-      title: 'Choose download folder',
+      title: title || 'Choose download folder',
+      buttonLabel,
       defaultPath: current || manager.settings().downloadDir,
       properties: ['openDirectory', 'createDirectory']
     })

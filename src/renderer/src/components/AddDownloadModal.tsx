@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   AlertCircle,
   ArrowDownToLine,
@@ -8,6 +8,7 @@ import {
   FileUp,
   FolderOpen,
   Globe,
+  ListPlus,
   Loader2,
   Magnet,
   Plus,
@@ -18,11 +19,41 @@ import {
   Zap
 } from 'lucide-react'
 import type { ProbeResult, YoutubeFormatOption, YoutubeProbe } from '@shared/types'
+import { MAX_BATCH_URLS, isDirectBatchUrl } from '@shared/urls'
 import { useApp } from '../state'
 import { Modal } from './Modal'
 import { cleanIpcError, cn, formatBytes, formatDuration, hostOf } from '../lib/format'
 
-type Tab = 'link' | 'video' | 'torrent'
+type Tab = 'link' | 'video' | 'torrent' | 'batch'
+
+interface BatchParsed {
+  entered: number
+  valid: string[]
+  invalid: number
+  duplicates: number
+}
+
+/** Split a pasted list into unique direct links, counting invalid and duplicate lines. */
+function parseBatch(text: string): BatchParsed {
+  const seen = new Set<string>()
+  const valid: string[] = []
+  let entered = 0
+  let invalid = 0
+  let duplicates = 0
+  for (const line of text.split(/\r?\n/)) {
+    const value = line.trim()
+    if (!value) continue
+    entered++
+    if (seen.has(value)) {
+      duplicates++
+      continue
+    }
+    seen.add(value)
+    if (isDirectBatchUrl(value)) valid.push(value)
+    else invalid++
+  }
+  return { entered, valid, invalid, duplicates }
+}
 
 function toBase64(buffer: ArrayBuffer): string {
   const bytes = new Uint8Array(buffer)
@@ -76,8 +107,12 @@ export function AddDownloadModal(): React.JSX.Element {
   const [torrentName, setTorrentName] = useState('')
   const [sequential, setSequential] = useState(true)
   const [dragOver, setDragOver] = useState(false)
+  const [batchText, setBatchText] = useState('')
+  const [batchProgress, setBatchProgress] = useState<{ done: number; total: number } | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const skipAuto = useRef(false)
+
+  const batchParsed = useMemo(() => parseBatch(batchText), [batchText])
 
   const requestClose = (): void => {
     if (busy) return
@@ -102,11 +137,14 @@ export function AddDownloadModal(): React.JSX.Element {
     setTorrentData(null)
     setTorrentName('')
     setSequential(true)
+    setBatchText(addInitial?.batchUrls?.join('\n') || '')
+    setBatchProgress(null)
     setDir(settings.downloadDir)
     setConnections(settings.connections)
     const initialUrl = addInitial?.url || ''
     const isMagnet = /^magnet:/i.test(initialUrl)
-    const nextTab: Tab = addInitial?.tab || (isMagnet ? 'torrent' : 'link')
+    const nextTab: Tab =
+      addInitial?.tab || (isMagnet ? 'torrent' : addInitial?.batchUrls?.length ? 'batch' : 'link')
     setTab(nextTab)
     setUrl(initialUrl)
     setMagnet(isMagnet ? initialUrl : '')
@@ -183,8 +221,17 @@ export function AddDownloadModal(): React.JSX.Element {
   }
 
   const chooseDir = async (): Promise<void> => {
-    const chosen = await window.pulse.chooseDir(dir)
+    const chosen = await window.pulse.chooseDir(dir, t.add.chooseFolder, t.add.selectFolder)
     if (chosen) setDir(chosen)
+  }
+
+  const pasteBatch = async (): Promise<void> => {
+    const text = (await window.pulse.readClipboard()).trim()
+    if (!text) {
+      pushToast('info', t.toast.clipboard)
+      return
+    }
+    setBatchText((prev) => (prev.trim() ? `${prev.trimEnd()}\n${text}` : text))
   }
 
   const onTorrentFile = async (file: File): Promise<void> => {
@@ -281,7 +328,63 @@ export function AddDownloadModal(): React.JSX.Element {
     }
   }
 
+  const submitBatch = async (): Promise<void> => {
+    const { valid } = batchParsed
+    if (!valid.length) {
+      setError(t.add.batch.emptyError)
+      return
+    }
+    if (valid.length > MAX_BATCH_URLS) {
+      setError(t.add.batch.tooManyError.replace('{count}', String(MAX_BATCH_URLS)))
+      return
+    }
+    setError(null)
+    setBusy(true)
+    setBatchProgress({ done: 0, total: valid.length })
+    let added = 0
+    let skipped = 0
+    let firstError: string | null = null
+    let lastId = ''
+    for (let i = 0; i < valid.length; i++) {
+      try {
+        const task = await window.pulse.addDownload({
+          url: valid[i],
+          kind: 'http',
+          dir,
+          connections
+        })
+        lastId = task.id
+        added++
+      } catch (err) {
+        skipped++
+        if (!firstError) firstError = cleanIpcError(err, t.add.batch.unknownError)
+      }
+      setBatchProgress({ done: i + 1, total: valid.length })
+    }
+    setBusy(false)
+    setBatchProgress(null)
+    if (!added) {
+      setError(firstError || t.add.batch.noneAddedError)
+      return
+    }
+    if (lastId) setSelectedId(lastId)
+    setView('all')
+    if (skipped) {
+      pushToast(
+        'info',
+        t.add.batch.addedPartial.replace('{added}', String(added)).replace('{skipped}', String(skipped))
+      )
+    } else {
+      pushToast('success', t.add.batch.added.replace('{count}', String(added)))
+    }
+    closeAdd()
+  }
+
   const submit = async (): Promise<void> => {
+    if (tab === 'batch') {
+      await submitBatch()
+      return
+    }
     if (tab === 'video' && yt?.isPlaylist) {
       await submitPlaylist()
       return
@@ -368,7 +471,8 @@ export function AddDownloadModal(): React.JSX.Element {
   const tabs: Array<{ id: Tab; label: string; icon: React.ReactNode }> = [
     { id: 'link', label: t.add.tabs.link, icon: <Globe size={14} /> },
     { id: 'video', label: t.add.tabs.video, icon: <Youtube size={14} /> },
-    { id: 'torrent', label: t.add.tabs.torrent, icon: <Magnet size={14} /> }
+    { id: 'torrent', label: t.add.tabs.torrent, icon: <Magnet size={14} /> },
+    { id: 'batch', label: t.add.tabs.batch, icon: <ListPlus size={14} /> }
   ]
 
   const selectedOption = yt?.formats.find((f) => f.id === selectedFormat)
@@ -396,17 +500,18 @@ export function AddDownloadModal(): React.JSX.Element {
           </div>
         </div>
 
-        <div className="relative mt-4 grid grid-cols-3 gap-1 rounded-xl border border-line bg-elev/50 p-1">
+        <div className="relative mt-4 grid grid-cols-2 gap-1 rounded-xl border border-line bg-elev/50 p-1 sm:grid-cols-4">
           {tabs.map((item) => (
             <button
               key={item.id}
               type="button"
+              disabled={busy}
               onClick={() => {
                 setTab(item.id)
                 setError(null)
               }}
               className={cn(
-                'flex items-center justify-center gap-2 rounded-lg py-2 text-[11.5px] font-semibold transition',
+                'flex items-center justify-center gap-2 rounded-lg py-2 text-[11.5px] font-semibold transition disabled:cursor-not-allowed disabled:opacity-60',
                 tab === item.id
                   ? 'bg-panel text-ink ring-1 ring-line2'
                   : 'text-muted hover:text-ink'
@@ -887,12 +992,111 @@ export function AddDownloadModal(): React.JSX.Element {
             </div>
           </div>
         ) : null}
+
+        {tab === 'batch' ? (
+          <div className="space-y-3.5">
+            <Labeled label={t.add.batch.linksLabel} hint={t.add.batch.linksHint}>
+              <textarea
+                value={batchText}
+                autoFocus
+                onChange={(e) => setBatchText(e.target.value)}
+                placeholder={'https://example.com/file-1.zip\nhttps://example.com/file-2.iso'}
+                aria-label={t.add.batch.linksLabel}
+                className="field min-h-[128px] w-full resize-y px-3 py-2 font-mono text-[11px] leading-relaxed"
+                dir="ltr"
+                disabled={busy}
+              />
+            </Labeled>
+
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                className="btn btn-soft h-9 px-3 text-[11px]"
+                onClick={() => void pasteBatch()}
+                disabled={busy}
+              >
+                <ClipboardPaste size={14} />
+                {t.add.batch.paste}
+              </button>
+              <div className="flex flex-wrap items-center gap-1.5">
+                <span className="chip py-0! text-[9px]!">
+                  {t.add.batch.entered.replace('{count}', String(batchParsed.entered))}
+                </span>
+                <span className="chip border-ok/25! py-0! text-[9px]! text-ok!">
+                  {t.add.batch.valid.replace('{count}', String(batchParsed.valid.length))}
+                </span>
+                {batchParsed.invalid ? (
+                  <span className="chip border-bad/25! py-0! text-[9px]! text-bad!">
+                    {t.add.batch.invalid.replace('{count}', String(batchParsed.invalid))}
+                  </span>
+                ) : null}
+                {batchParsed.duplicates ? (
+                  <span className="chip border-warn/25! py-0! text-[9px]! text-warn!">
+                    {t.add.batch.duplicatesRemoved.replace('{count}', String(batchParsed.duplicates))}
+                  </span>
+                ) : null}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <Labeled label={t.add.saveTo} hint={t.add.batch.saveHint}>
+                <div className="flex gap-1.5">
+                  <input
+                    value={dir}
+                    onChange={(e) => setDir(e.target.value)}
+                    aria-label={t.add.saveTo}
+                    className="field h-9 min-w-0 flex-1 px-3 text-[10.5px]"
+                    dir="ltr"
+                  />
+                  <button
+                    type="button"
+                    className="icon-btn h-9! w-9! border border-line"
+                    onClick={() => void chooseDir()}
+                    aria-label={t.add.browse}
+                  >
+                    <FolderOpen size={14} />
+                  </button>
+                </div>
+              </Labeled>
+              <div className="rounded-xl border border-line bg-elev/30 px-3.5 py-2.5">
+                <div className="flex items-center justify-between">
+                  <div className="text-[11px] font-semibold">{t.add.connections}</div>
+                  <div className="chip text-[10px]! text-brand! tabular">{connections}</div>
+                </div>
+                <input
+                  type="range"
+                  min={1}
+                  max={32}
+                  value={connections}
+                  onChange={(e) => setConnections(Number(e.target.value))}
+                  aria-label={t.add.connections}
+                  className="mt-2 w-full accent-[var(--c-brand)]"
+                  disabled={busy}
+                />
+              </div>
+            </div>
+
+            <div className="flex items-start gap-2 rounded-xl border border-line bg-elev/25 px-3 py-2.5 text-[9.5px] leading-relaxed text-muted">
+              <ShieldCheck size={13} className="mt-[1px] shrink-0 text-ok" />
+              {t.add.batch.limit.replace('{count}', String(MAX_BATCH_URLS))}
+            </div>
+          </div>
+        ) : null}
       </div>
 
       <div className="flex shrink-0 items-center gap-2 border-t border-line/70 bg-panel/60 px-6 py-3">
         <div className="hidden items-center gap-1.5 text-[9.5px] text-faint sm:flex">
-          {tab === 'torrent' ? <Magnet size={11} /> : tab === 'video' ? <Youtube size={11} /> : <Globe size={11} />}
-          {hostOf(tab === 'torrent' ? magnet || torrentPath || '' : url)}
+          {tab === 'batch' ? (
+            <>
+              <ListPlus size={11} />
+              {t.add.batch.validLinks.replace('{count}', String(batchParsed.valid.length))}
+            </>
+          ) : (
+            <>
+              {tab === 'torrent' ? <Magnet size={11} /> : tab === 'video' ? <Youtube size={11} /> : <Globe size={11} />}
+              {hostOf(tab === 'torrent' ? magnet || torrentPath || '' : url)}
+            </>
+          )}
         </div>
         <div className="ms-auto flex items-center gap-2">
           <button type="button" className="btn btn-ghost h-9 px-3.5 text-[11.5px]" onClick={requestClose} disabled={busy}>
@@ -905,16 +1109,23 @@ export function AddDownloadModal(): React.JSX.Element {
               busy ||
               (tab === 'link' && !url.trim()) ||
               (tab === 'video' && (!yt || analyzing || (yt.isPlaylist && !(yt.entries || []).length))) ||
-              (tab === 'torrent' && !magnet.trim() && !torrentPath && !torrentData)
+              (tab === 'torrent' && !magnet.trim() && !torrentPath && !torrentData) ||
+              (tab === 'batch' && !batchParsed.valid.length)
             }
             className="btn btn-primary h-9 min-w-[132px] px-4 text-[11.5px]"
           >
             {busy ? <Loader2 size={14} className="animate-spin" /> : <ArrowDownToLine size={14} />}
-            {tab === 'torrent'
-              ? t.add.addToQueue
-              : tab === 'video' && yt?.isPlaylist
-                ? t.add.downloadAll
-                : t.add.start}
+            {tab === 'batch'
+              ? busy && batchProgress
+                ? t.add.batch.addingCount
+                    .replace('{done}', String(batchProgress.done))
+                    .replace('{total}', String(batchProgress.total))
+                : t.add.batch.addCount.replace('{count}', String(batchParsed.valid.length))
+              : tab === 'torrent'
+                ? t.add.addToQueue
+                : tab === 'video' && yt?.isPlaylist
+                  ? t.add.downloadAll
+                  : t.add.start}
           </button>
         </div>
       </div>

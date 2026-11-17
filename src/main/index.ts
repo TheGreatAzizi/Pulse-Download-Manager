@@ -8,6 +8,7 @@ import { registerIpc } from './ipc'
 import { applyLaunchAtStartup } from './autostart'
 import { IP } from '@shared/ipc'
 import type { MainEvent } from '@shared/types'
+import { isLocalUrl, scanClipboardUrls } from '@shared/urls'
 
 let mainWindow: BrowserWindow | null = null
 let manager: DownloadManager
@@ -171,9 +172,18 @@ function startClipboardWatcher(): void {
     const text = (await clipboard.readText()).trim()
     if (!text || text === lastClipboard) return
     lastClipboard = text
-    if (!/^(https?:\/\/|magnet:)/i.test(text) || text.length > 4096) return
-    if (/^https?:\/\/(localhost|127\.0\.0\.1)/i.test(text)) return
-    send({ type: 'clipboard:url', url: text })
+    const scan = scanClipboardUrls(text)
+    if (scan.direct.length >= 2) {
+      send({ type: 'clipboard:batch', urls: scan.urls })
+      return
+    }
+    if (scan.direct.length === 1) {
+      send({ type: 'clipboard:url', url: scan.direct[0] })
+      return
+    }
+    if (scan.urls.length === 1 && !isLocalUrl(scan.urls[0])) {
+      send({ type: 'clipboard:url', url: scan.urls[0] })
+    }
   }, 1600)
 }
 

@@ -52,13 +52,14 @@ The Windows installer allows choosing the install directory, creates desktop and
 ## Features
 
 - **Multi-connection HTTP downloads**: Range requests, resume on disconnect, smart queue, speed limit
+- **Batch downloads**: paste or detect a list of direct HTTP/HTTPS links and queue them in one step, with validation, dedupe and progress
 - **YouTube & 1000+ sites** via `yt-dlp`: quality selection, audio extraction, subtitles, thumbnails, playlists
 - **BitTorrent**: magnet and .torrent files, file selection, secure resume, peer/seeder stats, upload ratio
 - **GitHub browser**: search public repositories, download source ZIPs, release assets and archives. Optional GitHub token raises API limits
 - **Multilingual UI**: English, Persian RTL, Japanese, Russian; Light/Dark theme
 - **Built-in tools**: automatic `yt-dlp` installer, `ffmpeg` detection, torrent engine management
 - **Auto-start**: optional launch on Windows login and Linux autostart
-- **Clipboard monitor**: suggests adding copied links
+- **Clipboard monitor**: suggests adding copied links, and detects multi-link lists for batch download
 
 ## GitHub Integration
 
@@ -111,6 +112,10 @@ resources/bin/  Optional bundled binaries
 - State is persisted in `userData/pulse-state.json`
 - Unfinished HTTP downloads use `.pulse-part` and `.pulse-meta` sidecars
 - Global speed limit is configurable in **Settings → Speed** or the status bar
+
+## Credits
+
+Batch download support was inspired by [@mamfan](https://github.com/mamfan) and the original [pull request #8](https://github.com/TheGreatAzizi/Pulse-Download-Manager/pull/8). Thank you for the idea and the groundwork.
 
 ## Contributing
 

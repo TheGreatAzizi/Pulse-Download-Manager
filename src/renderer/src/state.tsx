@@ -50,8 +50,9 @@ export interface ToastItem {
 }
 
 export interface AddInitial {
-  tab?: 'link' | 'video' | 'torrent'
+  tab?: 'link' | 'video' | 'torrent' | 'batch'
   url?: string
+  batchUrls?: string[]
 }
 
 interface AppContextValue {
@@ -207,6 +208,19 @@ export function AppProvider({ children }: { children: ReactNode }): React.JSX.El
             action: () => openAdd({ url: event.url, tab: /^magnet:/i.test(event.url) ? 'torrent' : undefined })
           })
           break
+        case 'clipboard:batch': {
+          const dictionary = dictionaries[langRef.current]
+          pushToast(
+            'info',
+            dictionary.toast.clipboardBatch.replace('{count}', String(event.urls.length)),
+            {
+              ttl: 9000,
+              actionLabel: dictionary.toast.addBatch,
+              action: () => openAdd({ tab: 'batch', batchUrls: event.urls })
+            }
+          )
+          break
+        }
         case 'open-add':
           openAdd({ url: event.url })
           break

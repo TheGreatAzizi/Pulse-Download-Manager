@@ -1,6 +1,7 @@
 import { app } from 'electron'
 import { existsSync, promises as fs } from 'node:fs'
 import { dirname, basename, extname, join } from 'node:path'
+import { isVideoPlatformUrl } from '@shared/urls'
 
 /** Cross-platform filename sanitizer that also copes with reserved Windows names. */
 export function sanitizeFileName(input: string, fallback = 'download'): string {
@@ -143,27 +144,7 @@ export function categoryFor(fileName: string): string {
 }
 
 export function isYoutubeUrl(raw: string): boolean {
-  try {
-    const host = new URL(raw).hostname.replace(/^www\./, '').toLowerCase()
-    return [
-      'youtube.com',
-      'm.youtube.com',
-      'music.youtube.com',
-      'youtu.be',
-      'youtube-nocookie.com',
-      'vimeo.com',
-      'dailymotion.com',
-      'soundcloud.com',
-      'twitch.tv',
-      'twitter.com',
-      'x.com',
-      'tiktok.com',
-      'instagram.com',
-      'facebook.com'
-    ].some((h) => host === h || host.endsWith(`.${h}`))
-  } catch {
-    return false
-  }
+  return isVideoPlatformUrl(raw)
 }
 
 export function sleep(ms: number, signal?: AbortSignal): Promise<void> {
