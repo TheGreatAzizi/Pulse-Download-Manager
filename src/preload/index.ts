@@ -9,6 +9,8 @@ import type {
   ProbeResult,
   PulseAPI,
   Settings,
+  UpdateDownloadResult,
+  UpdateInfo,
   YoutubeProbe
 } from '../shared/types'
 import { IP } from '../shared/ipc'
@@ -48,6 +50,11 @@ const api: PulseAPI = {
     ipcRenderer.invoke(IP.windowControl, action) as Promise<void>,
   readClipboard: () => ipcRenderer.invoke(IP.readClipboard) as Promise<string>,
   writeClipboard: (text: string) => ipcRenderer.invoke(IP.writeClipboard, text) as Promise<void>,
+  checkUpdate: () => ipcRenderer.invoke(IP.checkUpdate) as Promise<UpdateInfo>,
+  downloadUpdate: (info: UpdateInfo) =>
+    ipcRenderer.invoke(IP.downloadUpdate, info) as Promise<UpdateDownloadResult>,
+  installUpdate: () => ipcRenderer.invoke(IP.installUpdate) as Promise<void>,
+  revealUpdate: () => ipcRenderer.invoke(IP.revealUpdate) as Promise<void>,
   subscribe: (cb: (event: MainEvent) => void) => {
     const listener = (_event: unknown, payload: MainEvent): void => cb(payload)
     ipcRenderer.on(IP.event, listener)

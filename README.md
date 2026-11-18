@@ -60,6 +60,7 @@ The Windows installer allows choosing the install directory, creates desktop and
 - **Built-in tools**: automatic `yt-dlp` installer, `ffmpeg` detection, torrent engine management
 - **Auto-start**: optional launch on Windows login and Linux autostart
 - **Clipboard monitor**: suggests adding copied links, and detects multi-link lists for batch download
+- **In-app updates**: checks GitHub Releases on startup and from **Settings → About**, then downloads and launches the new installer with progress
 
 ## GitHub Integration
 

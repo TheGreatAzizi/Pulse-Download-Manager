@@ -1,10 +1,11 @@
 import { BrowserWindow, app, clipboard, dialog, ipcMain, shell } from 'electron'
 import { statfs } from 'node:fs/promises'
-import type { AddDownloadInput, AddTorrentInput, AppSnapshot, Settings } from '@shared/types'
+import type { AddDownloadInput, AddTorrentInput, AppSnapshot, MainEvent, Settings, UpdateInfo } from '@shared/types'
 import { IP } from '@shared/ipc'
 import type { DownloadManager } from './manager'
 import { isAutoStartSupported } from './autostart'
 import { getGithubRepo, searchGithubRepos } from './github'
+import * as updater from './updater'
 
 export function registerIpc(manager: DownloadManager, getWindow: () => BrowserWindow | null): void {
   const handle = (channel: string, fn: (...args: any[]) => any): void => {
@@ -17,6 +18,15 @@ export function registerIpc(manager: DownloadManager, getWindow: () => BrowserWi
         throw new Error(message)
       }
     })
+  }
+
+  // Update calls report their own errors in the UI, so avoid an extra toast.
+  const handleQuiet = (channel: string, fn: (...args: any[]) => any): void => {
+    ipcMain.handle(channel, async (_event, ...args) => fn(...args))
+  }
+
+  const send = (event: MainEvent): void => {
+    getWindow()?.webContents.send(IP.event, event)
   }
 
   handle(IP.snapshot, async (): Promise<AppSnapshot> => {
@@ -136,6 +146,16 @@ export function registerIpc(manager: DownloadManager, getWindow: () => BrowserWi
     if (!/^(https?:|mailto:)/i.test(url)) throw new Error('Blocked external URL')
     await shell.openExternal(url)
   })
+
+  handleQuiet(IP.checkUpdate, () => updater.check(manager.settings().githubToken))
+
+  handleQuiet(IP.downloadUpdate, (info: UpdateInfo) =>
+    updater.download(info, (received, total) => send({ type: 'update:progress', received, total }))
+  )
+
+  handleQuiet(IP.installUpdate, () => updater.install())
+
+  handleQuiet(IP.revealUpdate, () => updater.reveal())
 
   handle(IP.windowControl, (action: 'minimize' | 'maximize' | 'close') => {
     const win = getWindow()

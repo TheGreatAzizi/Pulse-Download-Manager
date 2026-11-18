@@ -30,8 +30,21 @@ import { cn } from '../lib/format'
 type Tab = 'general' | 'speed' | 'appearance' | 'tools' | 'about'
 
 export function SettingsModal(): React.JSX.Element {
-  const { settingsOpen, setSettingsOpen, t, settings, stats, system, patchSettings, pushToast, refreshTools } =
-    useApp()
+  const {
+    settingsOpen,
+    setSettingsOpen,
+    t,
+    settings,
+    stats,
+    system,
+    patchSettings,
+    pushToast,
+    refreshTools,
+    updateInfo,
+    updatePhase,
+    checkUpdates,
+    setUpdateOpen
+  } = useApp()
   const [tab, setTab] = useState<Tab>('general')
   const [draft, setDraft] = useState<Partial<Settings>>({})
   const [installing, setInstalling] = useState(false)
@@ -574,6 +587,39 @@ export function SettingsModal(): React.JSX.Element {
                     )
                   }
                 />
+                <div className="flex items-center justify-between gap-3 px-3 py-2">
+                  <div className="min-w-0">
+                    <div className="text-[9.5px] text-faint">{t.settings.about.updates}</div>
+                    <div
+                      className={cn(
+                        'mt-0.5 truncate text-[9.5px] font-medium',
+                        updateInfo?.hasUpdate ? 'text-brand' : 'text-muted'
+                      )}
+                    >
+                      {updatePhase === 'checking'
+                        ? t.settings.about.checking
+                        : updateInfo?.hasUpdate
+                          ? t.update.available.replace('{version}', updateInfo.latest)
+                          : updateInfo
+                            ? t.settings.about.upToDate
+                            : system
+                              ? `v${system.appVersion}`
+                              : ''}
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (updateInfo?.hasUpdate) setUpdateOpen(true)
+                      else void checkUpdates()
+                    }}
+                    disabled={updatePhase === 'checking'}
+                    className="btn btn-ghost h-7 shrink-0 px-2.5 text-[9.5px]"
+                  >
+                    <RefreshCw size={11} className={cn(updatePhase === 'checking' && 'animate-spin')} />
+                    {updateInfo?.hasUpdate ? t.toast.viewUpdate : t.settings.about.checkUpdates}
+                  </button>
+                </div>
               </div>
             </div>
           ) : null}

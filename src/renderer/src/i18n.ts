@@ -326,10 +326,29 @@ const en = {
       electron: 'Runtime',
       repository: 'GitHub repository',
       license: 'License',
+      updates: 'Updates',
+      checkUpdates: 'Check for updates',
+      checking: 'Checking for updates…',
+      upToDate: 'You are on the latest version',
+      updateFailed: 'Could not check for updates',
       made: 'Crafted for speed.'
     },
     save: 'Save changes',
     close: 'Close'
+  },
+  update: {
+    title: 'Software update',
+    current: 'Installed version',
+    available: 'Pulse {version} is available',
+    downloading: 'Downloading update…',
+    downloaded: 'The update was downloaded successfully.',
+    download: 'Download update',
+    downloadInstall: 'Download and install',
+    restartInstall: 'Restart and install',
+    showFile: 'Show the file',
+    releaseNotes: 'Release notes',
+    installHint: 'After downloading, Pulse restarts and opens the installer to finish the update.',
+    manualHint: 'After downloading, open the file to finish the update.'
   },
   statusbar: {
     limit: 'Limit',
@@ -353,6 +372,8 @@ const en = {
     clipboardBatch: '{count} links detected in clipboard',
     addThis: 'Add',
     addBatch: 'Review batch',
+    updateAvailable: 'Pulse {version} is available',
+    viewUpdate: 'Update',
     dismiss: 'Dismiss',
     ytdlpInstalled: 'yt-dlp is ready to use',
     limitSet: 'Speed limit updated'
@@ -705,10 +726,29 @@ const fa: typeof en = {
       electron: 'محیط اجرا',
       repository: 'مخزن گیت‌هاب',
       license: 'مجوز',
+      updates: 'به‌روزرسانی',
+      checkUpdates: 'بررسی به‌روزرسانی',
+      checking: 'در حال بررسی به‌روزرسانی…',
+      upToDate: 'شما آخرین نسخه را دارید',
+      updateFailed: 'بررسی به‌روزرسانی انجام نشد',
       made: 'برای سرعت ساخته شده.'
     },
     save: 'ذخیره تغییرات',
     close: 'بستن'
+  },
+  update: {
+    title: 'به‌روزرسانی نرم‌افزار',
+    current: 'نسخه نصب‌شده',
+    available: 'نسخه {version} پالس موجود است',
+    downloading: 'در حال دانلود به‌روزرسانی…',
+    downloaded: 'به‌روزرسانی با موفقیت دانلود شد.',
+    download: 'دانلود به‌روزرسانی',
+    downloadInstall: 'دانلود و نصب',
+    restartInstall: 'راه‌اندازی مجدد و نصب',
+    showFile: 'نمایش فایل',
+    releaseNotes: 'یادداشت انتشار',
+    installHint: 'پس از دانلود، پالس دوباره اجرا می‌شود و نصب‌کننده باز می‌شود تا به‌روزرسانی کامل شود.',
+    manualHint: 'پس از دانلود، فایل را اجرا کنید تا به‌روزرسانی کامل شود.'
   },
   statusbar: {
     limit: 'محدودیت',
@@ -732,6 +772,8 @@ const fa: typeof en = {
     clipboardBatch: '{count} لینک در حافظه موقت شناسایی شد',
     addThis: 'افزودن',
     addBatch: 'بازبینی دسته',
+    updateAvailable: 'نسخه {version} پالس موجود است',
+    viewUpdate: 'به‌روزرسانی',
     dismiss: 'بستن',
     ytdlpInstalled: 'yt-dlp آماده استفاده است',
     limitSet: 'محدودیت سرعت به‌روز شد'
@@ -1084,10 +1126,29 @@ const ja: typeof en = {
       electron: 'ランタイム',
       repository: 'GitHub リポジトリ',
       license: 'ライセンス',
+      updates: 'アップデート',
+      checkUpdates: 'アップデートを確認',
+      checking: 'アップデートを確認中…',
+      upToDate: '最新バージョンです',
+      updateFailed: 'アップデートを確認できませんでした',
       made: '高速のために作られました。'
     },
     save: '変更を保存',
     close: '閉じる'
+  },
+  update: {
+    title: 'ソフトウェアのアップデート',
+    current: 'インストール済みバージョン',
+    available: 'Pulse {version} が利用可能です',
+    downloading: 'アップデートをダウンロード中…',
+    downloaded: 'アップデートをダウンロードしました。',
+    download: 'アップデートをダウンロード',
+    downloadInstall: 'ダウンロードしてインストール',
+    restartInstall: '再起動してインストール',
+    showFile: 'ファイルを表示',
+    releaseNotes: 'リリースノート',
+    installHint: 'ダウンロード後、Pulse は再起動してインストーラーを開きます。',
+    manualHint: 'ダウンロード後、ファイルを開いてアップデートを完了してください。'
   },
   statusbar: {
     limit: '制限',
@@ -1111,6 +1172,8 @@ const ja: typeof en = {
     clipboardBatch: 'クリップボードに{count}件のリンクが見つかりました',
     addThis: '追加',
     addBatch: '一括を確認',
+    updateAvailable: 'Pulse {version} が利用可能です',
+    viewUpdate: 'アップデート',
     dismiss: '閉じる',
     ytdlpInstalled: 'yt-dlp を使用できるようになりました',
     limitSet: '速度制限を更新しました'
@@ -1463,10 +1526,29 @@ const ru: typeof en = {
       electron: 'Среда выполнения',
       repository: 'Репозиторий GitHub',
       license: 'Лицензия',
+      updates: 'Обновления',
+      checkUpdates: 'Проверить обновления',
+      checking: 'Проверка обновлений…',
+      upToDate: 'У вас последняя версия',
+      updateFailed: 'Не удалось проверить обновления',
       made: 'Сделано для скорости.'
     },
     save: 'Сохранить изменения',
     close: 'Закрыть'
+  },
+  update: {
+    title: 'Обновление программы',
+    current: 'Установленная версия',
+    available: 'Доступна версия Pulse {version}',
+    downloading: 'Загрузка обновления…',
+    downloaded: 'Обновление успешно загружено.',
+    download: 'Загрузить обновление',
+    downloadInstall: 'Загрузить и установить',
+    restartInstall: 'Перезапустить и установить',
+    showFile: 'Показать файл',
+    releaseNotes: 'Заметки о выпуске',
+    installHint: 'После загрузки Pulse перезапустится и откроет установщик для завершения обновления.',
+    manualHint: 'После загрузки откройте файл, чтобы завершить обновление.'
   },
   statusbar: {
     limit: 'Лимит',
@@ -1490,6 +1572,8 @@ const ru: typeof en = {
     clipboardBatch: 'В буфере обмена найдено ссылок: {count}',
     addThis: 'Добавить',
     addBatch: 'Проверить пакет',
+    updateAvailable: 'Доступна версия Pulse {version}',
+    viewUpdate: 'Обновление',
     dismiss: 'Закрыть',
     ytdlpInstalled: 'yt-dlp готов к использованию',
     limitSet: 'Лимит скорости обновлён'

@@ -10,6 +10,7 @@ import { DetailPanel } from './components/DetailPanel'
 import { StatusBar } from './components/StatusBar'
 import { AddDownloadModal } from './components/AddDownloadModal'
 import { SettingsModal } from './components/SettingsModal'
+import { UpdateModal } from './components/UpdateModal'
 import { GithubBrowser } from './components/GithubBrowser'
 import { Toasts } from './components/Toasts'
 import { Logo } from './components/primitives'
@@ -141,6 +142,7 @@ export function App(): React.JSX.Element {
 
       <AddDownloadModal />
       <SettingsModal />
+      <UpdateModal />
       <Toasts />
 
       {dropping ? (

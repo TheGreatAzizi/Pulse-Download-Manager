@@ -305,8 +305,34 @@ export interface AppSnapshot {
   }
 }
 
+export interface UpdateAsset {
+  name: string
+  url: string
+  size: number
+}
+
+export interface UpdateInfo {
+  current: string
+  latest: string
+  hasUpdate: boolean
+  releaseName: string
+  notes: string
+  publishedAt: string
+  releaseUrl: string
+  asset: UpdateAsset | null
+  canInstall: boolean
+  portable: boolean
+}
+
+export interface UpdateDownloadResult {
+  ok: boolean
+  path?: string
+  error?: string
+}
+
 export type MainEvent =
   | { type: 'task:update'; task: DownloadTask }
+  | { type: 'update:progress'; received: number; total: number }
   | { type: 'task:remove'; id: string }
   | { type: 'task:add'; task: DownloadTask }
   | { type: 'stats'; stats: GlobalStats }
@@ -346,6 +372,10 @@ export interface PulseAPI {
   windowControl(action: 'minimize' | 'maximize' | 'close'): Promise<void>
   readClipboard(): Promise<string>
   writeClipboard(text: string): Promise<void>
+  checkUpdate(): Promise<UpdateInfo>
+  downloadUpdate(info: UpdateInfo): Promise<UpdateDownloadResult>
+  installUpdate(): Promise<void>
+  revealUpdate(): Promise<void>
   subscribe(cb: (event: MainEvent) => void): () => void
 }
 

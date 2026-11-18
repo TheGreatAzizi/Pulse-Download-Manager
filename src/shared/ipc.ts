@@ -26,5 +26,9 @@ export const IP = {
   windowControl: 'pulse:window',
   readClipboard: 'pulse:read-clipboard',
   writeClipboard: 'pulse:write-clipboard',
+  checkUpdate: 'pulse:check-update',
+  downloadUpdate: 'pulse:download-update',
+  installUpdate: 'pulse:install-update',
+  revealUpdate: 'pulse:reveal-update',
   event: 'pulse:event'
 } as const
