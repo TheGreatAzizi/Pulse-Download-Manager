@@ -49,6 +49,9 @@ The Windows installer allows choosing the install directory, creates desktop and
 ### About
 ![About](https://raw.githubusercontent.com/TheGreatAzizi/Pulse-Download-Manager/main/docs/screenshots/final/settings-about-light.png)
 
+### Software update
+![Software update](https://raw.githubusercontent.com/TheGreatAzizi/Pulse-Download-Manager/main/docs/screenshots/final/update-available.png)
+
 ## Features
 
 - **Multi-connection HTTP downloads**: Range requests, resume on disconnect, smart queue, speed limit
