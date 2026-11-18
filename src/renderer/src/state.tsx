@@ -101,6 +101,9 @@ interface AppContextValue {
   downloadUpdate: () => Promise<void>
   installUpdate: () => Promise<void>
   revealUpdate: () => Promise<void>
+  newLinkId: string | null
+  openNewLink: (id: string) => void
+  closeNewLink: () => void
 }
 
 const fallbackSettings: Settings = {
@@ -149,6 +152,7 @@ export function AppProvider({ children }: { children: ReactNode }): React.JSX.El
   const [updateError, setUpdateError] = useState<string | null>(null)
   const [updatePath, setUpdatePath] = useState<string | null>(null)
   const [updateOpen, setUpdateOpen] = useState(false)
+  const [newLinkId, setNewLinkId] = useState<string | null>(null)
   const timers = useRef(new Map<string, ReturnType<typeof setTimeout>>())
   const langRef = useRef<Lang>(settings.language)
   langRef.current = settings.language
@@ -354,6 +358,9 @@ export function AppProvider({ children }: { children: ReactNode }): React.JSX.El
     }
   }, [pushToast, t])
 
+  const openNewLink = useCallback((id: string): void => setNewLinkId(id), [])
+  const closeNewLink = useCallback((): void => setNewLinkId(null), [])
+
   const startupChecked = useRef(false)
   useEffect(() => {
     if (!ready || startupChecked.current) return
@@ -440,7 +447,10 @@ export function AppProvider({ children }: { children: ReactNode }): React.JSX.El
     checkUpdates,
     downloadUpdate,
     installUpdate,
-    revealUpdate
+    revealUpdate,
+    newLinkId,
+    openNewLink,
+    closeNewLink
   }
 
   return <AppCtx.Provider value={value}>{children}</AppCtx.Provider>

@@ -157,6 +157,8 @@ export function registerIpc(manager: DownloadManager, getWindow: () => BrowserWi
 
   handleQuiet(IP.revealUpdate, () => updater.reveal())
 
+  handleQuiet(IP.resumeWithUrl, (id: string, url: string) => manager.resumeWithUrl(id, url))
+
   handle(IP.windowControl, (action: 'minimize' | 'maximize' | 'close') => {
     const win = getWindow()
     if (!win) return

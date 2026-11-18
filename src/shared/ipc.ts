@@ -30,5 +30,6 @@ export const IP = {
   downloadUpdate: 'pulse:download-update',
   installUpdate: 'pulse:install-update',
   revealUpdate: 'pulse:reveal-update',
+  resumeWithUrl: 'pulse:resume-with-url',
   event: 'pulse:event'
 } as const

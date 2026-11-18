@@ -154,6 +154,8 @@ export interface DownloadTask {
   updatedAt: number
   completedAt?: number
   error?: string
+  /** The server rejected the URL (usually a signed link that expired). */
+  linkExpired?: boolean
   resumable?: boolean
   segments?: SegmentState[]
   maxConnections?: number
@@ -330,6 +332,13 @@ export interface UpdateDownloadResult {
   error?: string
 }
 
+export interface ResumeWithUrlResult {
+  ok: boolean
+  /** The new link pointed to a different file, so the download restarted. */
+  restarted?: boolean
+  error?: string
+}
+
 export type MainEvent =
   | { type: 'task:update'; task: DownloadTask }
   | { type: 'update:progress'; received: number; total: number }
@@ -376,6 +385,7 @@ export interface PulseAPI {
   downloadUpdate(info: UpdateInfo): Promise<UpdateDownloadResult>
   installUpdate(): Promise<void>
   revealUpdate(): Promise<void>
+  resumeWithUrl(id: string, url: string): Promise<ResumeWithUrlResult>
   subscribe(cb: (event: MainEvent) => void): () => void
 }
 

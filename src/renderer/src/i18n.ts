@@ -350,6 +350,22 @@ const en = {
     installHint: 'After downloading, Pulse restarts and opens the installer to finish the update.',
     manualHint: 'After downloading, open the file to finish the update.'
   },
+  resume: {
+    title: 'Resume with a new link',
+    hint: 'The download link may have expired. Paste a fresh link for the same file and Pulse continues from the saved position.',
+    linkLabel: 'New download link',
+    placeholder: 'https://example.com/file.zip',
+    action: 'Resume download',
+    working: 'Checking the new link…',
+    invalid: 'Enter a valid HTTP or HTTPS link.',
+    failed: 'Could not resume with this link.',
+    started: 'Download resumed with the new link.',
+    restarted: 'The new link points to a different file, so the download restarted from the beginning.',
+    expired: 'The download link has expired',
+    expiredHint: 'Get a fresh link for the same file and resume without losing progress.',
+    newLink: 'Use a new link',
+    keep: 'Keeping {percent}% of the file'
+  },
   statusbar: {
     limit: 'Limit',
     unlimited: 'Unlimited',
@@ -749,6 +765,22 @@ const fa: typeof en = {
     releaseNotes: 'یادداشت انتشار',
     installHint: 'پس از دانلود، پالس دوباره اجرا می‌شود و نصب‌کننده باز می‌شود تا به‌روزرسانی کامل شود.',
     manualHint: 'پس از دانلود، فایل را اجرا کنید تا به‌روزرسانی کامل شود.'
+  },
+  resume: {
+    title: 'ادامه با لینک جدید',
+    hint: 'ممکن است لینک دانلود منقضی شده باشد. لینک تازه‌ای برای همان فایل بگذارید تا پالس از همان‌جا ادامه دهد.',
+    linkLabel: 'لینک دانلود جدید',
+    placeholder: 'https://example.com/file.zip',
+    action: 'ادامه دانلود',
+    working: 'در حال بررسی لینک جدید…',
+    invalid: 'یک لینک معتبر HTTP یا HTTPS وارد کنید.',
+    failed: 'ادامه با این لینک ممکن نشد.',
+    started: 'دانلود با لینک جدید ادامه یافت.',
+    restarted: 'لینک جدید به فایل متفاوتی اشاره دارد، بنابراین دانلود از ابتدا شروع شد.',
+    expired: 'لینک دانلود منقضی شده است',
+    expiredHint: 'لینک تازه‌ای برای همان فایل بگیرید و بدون از دست دادن پیشرفت ادامه دهید.',
+    newLink: 'استفاده از لینک جدید',
+    keep: 'حفظ {percent}٪ از فایل'
   },
   statusbar: {
     limit: 'محدودیت',
@@ -1150,6 +1182,22 @@ const ja: typeof en = {
     installHint: 'ダウンロード後、Pulse は再起動してインストーラーを開きます。',
     manualHint: 'ダウンロード後、ファイルを開いてアップデートを完了してください。'
   },
+  resume: {
+    title: '新しいリンクで再開',
+    hint: 'ダウンロードリンクの有効期限が切れた可能性があります。同じファイルの新しいリンクを貼り付けると、保存済みの位置から再開します。',
+    linkLabel: '新しいダウンロードリンク',
+    placeholder: 'https://example.com/file.zip',
+    action: 'ダウンロードを再開',
+    working: '新しいリンクを確認中…',
+    invalid: '有効な HTTP または HTTPS リンクを入力してください。',
+    failed: 'このリンクでは再開できませんでした。',
+    started: '新しいリンクでダウンロードを再開しました。',
+    restarted: '新しいリンクは別のファイルを指しているため、最初からダウンロードし直しました。',
+    expired: 'ダウンロードリンクの有効期限が切れています',
+    expiredHint: '同じファイルの新しいリンクを取得すると、進行状況を失わずに再開できます。',
+    newLink: '新しいリンクを使う',
+    keep: 'ファイルの {percent}% を保持'
+  },
   statusbar: {
     limit: '制限',
     unlimited: '無制限',
@@ -1549,6 +1597,22 @@ const ru: typeof en = {
     releaseNotes: 'Заметки о выпуске',
     installHint: 'После загрузки Pulse перезапустится и откроет установщик для завершения обновления.',
     manualHint: 'После загрузки откройте файл, чтобы завершить обновление.'
+  },
+  resume: {
+    title: 'Продолжить по новой ссылке',
+    hint: 'Срок действия ссылки мог истечь. Вставьте новую ссылку на тот же файл, и Pulse продолжит с сохранённого места.',
+    linkLabel: 'Новая ссылка для скачивания',
+    placeholder: 'https://example.com/file.zip',
+    action: 'Продолжить скачивание',
+    working: 'Проверка новой ссылки…',
+    invalid: 'Введите корректную ссылку HTTP или HTTPS.',
+    failed: 'Не удалось продолжить по этой ссылке.',
+    started: 'Скачивание продолжено по новой ссылке.',
+    restarted: 'Новая ссылка указывает на другой файл, поэтому скачивание началось заново.',
+    expired: 'Срок действия ссылки истёк',
+    expiredHint: 'Получите новую ссылку на тот же файл и продолжите без потери прогресса.',
+    newLink: 'Использовать новую ссылку',
+    keep: 'Сохранено {percent}% файла'
   },
   statusbar: {
     limit: 'Лимит',

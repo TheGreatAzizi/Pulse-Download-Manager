@@ -52,9 +52,13 @@ The Windows installer allows choosing the install directory, creates desktop and
 ### Software update
 ![Software update](https://raw.githubusercontent.com/TheGreatAzizi/Pulse-Download-Manager/main/docs/screenshots/final/update-available.png)
 
+### Resume with a new link
+![Resume with a new link](https://raw.githubusercontent.com/TheGreatAzizi/Pulse-Download-Manager/main/docs/screenshots/final/resume-new-link.png)
+
 ## Features
 
 - **Multi-connection HTTP downloads**: Range requests, resume on disconnect, smart queue, speed limit
+- **Expired link recovery**: paste a fresh link for the same file and continue from the saved byte position
 - **Batch downloads**: paste or detect a list of direct HTTP/HTTPS links and queue them in one step, with validation, dedupe and progress
 - **YouTube & 1000+ sites** via `yt-dlp`: quality selection, audio extraction, subtitles, thumbnails, playlists
 - **BitTorrent**: magnet and .torrent files, file selection, secure resume, peer/seeder stats, upload ratio

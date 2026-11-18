@@ -1,4 +1,5 @@
 import {
+  AlertTriangle,
   ChevronRight,
   Clock,
   Copy,
@@ -32,7 +33,7 @@ import {
 import { KindIcon, ProgressBar, Ring, StatusPill } from './primitives'
 
 export function DetailPanel(): React.JSX.Element {
-  const { t, selected, lang, setSelectedId, pushToast } = useApp()
+  const { t, selected, lang, setSelectedId, pushToast, openNewLink } = useApp()
 
   if (!selected) {
     return (
@@ -131,7 +132,16 @@ export function DetailPanel(): React.JSX.Element {
           </div>
 
           <div className="mt-3 flex items-center gap-1.5">
-            {task.status === 'completed' ? (
+            {task.kind === 'http' && task.linkExpired ? (
+              <button
+                type="button"
+                onClick={() => openNewLink(task.id)}
+                className="btn btn-primary h-8 flex-1 text-[11px]"
+              >
+                <Link2 size={13} />
+                {t.resume.newLink}
+              </button>
+            ) : task.status === 'completed' ? (
               <button
                 type="button"
                 onClick={() => void window.pulse.openTask(task.id)}
@@ -172,7 +182,40 @@ export function DetailPanel(): React.JSX.Element {
             >
               <Copy size={13} />
             </button>
+            {task.kind === 'http' &&
+            !task.linkExpired &&
+            (task.status === 'error' || task.status === 'paused') ? (
+              <button
+                type="button"
+                className="icon-btn h-8! w-8! border border-line"
+                title={t.resume.newLink}
+                aria-label={t.resume.newLink}
+                onClick={() => openNewLink(task.id)}
+              >
+                <Link2 size={13} />
+              </button>
+            ) : null}
           </div>
+
+          {task.kind === 'http' && task.linkExpired ? (
+            <div className="mt-3 rounded-xl border border-bad/25 bg-bad/8 px-3 py-2.5">
+              <div className="flex items-start gap-2">
+                <AlertTriangle size={14} className="mt-[1px] shrink-0 text-bad" />
+                <div className="min-w-0 flex-1">
+                  <div className="text-[11px] font-semibold text-bad">{t.resume.expired}</div>
+                  <p className="mt-0.5 text-[10px] leading-relaxed text-muted">{t.resume.expiredHint}</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => openNewLink(task.id)}
+                className="btn btn-soft mt-2 h-8 w-full text-[10.5px]"
+              >
+                <Link2 size={13} />
+                {t.resume.newLink}
+              </button>
+            </div>
+          ) : null}
 
           {task.kind === 'http' && task.segments && task.segments.length > 1 ? (
             <div className="mt-4">

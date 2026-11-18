@@ -10,6 +10,7 @@ import type {
   GlobalStats,
   MainEvent,
   ProbeResult,
+  ResumeWithUrlResult,
   Settings,
   SpeedSample,
   TaskKind,
@@ -419,6 +420,62 @@ export class DownloadManager implements EngineHost {
       connections: 0
     })
     this.schedule()
+  }
+
+  /**
+   * Continue an interrupted HTTP download with a freshly issued URL. Only the
+   * source changes: the destination, partial file and byte offsets are kept, so
+   * links that expire mid-download can be replaced without losing progress.
+   */
+  async resumeWithUrl(id: string, rawUrl: string): Promise<ResumeWithUrlResult> {
+    const task = this.tasks.get(id)
+    if (!task) return { ok: false, error: 'Download not found.' }
+    if (task.kind !== 'http') {
+      return { ok: false, error: 'Only direct HTTP downloads can use a new link.' }
+    }
+    if (task.status === 'completed') {
+      return { ok: false, error: 'This download is already complete.' }
+    }
+    const trimmed = (rawUrl || '').trim()
+    let url: string
+    try {
+      url = new URL(trimmed).toString()
+    } catch {
+      return { ok: false, error: 'Enter a valid HTTP or HTTPS link.' }
+    }
+    if (!/^https?:$/.test(new URL(url).protocol)) {
+      return { ok: false, error: 'Enter a valid HTTP or HTTPS link.' }
+    }
+    if (ACTIVE.includes(task.status)) {
+      this.controllers.get(id)?.abort()
+      // Let the running engine unwind and persist its final sidecar state
+      // before the metadata is rewritten for the new link.
+      for (let i = 0; i < 50 && this.controllers.has(id); i++) {
+        await new Promise((resolve) => setTimeout(resolve, 100))
+      }
+      if (this.controllers.has(id)) {
+        return { ok: false, error: 'Could not stop the current download. Pause it first.' }
+      }
+    }
+    const prepared = await this.http.resumeWithUrl(task, url)
+    if (!prepared.ok) return { ok: false, error: prepared.error }
+    const restarted = !!prepared.restarted
+    this.patch(task, {
+      url,
+      status: 'queued',
+      error: undefined,
+      linkExpired: false,
+      speed: 0,
+      eta: 0,
+      connections: 0,
+      downloaded: restarted ? 0 : task.downloaded,
+      segments: restarted ? undefined : task.segments,
+      size: restarted ? prepared.size || 0 : task.size || prepared.size || 0,
+      resumable: restarted ? undefined : task.resumable
+    })
+    this.resumeFlags.add(id)
+    this.schedule()
+    return { ok: true, restarted }
   }
 
   async cancel(id: string): Promise<void> {

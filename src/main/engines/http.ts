@@ -57,6 +57,8 @@ interface HttpMeta {
 const META_SUFFIX = '.pulse-meta'
 const PART_SUFFIX = '.pulse-part'
 const MAX_RETRIES = 5
+const EXPIRED_STATUSES = [401, 403, 404, 410]
+const LINK_EXPIRED_PREFIX = 'LINK_EXPIRED:'
 
 function parseTotalFromHeaders(res: Response): number {
   const cr = res.headers.get('content-range')
@@ -156,6 +158,62 @@ export class HttpEngine {
     }
   }
 
+  /**
+   * Point an existing partial download at a fresh URL. The sidecar metadata is
+   * rewritten so the next resume continues from the saved byte offsets. When
+   * the new link serves a different file size the partial data is discarded and
+   * `restarted` is returned so the UI can tell the user.
+   */
+  async resumeWithUrl(
+    task: DownloadTask,
+    url: string
+  ): Promise<{ ok: boolean; restarted?: boolean; error?: string; size?: number }> {
+    let probe: ProbeOutput
+    try {
+      const probeHeaders = this.baseHeaders({ ...task, url })
+      probe = await this.probe(url, probeHeaders, this.host.settings().userAgent)
+    } catch (err) {
+      return { ok: false, error: `Could not reach the new link: ${(err as Error).message}` }
+    }
+
+    let restarted = false
+    let kept = false
+    const finalPath = task.filePath
+    if (finalPath) {
+      const metaPath = `${finalPath}${META_SUFFIX}`
+      const partPath = `${finalPath}${PART_SUFFIX}`
+      if (existsSync(metaPath) && existsSync(partPath)) {
+        const raw = await fs.readFile(metaPath, 'utf8').catch(() => '')
+        const meta = safeJsonParse<HttpMeta | null>(raw, null)
+        if (meta && meta.version === 1) {
+          const sizeChanged = meta.size > 0 && probe.size > 0 && meta.size !== probe.size
+          // A signed link that no longer honours Range requests cannot be
+          // resumed, so keeping the partial data would only stall the task.
+          const rangesLost = task.downloaded > 0 && probe.size > 0 && !probe.resumable
+          if (sizeChanged || rangesLost) {
+            await fs.unlink(partPath).catch(() => undefined)
+            await fs.unlink(metaPath).catch(() => undefined)
+            restarted = task.downloaded > 0
+          } else {
+            meta.finalUrl = probe.finalUrl
+            meta.etag = probe.etag
+            meta.lastModified = probe.lastModified
+            meta.resumable = probe.resumable
+            if (!probe.resumable && task.downloaded === 0) {
+              meta.segments = []
+              meta.downloaded = 0
+            }
+            meta.savedAt = Date.now()
+            await fs.writeFile(metaPath, JSON.stringify(meta), 'utf8').catch(() => undefined)
+            kept = true
+          }
+        }
+      }
+    }
+    if (!kept && !restarted) restarted = task.downloaded > 0
+    return { ok: true, restarted, size: probe.size }
+  }
+
   async start(handle: TaskHandle, resume: boolean): Promise<void> {
     const task = handle.task
     const settings = this.host.settings()
@@ -212,9 +270,11 @@ export class HttpEngine {
       try {
         probe = await this.probe(task.url, task.headers, settings.userAgent)
       } catch (err) {
+        const message = (err as Error).message
         handle.patch({
           status: 'error',
-          error: `Could not reach the server: ${(err as Error).message}`,
+          error: `Could not reach the server: ${message}`,
+          linkExpired: /^HTTP (401|403|404|410)\b/.test(message) || task.linkExpired,
           connections: 0,
           speed: 0,
           eta: 0
@@ -296,7 +356,8 @@ export class HttpEngine {
       connections: activeConns,
       resumable: state.resumable,
       segments: state.segments.map((s) => ({ ...s })),
-      error: undefined
+      error: undefined,
+      linkExpired: false
     })
 
     const recompute = (): void => {
@@ -347,7 +408,12 @@ export class HttpEngine {
             redirect: 'follow'
           })
           if (res.status === 416) throw new Error('RANGE_CHANGED')
-          if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`)
+          if (!res.ok) {
+            if (EXPIRED_STATUSES.includes(res.status)) {
+              throw new Error(`${LINK_EXPIRED_PREFIX}${res.status}`)
+            }
+            throw new Error(`HTTP ${res.status} ${res.statusText}`)
+          }
           if (res.status === 200 && seg.position > 0) throw new Error('RANGE_UNSUPPORTED')
           if (!res.body) throw new Error('Empty response body')
 
@@ -374,7 +440,13 @@ export class HttpEngine {
         } catch (err) {
           if (handle.signal.aborted) return
           const message = (err as Error).message || 'network error'
-          if (message === 'RANGE_CHANGED' || message === 'RANGE_UNSUPPORTED') throw err
+          if (
+            message === 'RANGE_CHANGED' ||
+            message === 'RANGE_UNSUPPORTED' ||
+            message.startsWith(LINK_EXPIRED_PREFIX)
+          ) {
+            throw err
+          }
           attempt++
           if (attempt > MAX_RETRIES) {
             throw new Error(`Connection ${index + 1} failed: ${message}`)
@@ -417,6 +489,18 @@ export class HttpEngine {
         return
       }
       const message = (err as Error).message || 'Download failed'
+      if (message.startsWith(LINK_EXPIRED_PREFIX)) {
+        const status = message.slice(LINK_EXPIRED_PREFIX.length)
+        handle.patch({
+          status: 'error',
+          error: `HTTP ${status}: the download link may have expired.`,
+          linkExpired: true,
+          speed: 0,
+          eta: 0,
+          connections: 0
+        })
+        return
+      }
       if (message === 'RANGE_UNSUPPORTED' || message === 'RANGE_CHANGED') {
         await fs.unlink(partPath).catch(() => undefined)
         await fs.unlink(metaPath).catch(() => undefined)
@@ -460,7 +544,12 @@ export class HttpEngine {
       if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`)
       if (!res.body) throw new Error('Empty response body')
       fsHandle = await fs.open(partPath, 'w+')
-      handle.patch({ status: 'downloading', connections: 1, filePath: finalPath })
+      handle.patch({
+        status: 'downloading',
+        connections: 1,
+        filePath: finalPath,
+        linkExpired: false
+      })
       const reader = res.body.getReader()
       let lastEmit = 0
       while (true) {
@@ -500,9 +589,11 @@ export class HttpEngine {
         handle.patch({ status: 'paused', downloaded, speed: 0, eta: 0, connections: 0 })
         return
       }
+      const message = (err as Error).message || 'Download failed'
       handle.patch({
         status: 'error',
-        error: (err as Error).message || 'Download failed',
+        error: message,
+        linkExpired: /^HTTP (401|403|404|410)\b/.test(message) || task.linkExpired,
         downloaded,
         speed: 0,
         eta: 0,

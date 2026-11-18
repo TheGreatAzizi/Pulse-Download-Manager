@@ -8,6 +8,7 @@ import type {
   MainEvent,
   ProbeResult,
   PulseAPI,
+  ResumeWithUrlResult,
   Settings,
   UpdateDownloadResult,
   UpdateInfo,
@@ -55,6 +56,8 @@ const api: PulseAPI = {
     ipcRenderer.invoke(IP.downloadUpdate, info) as Promise<UpdateDownloadResult>,
   installUpdate: () => ipcRenderer.invoke(IP.installUpdate) as Promise<void>,
   revealUpdate: () => ipcRenderer.invoke(IP.revealUpdate) as Promise<void>,
+  resumeWithUrl: (id: string, url: string) =>
+    ipcRenderer.invoke(IP.resumeWithUrl, id, url) as Promise<ResumeWithUrlResult>,
   subscribe: (cb: (event: MainEvent) => void) => {
     const listener = (_event: unknown, payload: MainEvent): void => cb(payload)
     ipcRenderer.on(IP.event, listener)

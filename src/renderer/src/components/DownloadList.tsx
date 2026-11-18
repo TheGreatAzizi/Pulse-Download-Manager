@@ -5,6 +5,7 @@ import {
   ExternalLink,
   FolderOpen,
   LayoutGrid,
+  Link2,
   Pause,
   Play,
   Plus,
@@ -246,11 +247,12 @@ function TaskRow({
   onRemove: () => void
   onToast: (level: 'info' | 'success' | 'error', message: string) => void
 }): React.JSX.Element {
-  const { t, lang } = useApp()
+  const { t, lang, openNewLink } = useApp()
   const percent = percentOf(task)
   const active = task.status === 'downloading'
   const paused = task.status === 'paused' || task.status === 'error' || task.status === 'canceled'
   const completed = task.status === 'completed'
+  const expiredLink = task.kind === 'http' && !!task.linkExpired
 
   const metaParts: string[] = []
   if (task.kind === 'youtube') {
@@ -265,10 +267,14 @@ function TaskRow({
     metaParts.push(hostOf(task.url))
     if (task.resumable) metaParts.push(`${task.connections || 0} ${t.row.connections}`)
   }
-  if (task.status === 'error' && task.error) metaParts.push(task.error)
+  if (task.status === 'error' && task.error) {
+    metaParts.push(task.linkExpired ? t.resume.expired : task.error)
+  }
 
   const primaryAction = (): void => {
-    if (completed) {
+    if (expiredLink) {
+      openNewLink(task.id)
+    } else if (completed) {
       void window.pulse.openTask(task.id)
     } else if (active || task.status === 'queued' || task.status === 'connecting') {
       void window.pulse.pauseTask(task.id)
@@ -358,7 +364,9 @@ function TaskRow({
                     : task.status === 'connecting'
                       ? t.row.processing
                       : task.status === 'error'
-                        ? (task.error || '').slice(0, 24)
+                        ? task.linkExpired
+                          ? t.resume.expired.slice(0, 24)
+                          : (task.error || '').slice(0, 24)
                         : task.kind === 'torrent'
                           ? `${task.torrent?.peers ?? 0} ${t.row.peers}`
                           : t.status[task.status]}
@@ -370,8 +378,8 @@ function TaskRow({
           <button
             type="button"
             className="icon-btn"
-            title={completed ? t.row.open : active ? t.row.pause : t.row.resume}
-            aria-label={completed ? t.row.open : active ? t.row.pause : t.row.resume}
+            title={completed ? t.row.open : active ? t.row.pause : expiredLink ? t.resume.newLink : t.row.resume}
+            aria-label={completed ? t.row.open : active ? t.row.pause : expiredLink ? t.resume.newLink : t.row.resume}
             onClick={(e) => {
               e.stopPropagation()
               primaryAction()
@@ -381,6 +389,8 @@ function TaskRow({
               <ExternalLink size={14} />
             ) : active || task.status === 'queued' || task.status === 'connecting' ? (
               <Pause size={14} />
+            ) : expiredLink ? (
+              <Link2 size={14} />
             ) : task.status === 'error' ? (
               <RotateCw size={14} />
             ) : (
@@ -411,6 +421,22 @@ function TaskRow({
           >
             <Copy size={13} />
           </button>
+          {task.kind === 'http' &&
+          !expiredLink &&
+          (task.status === 'error' || task.status === 'paused') ? (
+            <button
+              type="button"
+              className="icon-btn text-brand!"
+              title={t.resume.newLink}
+              aria-label={t.resume.newLink}
+              onClick={(e) => {
+                e.stopPropagation()
+                openNewLink(task.id)
+              }}
+            >
+              <Link2 size={14} />
+            </button>
+          ) : null}
           <button
             type="button"
             className="icon-btn hover:text-bad!"
