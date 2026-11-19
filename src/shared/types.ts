@@ -51,6 +51,17 @@ export interface Settings {
   cookiesFile: string
   /** Optional GitHub personal access token used by the repository search. */
   githubToken: string
+  /** Accept downloads from the Pulse browser extension over a local WebSocket. */
+  browserIntegration: boolean
+}
+
+export interface BrowserStatus {
+  enabled: boolean
+  running: boolean
+  port: number
+  clients: number
+  extensionPath: string
+  error?: string
 }
 
 export interface SegmentState {
@@ -294,6 +305,7 @@ export interface AppSnapshot {
   tasks: DownloadTask[]
   settings: Settings
   stats: GlobalStats
+  browser: BrowserStatus
   system: {
     platform: string
     version: string
@@ -352,6 +364,8 @@ export type MainEvent =
   | { type: 'navigate'; view: string }
   | { type: 'window:state'; maximized: boolean }
   | { type: 'settings'; settings: Settings }
+  | { type: 'browser:status'; status: BrowserStatus }
+  | { type: 'browser:download'; name: string }
 
 export interface PulseAPI {
   snapshot(): Promise<AppSnapshot>
@@ -386,6 +400,8 @@ export interface PulseAPI {
   installUpdate(): Promise<void>
   revealUpdate(): Promise<void>
   resumeWithUrl(id: string, url: string): Promise<ResumeWithUrlResult>
+  browserStatus(): Promise<BrowserStatus>
+  openExtensionFolder(): Promise<void>
   subscribe(cb: (event: MainEvent) => void): () => void
 }
 

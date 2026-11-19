@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Pulse</title>
+    <link rel="stylesheet" href="popup.css" />
+    <link rel="stylesheet" href="options.css" />
+  </head>
+  <body>
+    <main class="page">
+      <header class="page-head">
+        <img class="page-logo" src="icons/icon128.png" alt="" />
+        <div class="page-title">
+          <h1 data-i18n="optionsTitle">Pulse browser integration</h1>
+          <p data-i18n="optionsSubtitle">Control how the extension talks to Pulse.</p>
+        </div>
+        <span id="status" class="status">
+          <span class="dot"></span>
+          <span id="status-text" data-i18n="statusConnecting">Connecting</span>
+        </span>
+      </header>
+
+      <section class="panel">
+        <div class="panel-head">
+          <div>
+            <h2 data-i18n="connection">Connection</h2>
+            <p id="connection-detail" class="panel-desc"></p>
+          </div>
+          <button id="test" class="btn ghost" type="button" data-i18n="testConnection">
+            Test connection
+          </button>
+        </div>
+        <div class="kv">
+          <div><span data-i18n="port">Port</span><strong id="port">-</strong></div>
+          <div><span data-i18n="version">Version</span><strong id="app-version">-</strong></div>
+          <div><span data-i18n="connection">Connection</span><strong id="clients">-</strong></div>
+        </div>
+        <div class="panel-actions">
+          <button id="open-pulse" class="btn primary" type="button" data-i18n="openPulse">
+            Open Pulse
+          </button>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head">
+          <div>
+            <h2 data-i18n="behavior">Behavior</h2>
+            <p class="panel-desc" data-i18n="takeoverHint">
+              When Pulse is running, Chrome downloads are sent to Pulse instead of the browser.
+            </p>
+          </div>
+        </div>
+
+        <label class="setting-row">
+          <div>
+            <strong data-i18n="takeoverLabel">Take over browser downloads</strong>
+            <span data-i18n="takeoverHint">When Pulse is running, Chrome downloads are sent to Pulse instead of the browser.</span>
+          </div>
+          <span class="toggle">
+            <input id="takeover" type="checkbox" />
+            <span class="switch" aria-hidden="true"></span>
+          </span>
+        </label>
+
+        <label class="setting-row">
+          <div>
+            <strong data-i18n="notificationsLabel">Show notifications</strong>
+            <span data-i18n="notificationsHint">Show a notification when a download is sent or fails.</span>
+          </div>
+          <span class="toggle">
+            <input id="notifications" type="checkbox" />
+            <span class="switch" aria-hidden="true"></span>
+          </span>
+        </label>
+
+        <div class="field-block">
+          <label for="excluded">
+            <strong data-i18n="excludedTitle">Never take over these domains</strong>
+            <span data-i18n="excludedHint">One domain per line. Subdomains are included.</span>
+          </label>
+          <textarea id="excluded" class="textarea" rows="4" dir="ltr" spellcheck="false"></textarea>
+        </div>
+
+        <div class="panel-actions">
+          <button id="save" class="btn primary" type="button" data-i18n="save">Save</button>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head">
+          <div>
+            <h2 data-i18n="installTitle">Install the extension</h2>
+            <p class="panel-desc" data-i18n="installText">
+              Open chrome://extensions, enable Developer mode, choose Load unpacked, and select the
+              extension folder from Pulse settings.
+            </p>
+          </div>
+        </div>
+        <div class="panel-actions">
+          <button id="copy-extensions" class="btn ghost" type="button" data-i18n="openExtensions">
+            Open chrome://extensions
+          </button>
+        </div>
+      </section>
+
+      <section class="panel about">
+        <div class="panel-head">
+          <div>
+            <h2 data-i18n="about">About</h2>
+            <p class="panel-desc" data-i18n="aboutText">
+              Pulse is a cross-platform download manager for direct links, YouTube and torrents.
+            </p>
+          </div>
+        </div>
+        <div class="panel-actions">
+          <a
+            class="btn ghost"
+            href="https://github.com/TheGreatAzizi/Pulse-Download-Manager"
+            target="_blank"
+            rel="noreferrer"
+            >GitHub</a
+          >
+          <span id="ext-version" class="version-chip"></span>
+        </div>
+      </section>
+    </main>
+
+    <div id="toast" class="toast hidden"></div>
+
+    <script src="shared.js"></script>
+    <script src="options.js"></script>
+  </body>
+</html>

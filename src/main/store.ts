@@ -33,7 +33,8 @@ export function defaultSettings(): Settings {
     launchAtStartup: true,
     cookiesBrowser: '',
     cookiesFile: '',
-    githubToken: ''
+    githubToken: '',
+    browserIntegration: true
   }
 }
 

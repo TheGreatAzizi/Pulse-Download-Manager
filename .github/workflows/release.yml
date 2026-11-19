@@ -39,6 +39,13 @@ jobs:
           if (-not $setup) { throw 'NSIS installer was not generated' }
           $setup | Select-Object Name, Length | Format-Table
 
+      - name: Package browser extension
+        shell: pwsh
+        run: |
+          $version = (Get-Content package.json | ConvertFrom-Json).version
+          Compress-Archive -Path extension\* -DestinationPath "dist\Pulse-Chrome-Extension-$version.zip" -Force
+          Get-Item "dist\Pulse-Chrome-Extension-$version.zip" | Select-Object Name, Length
+
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -47,6 +54,7 @@ jobs:
             dist/Pulse-Setup-*.exe
             dist/Pulse-Setup-*.exe.blockmap
             dist/Pulse-Portable-*.exe
+            dist/Pulse-Chrome-Extension-*.zip
           if-no-files-found: error
 
   build-linux:

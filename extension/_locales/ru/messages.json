@@ -1,0 +1,215 @@
+{
+  "extName": {
+    "message": "Pulse Download Manager"
+  },
+  "extDesc": {
+    "message": "Отправляйте загрузки из Chrome или Edge в Pulse."
+  },
+  "actionTitle": {
+    "message": "Pulse Download Manager"
+  },
+  "commandSendPage": {
+    "message": "Отправить текущую страницу в Pulse"
+  },
+  "statusConnected": {
+    "message": "Подключено"
+  },
+  "statusOffline": {
+    "message": "Pulse не запущен"
+  },
+  "statusConnecting": {
+    "message": "Подключение"
+  },
+  "statusRetry": {
+    "message": "Повторить"
+  },
+  "offlineHint": {
+    "message": "Запустите Pulse и повторите попытку."
+  },
+  "currentPage": {
+    "message": "Текущая страница"
+  },
+  "sendPage": {
+    "message": "Отправить страницу"
+  },
+  "addLink": {
+    "message": "Добавить ссылку"
+  },
+  "urlPlaceholder": {
+    "message": "https://example.com/file.zip"
+  },
+  "download": {
+    "message": "Скачать"
+  },
+  "active": {
+    "message": "Активные"
+  },
+  "speed": {
+    "message": "Скорость"
+  },
+  "noActive": {
+    "message": "Нет активных загрузок"
+  },
+  "recent": {
+    "message": "Недавние"
+  },
+  "takeover": {
+    "message": "Перехватывать загрузки браузера"
+  },
+  "openPulse": {
+    "message": "Открыть Pulse"
+  },
+  "settings": {
+    "message": "Настройки"
+  },
+  "added": {
+    "message": "Отправлено в Pulse"
+  },
+  "addFailed": {
+    "message": "Не удалось отправить в Pulse"
+  },
+  "invalidUrl": {
+    "message": "Введите корректную ссылку HTTP или HTTPS"
+  },
+  "noLinks": {
+    "message": "Ссылки не найдены"
+  },
+  "batchQueued": {
+    "message": "Ссылок отправлено в Pulse: $1"
+  },
+  "connectionLost": {
+    "message": "Соединение с Pulse потеряно"
+  },
+  "openPulseHint": {
+    "message": "Запустите приложение Pulse, чтобы использовать интеграцию."
+  },
+  "optionsTitle": {
+    "message": "Интеграция Pulse с браузером"
+  },
+  "optionsSubtitle": {
+    "message": "Настройте связь расширения с Pulse."
+  },
+  "connection": {
+    "message": "Соединение"
+  },
+  "connectedTo": {
+    "message": "Подключено к Pulse $1"
+  },
+  "notConnected": {
+    "message": "Нет подключения"
+  },
+  "port": {
+    "message": "Порт"
+  },
+  "testConnection": {
+    "message": "Проверить соединение"
+  },
+  "behavior": {
+    "message": "Поведение"
+  },
+  "takeoverLabel": {
+    "message": "Перехватывать загрузки браузера"
+  },
+  "takeoverHint": {
+    "message": "Когда Pulse запущен, загрузки Chrome отправляются в Pulse."
+  },
+  "notificationsLabel": {
+    "message": "Показывать уведомления"
+  },
+  "notificationsHint": {
+    "message": "Показывать уведомление при отправке или ошибке."
+  },
+  "excludedTitle": {
+    "message": "Не перехватывать эти домены"
+  },
+  "excludedHint": {
+    "message": "По одному домену в строке. Поддомены тоже учитываются."
+  },
+  "save": {
+    "message": "Сохранить"
+  },
+  "saved": {
+    "message": "Настройки сохранены"
+  },
+  "about": {
+    "message": "О программе"
+  },
+  "aboutText": {
+    "message": "Pulse - кроссплатформенный менеджер загрузок для прямых ссылок, YouTube и торрентов."
+  },
+  "installTitle": {
+    "message": "Установка расширения"
+  },
+  "installText": {
+    "message": "Откройте chrome://extensions, включите режим разработчика, нажмите «Загрузить распакованное расширение» и выберите папку расширения из настроек Pulse."
+  },
+  "openExtensions": {
+    "message": "Открыть chrome://extensions"
+  },
+  "version": {
+    "message": "Версия"
+  },
+  "menuLink": {
+    "message": "Скачать с Pulse"
+  },
+  "menuImage": {
+    "message": "Скачать изображение с Pulse"
+  },
+  "menuMedia": {
+    "message": "Скачать медиа с Pulse"
+  },
+  "menuPage": {
+    "message": "Скачать эту страницу с Pulse"
+  },
+  "menuSelection": {
+    "message": "Скачать ссылки из выделения с Pulse"
+  },
+  "menuAllLinks": {
+    "message": "Скачать все ссылки с Pulse"
+  },
+  "notifSentTitle": {
+    "message": "Pulse"
+  },
+  "notifSent": {
+    "message": "Отправлено в Pulse: $1"
+  },
+  "notifFailedTitle": {
+    "message": "Pulse"
+  },
+  "notifFailed": {
+    "message": "Не удалось отправить загрузку в Pulse."
+  },
+  "notifNoLinks": {
+    "message": "В выделении не найдено ссылок."
+  },
+  "notifBatch": {
+    "message": "Ссылок отправлено в Pulse: $1"
+  },
+  "errOffline": {
+    "message": "Pulse не запущен. Откройте приложение и повторите попытку."
+  },
+  "errRejected": {
+    "message": "Pulse отклонил запрос."
+  },
+  "errTimeout": {
+    "message": "Pulse не ответил."
+  },
+  "connecting": {
+    "message": "Подключение..."
+  },
+  "connected": {
+    "message": "Подключено"
+  },
+  "offline": {
+    "message": "Не в сети"
+  },
+  "copyExtensions": {
+    "message": "?????????? chrome://extensions"
+  },
+  "copiedExtensions": {
+    "message": "??????????? ? ????? ??????"
+  },
+  "statusQueued": {
+    "message": "? ???????"
+  }
+}

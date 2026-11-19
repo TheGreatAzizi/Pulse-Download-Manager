@@ -10,6 +10,7 @@ import {
 } from 'react'
 import type {
   AppSnapshot,
+  BrowserStatus,
   DownloadTask,
   GlobalStats,
   MainEvent,
@@ -65,6 +66,7 @@ interface AppContextValue {
   tasks: DownloadTask[]
   settings: Settings
   stats: GlobalStats | null
+  browser: BrowserStatus | null
   system: AppSnapshot['system'] | null
   lang: Lang
   t: Dict
@@ -125,7 +127,8 @@ const fallbackSettings: Settings = {
   launchAtStartup: true,
   cookiesBrowser: '',
   cookiesFile: '',
-  githubToken: ''
+  githubToken: '',
+  browserIntegration: true
 }
 
 const AppCtx = createContext<AppContextValue | null>(null)
@@ -136,6 +139,7 @@ export function AppProvider({ children }: { children: ReactNode }): React.JSX.El
   const [tasks, setTasks] = useState<DownloadTask[]>([])
   const [settings, setSettings] = useState<Settings>(fallbackSettings)
   const [stats, setStats] = useState<GlobalStats | null>(null)
+  const [browser, setBrowser] = useState<BrowserStatus | null>(null)
   const [system, setSystem] = useState<AppSnapshot['system'] | null>(null)
   const [view, setView] = useState<ViewId>('all')
   const [query, setQuery] = useState('')
@@ -223,6 +227,15 @@ export function AppProvider({ children }: { children: ReactNode }): React.JSX.El
         case 'settings':
           setSettings(event.settings)
           break
+        case 'browser:status':
+          setBrowser(event.status)
+          break
+        case 'browser:download':
+          pushToast(
+            'success',
+            dictionaries[langRef.current].toast.browserDownload.replace('{name}', event.name)
+          )
+          break
         case 'toast':
           pushToast(event.level, event.message)
           break
@@ -270,6 +283,7 @@ export function AppProvider({ children }: { children: ReactNode }): React.JSX.El
         setTasks(snap.tasks)
         setSettings(snap.settings)
         setStats(snap.stats)
+        setBrowser(snap.browser)
         setSystem(snap.system)
         setMaximized(Boolean(snap.system.maximized))
         setReady(true)
@@ -412,6 +426,7 @@ export function AppProvider({ children }: { children: ReactNode }): React.JSX.El
     tasks,
     settings,
     stats,
+    browser,
     system,
     lang,
     t,

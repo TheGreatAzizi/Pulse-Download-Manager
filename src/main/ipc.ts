@@ -1,13 +1,23 @@
 import { BrowserWindow, app, clipboard, dialog, ipcMain, shell } from 'electron'
 import { statfs } from 'node:fs/promises'
-import type { AddDownloadInput, AddTorrentInput, AppSnapshot, MainEvent, Settings, UpdateInfo } from '@shared/types'
+import type { AddDownloadInput, AddTorrentInput, AppSnapshot, BrowserStatus, MainEvent, Settings, UpdateInfo } from '@shared/types'
 import { IP } from '@shared/ipc'
 import type { DownloadManager } from './manager'
 import { isAutoStartSupported } from './autostart'
 import { getGithubRepo, searchGithubRepos } from './github'
 import * as updater from './updater'
 
-export function registerIpc(manager: DownloadManager, getWindow: () => BrowserWindow | null): void {
+interface BrowserIpc {
+  status: () => BrowserStatus
+  openFolder: () => Promise<void>
+  onSettings: (settings: Settings) => void
+}
+
+export function registerIpc(
+  manager: DownloadManager,
+  getWindow: () => BrowserWindow | null,
+  browser: BrowserIpc
+): void {
   const handle = (channel: string, fn: (...args: any[]) => any): void => {
     ipcMain.handle(channel, async (_event, ...args) => {
       try {
@@ -42,6 +52,7 @@ export function registerIpc(manager: DownloadManager, getWindow: () => BrowserWi
       tasks: manager.list(),
       settings,
       stats: manager.stats(),
+      browser: browser.status(),
       system: {
         platform: process.platform,
         version: process.getSystemVersion?.() || '',
@@ -84,7 +95,11 @@ export function registerIpc(manager: DownloadManager, getWindow: () => BrowserWi
 
   handle(IP.clearCompleted, () => manager.clearCompleted())
 
-  handle(IP.updateSettings, (patch: Partial<Settings>) => manager.updateSettings(patch))
+  handle(IP.updateSettings, (patch: Partial<Settings>) => {
+    const settings = manager.updateSettings(patch)
+    browser.onSettings(settings)
+    return settings
+  })
 
   handle(IP.setSpeedLimit, (bytes: number) => manager.setSpeedLimit(bytes))
 
@@ -158,6 +173,10 @@ export function registerIpc(manager: DownloadManager, getWindow: () => BrowserWi
   handleQuiet(IP.revealUpdate, () => updater.reveal())
 
   handleQuiet(IP.resumeWithUrl, (id: string, url: string) => manager.resumeWithUrl(id, url))
+
+  handleQuiet(IP.browserStatus, () => browser.status())
+
+  handle(IP.openExtensionFolder, () => browser.openFolder())
 
   handle(IP.windowControl, (action: 'minimize' | 'maximize' | 'close') => {
     const win = getWindow()

@@ -3,6 +3,7 @@ import type {
   AddDownloadInput,
   AddTorrentInput,
   AppSnapshot,
+  BrowserStatus,
   GithubRepoDetails,
   GithubSearchResult,
   MainEvent,
@@ -58,6 +59,8 @@ const api: PulseAPI = {
   revealUpdate: () => ipcRenderer.invoke(IP.revealUpdate) as Promise<void>,
   resumeWithUrl: (id: string, url: string) =>
     ipcRenderer.invoke(IP.resumeWithUrl, id, url) as Promise<ResumeWithUrlResult>,
+  browserStatus: () => ipcRenderer.invoke(IP.browserStatus) as Promise<BrowserStatus>,
+  openExtensionFolder: () => ipcRenderer.invoke(IP.openExtensionFolder) as Promise<void>,
   subscribe: (cb: (event: MainEvent) => void) => {
     const listener = (_event: unknown, payload: MainEvent): void => cb(payload)
     ipcRenderer.on(IP.event, listener)

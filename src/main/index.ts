@@ -4,6 +4,7 @@ import { join } from 'node:path'
 import { app as electronApp } from 'electron'
 import { Store } from './store'
 import { DownloadManager } from './manager'
+import { BrowserBridge } from './browserBridge'
 import { registerIpc } from './ipc'
 import { applyLaunchAtStartup } from './autostart'
 import { IP } from '@shared/ipc'
@@ -13,6 +14,7 @@ import { isLocalUrl, scanClipboardUrls } from '@shared/urls'
 let mainWindow: BrowserWindow | null = null
 let manager: DownloadManager
 let store: Store
+let browserBridge: BrowserBridge | null = null
 let clipboardTimer: NodeJS.Timeout | null = null
 let lastClipboard = ''
 let tray: Tray | null = null
@@ -235,7 +237,24 @@ async function bootstrap(): Promise<void> {
   manager = new DownloadManager({ store, emit: send })
   await manager.init()
 
-  registerIpc(manager, () => mainWindow)
+  browserBridge = new BrowserBridge(
+    {
+      manager,
+      getWindow: () => mainWindow,
+      onStatus: (status) => send({ type: 'browser:status', status }),
+      onAdded: (task) => send({ type: 'browser:download', name: task.name })
+    },
+    store.settings.browserIntegration
+  )
+
+  registerIpc(manager, () => mainWindow, {
+    status: () => browserBridge!.status(),
+    openFolder: () => browserBridge!.openFolder(),
+    onSettings: (settings) => {
+      void browserBridge?.setEnabled(settings.browserIntegration)
+    }
+  })
+  void browserBridge.start()
   removeStaleElectronShortcut()
   createWindow()
   createTray()
@@ -268,6 +287,7 @@ electronApp.on('before-quit', (event) => {
   event.preventDefault()
   quitting = true
   if (clipboardTimer) clearInterval(clipboardTimer)
+  browserBridge?.dispose()
   void (async () => {
     try {
       await manager?.shutdown()

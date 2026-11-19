@@ -316,7 +316,21 @@ const en = {
       cookiesBrowserHint: 'Close the browser if reading its cookie database fails.',
       githubToken: 'GitHub personal access token',
       githubTokenHint: 'Optional. Raises the GitHub API limit from 60 to 5,000 requests per hour.',
-      githubTokenPlaceholder: 'ghp_… (optional)'
+      githubTokenPlaceholder: 'ghp_… (optional)',
+      browser: 'Browser extension',
+      browserDesc: 'Connect the Pulse extension to take over downloads from Chrome and Edge.',
+      browserEnabled: 'Enable browser integration',
+      browserEnabledHint: 'Listens on 127.0.0.1 for the Pulse extension only. Requests from other origins are rejected.',
+      browserRunning: 'Listening on port {port}',
+      browserStopped: 'Not running',
+      browserClients: '{count} connected',
+      browserNoClients: 'No extension connected',
+      browserFolder: 'Open extension folder',
+      browserCopyPath: 'Copy path',
+      browserCopied: 'Extension path copied',
+      browserInstall: 'Load the extension in Chrome',
+      browserInstallHint: 'Open chrome://extensions, turn on Developer mode, choose Load unpacked, and select this folder:',
+      browserError: 'Could not start the browser bridge'
     },
     about: {
       built: 'Download manager for Windows and Linux.',
@@ -392,7 +406,8 @@ const en = {
     viewUpdate: 'Update',
     dismiss: 'Dismiss',
     ytdlpInstalled: 'yt-dlp is ready to use',
-    limitSet: 'Speed limit updated'
+    limitSet: 'Speed limit updated',
+    browserDownload: 'Sent from browser: {name}'
   },
   common: {
     cancel: 'Cancel',
@@ -732,7 +747,21 @@ const fa: typeof en = {
       cookiesBrowserHint: 'اگر خواندن کوکی مرورگر ناموفق بود، مرورگر را ببندید.',
       githubToken: 'توکن دسترسی شخصی گیت‌هاب',
       githubTokenHint: 'اختیاری. محدودیت API گیت‌هاب را از ۶۰ به ۵٬۰۰۰ درخواست در ساعت افزایش می‌دهد.',
-      githubTokenPlaceholder: 'ghp_… (اختیاری)'
+      githubTokenPlaceholder: 'ghp_… (اختیاری)',
+      browser: 'افزونه مرورگر',
+      browserDesc: 'افزونه پالس را وصل کنید تا دانلودهای کروم و اج به پالس منتقل شوند.',
+      browserEnabled: 'فعال‌کردن اتصال مرورگر',
+      browserEnabledHint: 'فقط برای افزونه پالس روی 127.0.0.1 گوش می‌دهد. درخواست‌های دیگر رد می‌شوند.',
+      browserRunning: 'در حال شنود روی پورت {port}',
+      browserStopped: 'غیرفعال',
+      browserClients: '{count} اتصال',
+      browserNoClients: 'افزونه‌ای متصل نیست',
+      browserFolder: 'باز کردن پوشه افزونه',
+      browserCopyPath: 'کپی مسیر',
+      browserCopied: 'مسیر افزونه کپی شد',
+      browserInstall: 'نصب افزونه در کروم',
+      browserInstallHint: 'chrome://extensions را باز کنید، حالت Developer mode را روشن کنید، Load unpacked را بزنید و این پوشه را انتخاب کنید:',
+      browserError: 'راه‌اندازی اتصال مرورگر ممکن نشد'
     },
     about: {
       built: 'دانلود منیجر برای ویندوز و لینوکس.',
@@ -808,7 +837,8 @@ const fa: typeof en = {
     viewUpdate: 'به‌روزرسانی',
     dismiss: 'بستن',
     ytdlpInstalled: 'yt-dlp آماده استفاده است',
-    limitSet: 'محدودیت سرعت به‌روز شد'
+    limitSet: 'محدودیت سرعت به‌روز شد',
+    browserDownload: 'از مرورگر فرستاده شد: {name}'
   },
   common: {
     cancel: 'انصراف',
@@ -1148,7 +1178,21 @@ const ja: typeof en = {
       cookiesBrowserHint: 'ブラウザのクッキー読み取りに失敗した場合は、ブラウザを終了してください。',
       githubToken: 'GitHub 個人アクセストークン',
       githubTokenHint: '任意。GitHub API の制限を 1 時間あたり 60 回から 5,000 回に引き上げます。',
-      githubTokenPlaceholder: 'ghp_…（任意）'
+      githubTokenPlaceholder: 'ghp_…（任意）',
+      browser: 'ブラウザ拡張機能',
+      browserDesc: 'Pulse 拡張機能を接続し、Chrome と Edge のダウンロードを引き継ぎます。',
+      browserEnabled: 'ブラウザ連携を有効にする',
+      browserEnabledHint: 'Pulse 拡張機能専用に 127.0.0.1 で待ち受けます。他のオリジンからの接続は拒否されます。',
+      browserRunning: 'ポート {port} で待機中',
+      browserStopped: '停止中',
+      browserClients: '{count} 件接続',
+      browserNoClients: '拡張機能は未接続',
+      browserFolder: '拡張機能フォルダーを開く',
+      browserCopyPath: 'パスをコピー',
+      browserCopied: '拡張機能のパスをコピーしました',
+      browserInstall: 'Chrome に拡張機能を読み込む',
+      browserInstallHint: 'chrome://extensions を開き、デベロッパーモードを有効にして「パッケージ化されていない拡張機能を読み込む」からこのフォルダーを選択してください:',
+      browserError: 'ブラウザ連携を開始できませんでした'
     },
     about: {
       built: 'Windows と Linux 向けのダウンロードマネージャー。',
@@ -1224,7 +1268,8 @@ const ja: typeof en = {
     viewUpdate: 'アップデート',
     dismiss: '閉じる',
     ytdlpInstalled: 'yt-dlp を使用できるようになりました',
-    limitSet: '速度制限を更新しました'
+    limitSet: '速度制限を更新しました',
+    browserDownload: 'ブラウザから送信: {name}'
   },
   common: {
     cancel: 'キャンセル',
@@ -1564,7 +1609,21 @@ const ru: typeof en = {
       cookiesBrowserHint: 'Если чтение куки браузера не удалось, закройте браузер.',
       githubToken: 'Личный токен GitHub',
       githubTokenHint: 'Необязательно. Повышает лимит GitHub API с 60 до 5 000 запросов в час.',
-      githubTokenPlaceholder: 'ghp_… (необязательно)'
+      githubTokenPlaceholder: 'ghp_… (необязательно)',
+      browser: 'Расширение браузера',
+      browserDesc: 'Подключите расширение Pulse, чтобы перехватывать загрузки из Chrome и Edge.',
+      browserEnabled: 'Включить интеграцию с браузером',
+      browserEnabledHint: 'Прослушивает 127.0.0.1 только для расширения Pulse. Запросы из других источников отклоняются.',
+      browserRunning: 'Прослушивание на порту {port}',
+      browserStopped: 'Не запущено',
+      browserClients: 'Подключений: {count}',
+      browserNoClients: 'Расширение не подключено',
+      browserFolder: 'Открыть папку расширения',
+      browserCopyPath: 'Копировать путь',
+      browserCopied: 'Путь к расширению скопирован',
+      browserInstall: 'Загрузить расширение в Chrome',
+      browserInstallHint: 'Откройте chrome://extensions, включите режим разработчика, выберите «Загрузить распакованное расширение» и укажите эту папку:',
+      browserError: 'Не удалось запустить интеграцию с браузером'
     },
     about: {
       built: 'Скачиватель для Windows и Linux.',
@@ -1640,7 +1699,8 @@ const ru: typeof en = {
     viewUpdate: 'Обновление',
     dismiss: 'Закрыть',
     ytdlpInstalled: 'yt-dlp готов к использованию',
-    limitSet: 'Лимит скорости обновлён'
+    limitSet: 'Лимит скорости обновлён',
+    browserDownload: 'Отправлено из браузера: {name}'
   },
   common: {
     cancel: 'Отмена',

@@ -1,0 +1,215 @@
+{
+  "extName": {
+    "message": "Pulse Download Manager"
+  },
+  "extDesc": {
+    "message": "Send downloads from Chrome or Edge to Pulse."
+  },
+  "actionTitle": {
+    "message": "Pulse Download Manager"
+  },
+  "commandSendPage": {
+    "message": "Send the current page to Pulse"
+  },
+  "statusConnected": {
+    "message": "Connected"
+  },
+  "statusOffline": {
+    "message": "Pulse is offline"
+  },
+  "statusConnecting": {
+    "message": "Connecting"
+  },
+  "statusRetry": {
+    "message": "Retry"
+  },
+  "offlineHint": {
+    "message": "Open Pulse to connect, then try again."
+  },
+  "currentPage": {
+    "message": "Current page"
+  },
+  "sendPage": {
+    "message": "Send page"
+  },
+  "addLink": {
+    "message": "Add a link"
+  },
+  "urlPlaceholder": {
+    "message": "https://example.com/file.zip"
+  },
+  "download": {
+    "message": "Download"
+  },
+  "active": {
+    "message": "Active"
+  },
+  "speed": {
+    "message": "Speed"
+  },
+  "noActive": {
+    "message": "No active downloads"
+  },
+  "recent": {
+    "message": "Recent"
+  },
+  "takeover": {
+    "message": "Take over browser downloads"
+  },
+  "openPulse": {
+    "message": "Open Pulse"
+  },
+  "settings": {
+    "message": "Settings"
+  },
+  "added": {
+    "message": "Sent to Pulse"
+  },
+  "addFailed": {
+    "message": "Could not send to Pulse"
+  },
+  "invalidUrl": {
+    "message": "Enter a valid HTTP or HTTPS link"
+  },
+  "noLinks": {
+    "message": "No links found"
+  },
+  "batchQueued": {
+    "message": "$1 links sent to Pulse"
+  },
+  "connectionLost": {
+    "message": "Connection to Pulse was lost"
+  },
+  "openPulseHint": {
+    "message": "Open the Pulse app to use browser integration."
+  },
+  "optionsTitle": {
+    "message": "Pulse browser integration"
+  },
+  "optionsSubtitle": {
+    "message": "Control how the extension talks to Pulse."
+  },
+  "connection": {
+    "message": "Connection"
+  },
+  "connectedTo": {
+    "message": "Connected to Pulse $1"
+  },
+  "notConnected": {
+    "message": "Not connected"
+  },
+  "port": {
+    "message": "Port"
+  },
+  "testConnection": {
+    "message": "Test connection"
+  },
+  "behavior": {
+    "message": "Behavior"
+  },
+  "takeoverLabel": {
+    "message": "Take over browser downloads"
+  },
+  "takeoverHint": {
+    "message": "When Pulse is running, Chrome downloads are sent to Pulse instead of the browser."
+  },
+  "notificationsLabel": {
+    "message": "Show notifications"
+  },
+  "notificationsHint": {
+    "message": "Show a notification when a download is sent or fails."
+  },
+  "excludedTitle": {
+    "message": "Never take over these domains"
+  },
+  "excludedHint": {
+    "message": "One domain per line. Subdomains are included."
+  },
+  "save": {
+    "message": "Save"
+  },
+  "saved": {
+    "message": "Settings saved"
+  },
+  "about": {
+    "message": "About"
+  },
+  "aboutText": {
+    "message": "Pulse is a cross-platform download manager for direct links, YouTube and torrents."
+  },
+  "installTitle": {
+    "message": "Install the extension"
+  },
+  "installText": {
+    "message": "Open chrome://extensions, enable Developer mode, choose Load unpacked, and select the extension folder from Pulse settings."
+  },
+  "openExtensions": {
+    "message": "Open chrome://extensions"
+  },
+  "version": {
+    "message": "Version"
+  },
+  "menuLink": {
+    "message": "Download with Pulse"
+  },
+  "menuImage": {
+    "message": "Download image with Pulse"
+  },
+  "menuMedia": {
+    "message": "Download media with Pulse"
+  },
+  "menuPage": {
+    "message": "Download this page with Pulse"
+  },
+  "menuSelection": {
+    "message": "Download links in selection with Pulse"
+  },
+  "menuAllLinks": {
+    "message": "Download all links with Pulse"
+  },
+  "notifSentTitle": {
+    "message": "Pulse"
+  },
+  "notifSent": {
+    "message": "Sent to Pulse: $1"
+  },
+  "notifFailedTitle": {
+    "message": "Pulse"
+  },
+  "notifFailed": {
+    "message": "Could not send the download to Pulse."
+  },
+  "notifNoLinks": {
+    "message": "No links found in the selection."
+  },
+  "notifBatch": {
+    "message": "$1 links sent to Pulse"
+  },
+  "errOffline": {
+    "message": "Pulse is not running. Open the app and try again."
+  },
+  "errRejected": {
+    "message": "Pulse rejected the request."
+  },
+  "errTimeout": {
+    "message": "Pulse did not respond."
+  },
+  "connecting": {
+    "message": "Connecting..."
+  },
+  "connected": {
+    "message": "Connected"
+  },
+  "offline": {
+    "message": "Offline"
+  },
+  "copyExtensions": {
+    "message": "Copy chrome://extensions"
+  },
+  "copiedExtensions": {
+    "message": "Copied to clipboard"
+  },
+  "statusQueued": {
+    "message": "Queued"
+  }
+}

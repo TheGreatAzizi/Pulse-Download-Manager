@@ -5,6 +5,13 @@ A cross-platform download manager for direct links, YouTube videos, and BitTorre
 [![GitHub](https://img.shields.io/badge/GitHub-TheGreatAzizi%2FPulse--Download--Manager-181717?logo=github)](https://github.com/TheGreatAzizi/Pulse-Download-Manager)
 [![License: GPL-3.0-or-later](https://img.shields.io/badge/License-GPL--3.0--or--later-blue.svg)](https://github.com/TheGreatAzizi/Pulse-Download-Manager/blob/main/LICENSE)
 
+<p align="center">
+  <a href="https://github.com/TheGreatAzizi/Pulse-Download-Manager/releases"><img src="https://img.shields.io/github/downloads/TheGreatAzizi/Pulse-Download-Manager/total?style=for-the-badge&amp;label=downloads&amp;color=2563eb" alt="Total downloads"></a>
+  <a href="https://github.com/TheGreatAzizi/Pulse-Download-Manager/stargazers"><img src="https://img.shields.io/github/stars/TheGreatAzizi/Pulse-Download-Manager?style=for-the-badge&amp;label=stars&amp;color=2563eb" alt="Stars"></a>
+  <a href="https://github.com/TheGreatAzizi/Pulse-Download-Manager/forks"><img src="https://img.shields.io/github/forks/TheGreatAzizi/Pulse-Download-Manager?style=for-the-badge&amp;label=forks&amp;color=2563eb" alt="Forks"></a>
+  <a href="https://github.com/TheGreatAzizi/Pulse-Download-Manager"><img src="https://api.visitorbadge.io/api/visitors?path=https%3A%2F%2Fgithub.com%2FTheGreatAzizi%2FPulse-Download-Manager&amp;label=repo%20views&amp;countColor=%232563eb&amp;style=for-the-badge" alt="Repo views"></a>
+</p>
+
 ## Downloads
 
 Get the latest releases from the [Releases page](https://github.com/TheGreatAzizi/Pulse-Download-Manager/releases).
@@ -16,6 +23,9 @@ Get the latest releases from the [Releases page](https://github.com/TheGreatAziz
 **Linux**
 - `Pulse-*.AppImage`: runs on most distributions including Arch
 - `Pulse-*.deb`: Debian/Ubuntu package
+
+**Browser extension**
+- `Pulse-Chrome-Extension-*.zip`: Chrome/Edge extension (Manifest V3), load unpacked after extracting
 
 > Arch / similar distros: install `fuse2` for AppImage support `sudo pacman -S fuse2`. If FUSE is unavailable, run `./Pulse-*.AppImage --appimage-extract-and-run`. `.deb` can be converted with `debtap`.
 
@@ -36,6 +46,15 @@ The Windows installer allows choosing the install directory, creates desktop and
 
 ### Settings
 ![Settings](https://raw.githubusercontent.com/TheGreatAzizi/Pulse-Download-Manager/main/docs/screenshots/final/settings-general-light.png)
+
+### Browser extension popup
+![Browser extension popup](https://raw.githubusercontent.com/TheGreatAzizi/Pulse-Download-Manager/main/docs/screenshots/final/extension-popup.png)
+
+### Browser extension options
+![Browser extension options](https://raw.githubusercontent.com/TheGreatAzizi/Pulse-Download-Manager/main/docs/screenshots/final/extension-options.png)
+
+### Browser extension settings
+![Browser extension settings](https://raw.githubusercontent.com/TheGreatAzizi/Pulse-Download-Manager/main/docs/screenshots/final/settings-browser-light.png)
 
 ### Add Download
 ![Add Download](https://raw.githubusercontent.com/TheGreatAzizi/Pulse-Download-Manager/main/docs/screenshots/final/add-download-en.png)
@@ -68,6 +87,36 @@ The Windows installer allows choosing the install directory, creates desktop and
 - **Auto-start**: optional launch on Windows login and Linux autostart
 - **Clipboard monitor**: suggests adding copied links, and detects multi-link lists for batch download
 - **In-app updates**: checks GitHub Releases on startup and from **Settings → About**, then downloads and launches the new installer with progress
+
+## Browser extension
+
+Pulse ships a Chrome/Edge extension that works like the IDM browser extension: it hands downloads to Pulse, adds right-click actions, and shows live progress from the popup.
+
+- **Download takeover**: when Pulse is running and browser integration is on, new Chrome/Edge downloads are cancelled in the browser and queued in Pulse with cookies, referrer and user agent
+- **Context menus**: send a link, image, video or audio file, the current page, a text selection, or every link on a page
+- **Popup**: connection status, current page, an **Add a link** field, active downloads, and a takeover switch
+- **Shortcut**: `Alt+Shift+P` sends the current page
+- **Languages**: English, Persian, Japanese, Russian
+
+### Install
+
+You can load the extension from the copy bundled with Pulse or from the release ZIP.
+
+1. Open **Settings → Tools** in Pulse, find **Browser extension**, and turn on **Enable browser integration**. Pulse listens on `127.0.0.1` ports `19527` to `19530` and only accepts the Pulse extension origin.
+2. Get the extension files:
+   - **Bundled**: click **Open extension folder** (or **Copy path**) in Pulse.
+   - **Release ZIP**: download `Pulse-Chrome-Extension-*.zip` from the [Releases page](https://github.com/TheGreatAzizi/Pulse-Download-Manager/releases) and extract it.
+3. Open `chrome://extensions` in Chrome or `edge://extensions` in Edge.
+4. Turn on **Developer mode**, choose **Load unpacked**, and select the `extension` folder, or the extracted folder that contains `manifest.json`.
+5. Pin the Pulse extension if you want quick access from the toolbar.
+
+The extension ID is fixed by the key in `extension/manifest.json`, so unpacked installs keep the same ID. After an app update, use **Reload** on `chrome://extensions` to pick up the new extension files.
+
+### Notes
+
+- The bridge is local only. It binds to `127.0.0.1` and rejects requests from any origin other than the Pulse extension.
+- Takeover can be paused from the popup or disabled per domain under **Never take over these domains** in the extension options.
+- If Pulse is not running, downloads stay in the browser.
 
 ## GitHub Integration
 
@@ -114,6 +163,7 @@ src/
   preload/    Secure window.pulse bridge
   renderer/   React + Tailwind UI
   shared/     Types and IPC contracts
+extension/    Chrome/Edge extension (Manifest V3)
 resources/bin/  Optional bundled binaries
 ```
 

@@ -3,6 +3,7 @@ import {
   Activity,
   Check,
   ChevronRight,
+  Copy,
   Cpu,
   Download,
   ExternalLink,
@@ -36,6 +37,7 @@ export function SettingsModal(): React.JSX.Element {
     t,
     settings,
     stats,
+    browser,
     system,
     patchSettings,
     pushToast,
@@ -83,6 +85,13 @@ export function SettingsModal(): React.JSX.Element {
   const chooseCookies = async (): Promise<void> => {
     const chosen = await window.pulse.chooseCookiesFile()
     if (chosen) set('cookiesFile', chosen)
+  }
+
+  const copyExtensionPath = async (): Promise<void> => {
+    const path = browser?.extensionPath
+    if (!path) return
+    await window.pulse.writeClipboard(path)
+    pushToast('success', t.settings.tools.browserCopied)
   }
 
   const installYtdlp = async (): Promise<void> => {
@@ -456,6 +465,74 @@ export function SettingsModal(): React.JSX.Element {
                   )
                 }
               />
+              <div className="rounded-xl border border-line bg-elev/25 p-3">
+                <div className="flex items-start gap-2.5">
+                  <Globe2 size={13} className="mt-0.5 shrink-0 text-faint" />
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="text-[11.5px] font-semibold">{t.settings.tools.browser}</span>
+                      <span
+                        className={cn(
+                          'text-[9px] font-semibold',
+                          browser?.running ? 'text-ok' : 'text-faint'
+                        )}
+                      >
+                        {browser?.running
+                          ? t.settings.tools.browserRunning.replace('{port}', String(browser.port))
+                          : t.settings.tools.browserStopped}
+                      </span>
+                    </div>
+                    <p className="mt-0.5 text-[9.5px] leading-relaxed text-muted">
+                      {t.settings.tools.browserDesc}
+                    </p>
+                    <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => void window.pulse.openExtensionFolder()}
+                        className="btn btn-ghost h-7 px-2 text-[9.5px]"
+                      >
+                        <FolderOpen size={11} />
+                        {t.settings.tools.browserFolder}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => void copyExtensionPath()}
+                        className="btn btn-ghost h-7 px-2 text-[9.5px]"
+                      >
+                        <Copy size={11} />
+                        {t.settings.tools.browserCopyPath}
+                      </button>
+                      <span className="text-[9px] text-faint">
+                        {browser?.running
+                          ? browser.clients > 0
+                            ? t.settings.tools.browserClients.replace(
+                                '{count}',
+                                String(browser.clients)
+                              )
+                            : t.settings.tools.browserNoClients
+                          : t.settings.tools.browserInstall}
+                      </span>
+                    </div>
+                    <p className="mt-2 text-[8.5px] leading-relaxed text-faint">
+                      {t.settings.tools.browserInstallHint}
+                    </p>
+                    <div className="mt-1 truncate text-[8.5px] text-faint" dir="ltr">
+                      {browser?.extensionPath || ''}
+                    </div>
+                    {browser?.error ? (
+                      <p className="mt-1 text-[9px] text-bad">{browser.error}</p>
+                    ) : null}
+                  </div>
+                  <Toggle
+                    checked={merged.browserIntegration}
+                    onChange={(value) => set('browserIntegration', value)}
+                    label={t.settings.tools.browserEnabled}
+                  />
+                </div>
+                <p className="mt-2 text-[8.5px] leading-relaxed text-faint">
+                  {t.settings.tools.browserEnabledHint}
+                </p>
+              </div>
               <div className="rounded-xl border border-line bg-elev/25 p-3">
                 <div className="flex items-center gap-2">
                   <ShieldCheck size={13} className="text-faint" />

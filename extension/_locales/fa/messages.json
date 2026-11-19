@@ -1,0 +1,215 @@
+{
+  "extName": {
+    "message": "Pulse Download Manager"
+  },
+  "extDesc": {
+    "message": "دانلودها را از کروم یا اج به Pulse بفرستید."
+  },
+  "actionTitle": {
+    "message": "Pulse Download Manager"
+  },
+  "commandSendPage": {
+    "message": "ارسال صفحه فعلی به Pulse"
+  },
+  "statusConnected": {
+    "message": "متصل"
+  },
+  "statusOffline": {
+    "message": "Pulse در دسترس نیست"
+  },
+  "statusConnecting": {
+    "message": "در حال اتصال"
+  },
+  "statusRetry": {
+    "message": "تلاش دوباره"
+  },
+  "offlineHint": {
+    "message": "Pulse را باز کنید تا اتصال برقرار شود."
+  },
+  "currentPage": {
+    "message": "صفحه فعلی"
+  },
+  "sendPage": {
+    "message": "ارسال صفحه"
+  },
+  "addLink": {
+    "message": "افزودن لینک"
+  },
+  "urlPlaceholder": {
+    "message": "https://example.com/file.zip"
+  },
+  "download": {
+    "message": "دانلود"
+  },
+  "active": {
+    "message": "فعال"
+  },
+  "speed": {
+    "message": "سرعت"
+  },
+  "noActive": {
+    "message": "دانلود فعالی نیست"
+  },
+  "recent": {
+    "message": "اخیر"
+  },
+  "takeover": {
+    "message": "دریافت دانلودهای مرورگر"
+  },
+  "openPulse": {
+    "message": "باز کردن Pulse"
+  },
+  "settings": {
+    "message": "تنظیمات"
+  },
+  "added": {
+    "message": "به Pulse فرستاده شد"
+  },
+  "addFailed": {
+    "message": "ارسال به Pulse انجام نشد"
+  },
+  "invalidUrl": {
+    "message": "یک لینک معتبر HTTP یا HTTPS وارد کنید"
+  },
+  "noLinks": {
+    "message": "لینکی پیدا نشد"
+  },
+  "batchQueued": {
+    "message": "$1 لینک به Pulse فرستاده شد"
+  },
+  "connectionLost": {
+    "message": "اتصال به Pulse قطع شد"
+  },
+  "openPulseHint": {
+    "message": "برای استفاده از اتصال مرورگر، برنامه Pulse را باز کنید."
+  },
+  "optionsTitle": {
+    "message": "اتصال مرورگر Pulse"
+  },
+  "optionsSubtitle": {
+    "message": "نحوه ارتباط افزونه با Pulse را تنظیم کنید."
+  },
+  "connection": {
+    "message": "اتصال"
+  },
+  "connectedTo": {
+    "message": "متصل به Pulse $1"
+  },
+  "notConnected": {
+    "message": "متصل نیست"
+  },
+  "port": {
+    "message": "پورت"
+  },
+  "testConnection": {
+    "message": "آزمایش اتصال"
+  },
+  "behavior": {
+    "message": "رفتار"
+  },
+  "takeoverLabel": {
+    "message": "دریافت دانلودهای مرورگر"
+  },
+  "takeoverHint": {
+    "message": "وقتی Pulse در حال اجراست، دانلودهای کروم به Pulse فرستاده می‌شوند."
+  },
+  "notificationsLabel": {
+    "message": "نمایش اعلان‌ها"
+  },
+  "notificationsHint": {
+    "message": "هنگام ارسال یا خطا اعلان نشان بده."
+  },
+  "excludedTitle": {
+    "message": "این دامنه‌ها را دریافت نکن"
+  },
+  "excludedHint": {
+    "message": "هر دامنه در یک خط. زیردامنه‌ها هم شامل می‌شوند."
+  },
+  "save": {
+    "message": "ذخیره"
+  },
+  "saved": {
+    "message": "تنظیمات ذخیره شد"
+  },
+  "about": {
+    "message": "درباره"
+  },
+  "aboutText": {
+    "message": "Pulse یک دانلود منیجر چندسکویی برای لینک مستقیم، یوتیوب و تورنت است."
+  },
+  "installTitle": {
+    "message": "نصب افزونه"
+  },
+  "installText": {
+    "message": "chrome://extensions را باز کنید، حالت Developer mode را روشن کنید، Load unpacked را بزنید و پوشه افزونه را از تنظیمات Pulse انتخاب کنید."
+  },
+  "openExtensions": {
+    "message": "باز کردن chrome://extensions"
+  },
+  "version": {
+    "message": "نسخه"
+  },
+  "menuLink": {
+    "message": "دانلود با Pulse"
+  },
+  "menuImage": {
+    "message": "دانلود تصویر با Pulse"
+  },
+  "menuMedia": {
+    "message": "دانلود رسانه با Pulse"
+  },
+  "menuPage": {
+    "message": "دانلود این صفحه با Pulse"
+  },
+  "menuSelection": {
+    "message": "دانلود لینک‌های انتخاب‌شده با Pulse"
+  },
+  "menuAllLinks": {
+    "message": "دانلود همه لینک‌ها با Pulse"
+  },
+  "notifSentTitle": {
+    "message": "Pulse"
+  },
+  "notifSent": {
+    "message": "به Pulse فرستاده شد: $1"
+  },
+  "notifFailedTitle": {
+    "message": "Pulse"
+  },
+  "notifFailed": {
+    "message": "ارسال دانلود به Pulse انجام نشد."
+  },
+  "notifNoLinks": {
+    "message": "در انتخاب شما لینکی پیدا نشد."
+  },
+  "notifBatch": {
+    "message": "$1 لینک به Pulse فرستاده شد"
+  },
+  "errOffline": {
+    "message": "Pulse در حال اجرا نیست. برنامه را باز کنید و دوباره تلاش کنید."
+  },
+  "errRejected": {
+    "message": "Pulse درخواست را رد کرد."
+  },
+  "errTimeout": {
+    "message": "Pulse پاسخ نداد."
+  },
+  "connecting": {
+    "message": "در حال اتصال..."
+  },
+  "connected": {
+    "message": "متصل"
+  },
+  "offline": {
+    "message": "آفلاین"
+  },
+  "copyExtensions": {
+    "message": "??? chrome://extensions"
+  },
+  "copiedExtensions": {
+    "message": "?? ????? ??? ??"
+  },
+  "statusQueued": {
+    "message": "?? ??"
+  }
+}

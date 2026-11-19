@@ -1,0 +1,215 @@
+{
+  "extName": {
+    "message": "Pulse Download Manager"
+  },
+  "extDesc": {
+    "message": "Chrome や Edge のダウンロードを Pulse に送信します。"
+  },
+  "actionTitle": {
+    "message": "Pulse Download Manager"
+  },
+  "commandSendPage": {
+    "message": "現在のページを Pulse に送信"
+  },
+  "statusConnected": {
+    "message": "接続済み"
+  },
+  "statusOffline": {
+    "message": "Pulse はオフラインです"
+  },
+  "statusConnecting": {
+    "message": "接続中"
+  },
+  "statusRetry": {
+    "message": "再試行"
+  },
+  "offlineHint": {
+    "message": "Pulse を起動してから再試行してください。"
+  },
+  "currentPage": {
+    "message": "現在のページ"
+  },
+  "sendPage": {
+    "message": "ページを送信"
+  },
+  "addLink": {
+    "message": "リンクを追加"
+  },
+  "urlPlaceholder": {
+    "message": "https://example.com/file.zip"
+  },
+  "download": {
+    "message": "ダウンロード"
+  },
+  "active": {
+    "message": "アクティブ"
+  },
+  "speed": {
+    "message": "速度"
+  },
+  "noActive": {
+    "message": "アクティブなダウンロードはありません"
+  },
+  "recent": {
+    "message": "最近"
+  },
+  "takeover": {
+    "message": "ブラウザのダウンロードを引き継ぐ"
+  },
+  "openPulse": {
+    "message": "Pulse を開く"
+  },
+  "settings": {
+    "message": "設定"
+  },
+  "added": {
+    "message": "Pulse に送信しました"
+  },
+  "addFailed": {
+    "message": "Pulse に送信できませんでした"
+  },
+  "invalidUrl": {
+    "message": "有効な HTTP または HTTPS リンクを入力してください"
+  },
+  "noLinks": {
+    "message": "リンクが見つかりません"
+  },
+  "batchQueued": {
+    "message": "$1 件のリンクを Pulse に送信しました"
+  },
+  "connectionLost": {
+    "message": "Pulse との接続が切れました"
+  },
+  "openPulseHint": {
+    "message": "ブラウザ連携を使うには Pulse を起動してください。"
+  },
+  "optionsTitle": {
+    "message": "Pulse ブラウザ連携"
+  },
+  "optionsSubtitle": {
+    "message": "拡張機能と Pulse の接続方法を設定します。"
+  },
+  "connection": {
+    "message": "接続"
+  },
+  "connectedTo": {
+    "message": "Pulse $1 に接続済み"
+  },
+  "notConnected": {
+    "message": "未接続"
+  },
+  "port": {
+    "message": "ポート"
+  },
+  "testConnection": {
+    "message": "接続をテスト"
+  },
+  "behavior": {
+    "message": "動作"
+  },
+  "takeoverLabel": {
+    "message": "ブラウザのダウンロードを引き継ぐ"
+  },
+  "takeoverHint": {
+    "message": "Pulse の実行中、Chrome のダウンロードは Pulse に送信されます。"
+  },
+  "notificationsLabel": {
+    "message": "通知を表示"
+  },
+  "notificationsHint": {
+    "message": "送信時やエラー時に通知を表示します。"
+  },
+  "excludedTitle": {
+    "message": "引き継がないドメイン"
+  },
+  "excludedHint": {
+    "message": "1 行に 1 ドメイン。サブドメインも対象です。"
+  },
+  "save": {
+    "message": "保存"
+  },
+  "saved": {
+    "message": "設定を保存しました"
+  },
+  "about": {
+    "message": "について"
+  },
+  "aboutText": {
+    "message": "Pulse は直リンク、YouTube、トレントに対応したクロスプラットフォームのダウンロードマネージャーです。"
+  },
+  "installTitle": {
+    "message": "拡張機能のインストール"
+  },
+  "installText": {
+    "message": "chrome://extensions を開き、デベロッパーモードを有効にして「パッケージ化されていない拡張機能を読み込む」から Pulse 設定の拡張フォルダーを選択してください。"
+  },
+  "openExtensions": {
+    "message": "chrome://extensions を開く"
+  },
+  "version": {
+    "message": "バージョン"
+  },
+  "menuLink": {
+    "message": "Pulse でダウンロード"
+  },
+  "menuImage": {
+    "message": "Pulse で画像をダウンロード"
+  },
+  "menuMedia": {
+    "message": "Pulse でメディアをダウンロード"
+  },
+  "menuPage": {
+    "message": "Pulse でこのページをダウンロード"
+  },
+  "menuSelection": {
+    "message": "選択したリンクを Pulse でダウンロード"
+  },
+  "menuAllLinks": {
+    "message": "すべてのリンクを Pulse でダウンロード"
+  },
+  "notifSentTitle": {
+    "message": "Pulse"
+  },
+  "notifSent": {
+    "message": "Pulse に送信しました: $1"
+  },
+  "notifFailedTitle": {
+    "message": "Pulse"
+  },
+  "notifFailed": {
+    "message": "ダウンロードを Pulse に送信できませんでした。"
+  },
+  "notifNoLinks": {
+    "message": "選択範囲にリンクが見つかりません。"
+  },
+  "notifBatch": {
+    "message": "$1 件のリンクを Pulse に送信しました"
+  },
+  "errOffline": {
+    "message": "Pulse が実行されていません。アプリを起動して再試行してください。"
+  },
+  "errRejected": {
+    "message": "Pulse がリクエストを拒否しました。"
+  },
+  "errTimeout": {
+    "message": "Pulse から応答がありません。"
+  },
+  "connecting": {
+    "message": "接続中..."
+  },
+  "connected": {
+    "message": "接続済み"
+  },
+  "offline": {
+    "message": "オフライン"
+  },
+  "copyExtensions": {
+    "message": "chrome://extensions ????"
+  },
+  "copiedExtensions": {
+    "message": "???????????????"
+  },
+  "statusQueued": {
+    "message": "???"
+  }
+}
