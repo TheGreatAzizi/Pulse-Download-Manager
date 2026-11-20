@@ -223,6 +223,13 @@ export function SettingsModal(): React.JSX.Element {
                   disabled={system ? !system.autoStartSupported : false}
                 />
                 <ToggleRow
+                  title={t.settings.general.startMinimized}
+                  hint={t.settings.general.startMinimizedHint}
+                  checked={merged.startMinimized}
+                  onChange={(v) => set('startMinimized', v)}
+                  disabled={system ? !system.autoStartSupported : false}
+                />
+                <ToggleRow
                   title={t.settings.general.notify}
                   checked={merged.notifyOnComplete}
                   onChange={(v) => set('notifyOnComplete', v)}

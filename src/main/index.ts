@@ -19,6 +19,7 @@ let browserBridge: BrowserBridge | null = null
 let clipboardTimer: NodeJS.Timeout | null = null
 let lastClipboard = ''
 let tray: Tray | null = null
+let launchHidden = false
 
 // Windows reads the taskbar name and icon from the AppUserModelID at process
 // start. Setting these before `ready` is what makes the taskbar show "Pulse"
@@ -116,6 +117,10 @@ function createWindow(): void {
   }
 
   mainWindow.once('ready-to-show', () => {
+    if (launchHidden) {
+      launchHidden = false
+      return
+    }
     mainWindow?.show()
   })
 
@@ -234,7 +239,8 @@ async function bootstrap(): Promise<void> {
   await store.load()
   configureProxy(store.settings.proxy)
   nativeTheme.themeSource = store.settings.theme
-  void applyLaunchAtStartup(store.settings.launchAtStartup)
+  launchHidden = store.settings.startMinimized && process.argv.includes('--hidden')
+  void applyLaunchAtStartup(store.settings.launchAtStartup, store.settings.startMinimized)
 
   manager = new DownloadManager({ store, emit: send })
   await manager.init()
@@ -265,6 +271,7 @@ async function bootstrap(): Promise<void> {
   electronApp.on('second-instance', (_event, argv) => {
     if (mainWindow) {
       if (mainWindow.isMinimized()) mainWindow.restore()
+      mainWindow.show()
       mainWindow.focus()
     }
     const url = argv.find((a) => /^(https?:\/\/|magnet:)/i.test(a))

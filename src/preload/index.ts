@@ -25,6 +25,7 @@ const api: PulseAPI = {
   addDownload: (input: AddDownloadInput) => ipcRenderer.invoke(IP.addDownload, input),
   addTorrent: (input: AddTorrentInput) => ipcRenderer.invoke(IP.addTorrent, input),
   pauseTask: (id: string) => ipcRenderer.invoke(IP.pause, id) as Promise<void>,
+  pauseAll: () => ipcRenderer.invoke(IP.pauseAll) as Promise<number>,
   resumeTask: (id: string) => ipcRenderer.invoke(IP.resume, id) as Promise<void>,
   cancelTask: (id: string) => ipcRenderer.invoke(IP.cancel, id) as Promise<void>,
   removeTask: (id: string, deleteFile: boolean) =>

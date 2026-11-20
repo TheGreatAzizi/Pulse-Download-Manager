@@ -31,6 +31,7 @@ export function defaultSettings(): Settings {
     userAgent: DEFAULT_UA,
     autoResume: true,
     launchAtStartup: true,
+    startMinimized: true,
     cookiesBrowser: '',
     cookiesFile: '',
     githubToken: '',

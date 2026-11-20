@@ -65,6 +65,19 @@
     return urls
   }
 
+  /**
+   * Chrome can replay download events after a restart. Only take over a
+   * download that is still running and that started moments ago, so completed
+   * history entries and old interrupted items stay untouched.
+   */
+  function shouldTakeOver(item, extensionId, maxAgeMs) {
+    if (!item || item.state !== 'in_progress') return false
+    if (extensionId && item.byExtensionId === extensionId) return false
+    const startedAt = Date.parse(String(item.startTime || ''))
+    if (!Number.isFinite(startedAt)) return false
+    return Date.now() - startedAt <= (maxAgeMs || 15000)
+  }
+
   function hostMatches(hostname, domain) {
     const host = String(hostname || '').toLowerCase()
     const base = String(domain || '')
@@ -146,6 +159,7 @@
     formatBytes,
     formatSpeed,
     parseUrls,
+    shouldTakeOver,
     hostMatches,
     isExcluded,
     escapeHtml,

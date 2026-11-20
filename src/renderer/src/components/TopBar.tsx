@@ -3,6 +3,7 @@ import {
   Check,
   ChevronDown,
   Gauge,
+  Pause,
   Plus,
   Search,
   Settings,
@@ -10,7 +11,7 @@ import {
   X
 } from 'lucide-react'
 import { useApp, type ViewId } from '../state'
-import { cn } from '../lib/format'
+import { cn, isActive } from '../lib/format'
 
 const LIMITS: Array<{ value: number; label: string }> = [
   { value: 0, label: '∞' },
@@ -23,8 +24,19 @@ const LIMITS: Array<{ value: number; label: string }> = [
 ]
 
 export function TopBar(): React.JSX.Element {
-  const { t, view, tasks, query, setQuery, openAdd, setSettingsOpen, settings, patchSettings, lang } =
-    useApp()
+  const {
+    t,
+    view,
+    tasks,
+    query,
+    setQuery,
+    openAdd,
+    setSettingsOpen,
+    settings,
+    patchSettings,
+    lang,
+    pushToast
+  } = useApp()
   const [limitOpen, setLimitOpen] = useState(false)
   const limitRef = useRef<HTMLDivElement>(null)
 
@@ -60,6 +72,14 @@ export function TopBar(): React.JSX.Element {
   const limitLabel =
     LIMITS.find((x) => x.value === currentLimit)?.label ??
     `${Math.round(currentLimit / (1024 * 1024))} MB/s`
+  const pausableCount = tasks.filter(
+    (task) => isActive(task) || task.status === 'queued'
+  ).length
+
+  const pauseAll = async (): Promise<void> => {
+    const count = await window.pulse.pauseAll()
+    if (count > 0) pushToast('info', t.toast.pausedAll)
+  }
 
   return (
     <div className="flex shrink-0 items-center gap-3 border-b border-line/60 px-5 py-3">
@@ -100,6 +120,18 @@ export function TopBar(): React.JSX.Element {
             )}
           </div>
         ) : null}
+
+        <button
+          type="button"
+          onClick={() => void pauseAll()}
+          disabled={pausableCount === 0}
+          className="btn btn-ghost h-9 gap-1.5 px-2.5 text-[11px] disabled:opacity-40"
+          title={t.toolbar.pauseAll}
+          aria-label={t.toolbar.pauseAll}
+        >
+          <Pause size={15} />
+          <span className="hidden sm:inline">{t.toolbar.pauseAll}</span>
+        </button>
 
         <div ref={limitRef} className="relative">
           <button

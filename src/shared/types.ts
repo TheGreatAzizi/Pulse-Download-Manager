@@ -45,6 +45,8 @@ export interface Settings {
   autoResume: boolean
   /** Register Pulse to start automatically after the user signs in. */
   launchAtStartup: boolean
+  /** Keep the window in the tray when the OS starts Pulse at sign-in. */
+  startMinimized: boolean
   /** Read YouTube (and other sites') cookies directly from a browser profile. */
   cookiesBrowser: CookiesBrowser
   /** Path to an exported cookies.txt file (takes precedence over the browser). */
@@ -374,6 +376,7 @@ export interface PulseAPI {
   addDownload(input: AddDownloadInput): Promise<DownloadTask>
   addTorrent(input: AddTorrentInput): Promise<DownloadTask>
   pauseTask(id: string): Promise<void>
+  pauseAll(): Promise<number>
   resumeTask(id: string): Promise<void>
   cancelTask(id: string): Promise<void>
   removeTask(id: string, deleteFile: boolean): Promise<void>

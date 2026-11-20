@@ -19,15 +19,19 @@ export function isAutoStartSupported(): boolean {
  * On Windows this uses the per-user Run registry key; on Linux it writes a
  * freedesktop autostart entry.
  */
-export async function applyLaunchAtStartup(enabled: boolean): Promise<void> {
+export async function applyLaunchAtStartup(
+  enabled: boolean,
+  startMinimized = false
+): Promise<void> {
   if (!app.isPackaged || !isAutoStartSupported()) return
   try {
+    const args = startMinimized ? ['--hidden'] : []
     if (process.platform === 'win32') {
       app.setLoginItemSettings({
         openAtLogin: enabled,
         name: AUTOSTART_NAME,
         path: process.execPath,
-        args: []
+        args
       })
       return
     }
@@ -49,7 +53,7 @@ export async function applyLaunchAtStartup(enabled: boolean): Promise<void> {
       'Version=1.0',
       'Name=Pulse',
       'Comment=Pulse Download Manager',
-      `Exec=${exec}`,
+      `Exec=${exec}${startMinimized ? ' --hidden' : ''}`,
       'Terminal=false',
       'X-GNOME-Autostart-enabled=true',
       'Categories=Network;FileTransfer;',

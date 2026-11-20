@@ -5,6 +5,7 @@ const {
   PROTOCOL,
   t,
   parseUrls,
+  shouldTakeOver,
   isExcluded,
   notify,
   flashBadge,
@@ -14,6 +15,7 @@ const {
 
 const DEFAULT_SETTINGS = { takeover: true, notifications: true, excluded: [] }
 const MAX_BATCH = 50
+const TAKEOVER_MAX_AGE_MS = 15000
 
 let settings = { ...DEFAULT_SETTINGS }
 let socket = null
@@ -451,6 +453,7 @@ chrome.commands.onCommand.addListener((command) => {
 
 chrome.downloads.onCreated.addListener((item) => {
   void (async () => {
+    if (!shouldTakeOver(item, chrome.runtime.id, TAKEOVER_MAX_AGE_MS)) return
     if (!settings.takeover) return
     if (!validUrl(item.url)) return
     if (isExcluded(item.url, settings.excluded)) return

@@ -23,6 +23,7 @@
   <a href="#screenshots">Screenshots</a> |
   <a href="#download">Download</a> |
   <a href="#browser-extension">Browser extension</a> |
+  <a href="#startup-and-bulk-actions">Startup and bulk actions</a> |
   <a href="#proxy-support">Proxy</a> |
   <a href="#notifications">Notifications</a> |
   <a href="#development">Development</a> |
@@ -44,9 +45,9 @@ The app is local-first: settings, task state and files stay on your machine. It 
 | Network | HTTP, HTTPS, SOCKS5 and SOCKS5H proxy support with optional authentication |
 | Video and audio | yt-dlp integration, 1000+ supported sites, quality selection, audio extraction, subtitles, thumbnails, playlists |
 | BitTorrent | Magnet links and `.torrent` files, file selection, secure resume, peer and seeder stats, upload ratio |
-| Browser integration | Chrome/Edge extension, download takeover, context menus, multi-link selection, cookies/referrer/user agent forwarding, popup, `Alt+Shift+P` |
+| Browser integration | Chrome/Edge extension, download takeover, history-safe startup, context menus, multi-link selection, cookies/referrer/user agent forwarding, popup, `Alt+Shift+P` |
 | GitHub | Repository search, source ZIPs, release assets, optional personal access token |
-| Desktop experience | English, Persian (RTL), Japanese, Russian, light and dark themes, completion and failure notifications, auto-start, tray, in-app updates |
+| Desktop experience | English, Persian (RTL), Japanese, Russian, light and dark themes, completion and failure notifications, start minimized to tray, pause all, auto-start, tray, in-app updates |
 | Privacy | Local WebSocket bridge on `127.0.0.1`, pinned extension origin, no account required |
 
 ## Screenshots
@@ -126,7 +127,7 @@ Pulse ships a Manifest V3 extension for Chrome and Edge. It works like a classic
 
 ### What it does
 
-- **Download takeover:** new Chrome/Edge downloads are cancelled in the browser and queued in Pulse with cookies, referrer and user agent.
+- **Download takeover:** new Chrome/Edge downloads are cancelled in the browser and queued in Pulse with cookies, referrer and user agent. Takeover ignores completed or stale history entries when the browser restarts.
 - **Context menus:** send a link, image, video or audio file, the current page, a text selection, or every link on a page.
 - **Multi-link selection:** highlight one or more links or any text that contains links, right-click, and choose **Send selected links to Pulse**. The selection is collected from the page, so link text works without copying the destination URL.
 - **Popup:** connection status, current page, an **Add a link** field, active downloads, and a takeover switch.
@@ -156,6 +157,11 @@ The extension ID is fixed by the key in `extension/manifest.json`, so unpacked i
 - Cookies, referrer and user agent are forwarded only for the download you send to Pulse.
 - Takeover can be paused from the popup or disabled per domain in the extension options.
 - If Pulse is not running, the browser keeps the download.
+
+## Startup and bulk actions
+
+- **Start minimized to tray:** enable **Settings → General → Start minimized to the tray at login** to keep Pulse out of the way when Windows or Linux starts it automatically. The tray icon still opens the main window.
+- **Pause all:** use the **Pause all** button in the toolbar to stop every queued and active download at once. Paused downloads can be resumed individually.
 
 ## GitHub integration
 
@@ -257,6 +263,7 @@ Keep `yt-dlp` newer than 2025.11 for JavaScript runtime support.
 | Problem | Fix |
 | --- | --- |
 | Browser extension shows Offline | Start Pulse, enable browser integration, reload the extension, and check the port in **Settings → Tools**. |
+| Chrome re-downloads old history | Reload the extension from `chrome://extensions` or `edge://extensions`. Takeover now ignores completed downloads and stale history entries. |
 | Downloads stay in the browser | Turn on takeover in the popup, remove the site from domain exclusions, and make sure Pulse is running. |
 | AppImage does not start | Install `fuse2`, or run `./Pulse-*.AppImage --appimage-extract-and-run`. |
 | SmartScreen warning on Windows | Builds are unsigned; choose **More info → Run anyway**. |

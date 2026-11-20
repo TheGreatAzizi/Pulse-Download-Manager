@@ -5,6 +5,7 @@ export const IP = {
   addDownload: 'pulse:add-download',
   addTorrent: 'pulse:add-torrent',
   pause: 'pulse:pause',
+  pauseAll: 'pulse:pause-all',
   resume: 'pulse:resume',
   cancel: 'pulse:cancel',
   remove: 'pulse:remove',

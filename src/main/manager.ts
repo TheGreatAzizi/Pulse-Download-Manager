@@ -426,6 +426,17 @@ export class DownloadManager implements EngineHost {
     this.persistSoon()
   }
 
+  pauseAll(): number {
+    let count = 0
+    for (const task of this.tasks.values()) {
+      if (ACTIVE.includes(task.status) || task.status === 'queued') {
+        this.pause(task.id)
+        count++
+      }
+    }
+    return count
+  }
+
   async resume(id: string): Promise<void> {
     const task = this.tasks.get(id)
     if (!task) return
@@ -631,8 +642,8 @@ export class DownloadManager implements EngineHost {
     if (patch.ytDlpPath !== undefined || patch.ffmpegPath !== undefined) {
       void this.refreshTools()
     }
-    if (patch.launchAtStartup !== undefined) {
-      void applyLaunchAtStartup(settings.launchAtStartup)
+    if (patch.launchAtStartup !== undefined || patch.startMinimized !== undefined) {
+      void applyLaunchAtStartup(settings.launchAtStartup, settings.startMinimized)
     }
     if (patch.theme !== undefined) {
       nativeTheme.themeSource = settings.theme

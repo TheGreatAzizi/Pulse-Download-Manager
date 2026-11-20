@@ -125,6 +125,7 @@ const fallbackSettings: Settings = {
   userAgent: '',
   autoResume: true,
   launchAtStartup: true,
+  startMinimized: true,
   cookiesBrowser: '',
   cookiesFile: '',
   githubToken: '',

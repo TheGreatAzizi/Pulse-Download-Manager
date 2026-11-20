@@ -34,6 +34,7 @@ const en = {
     sortSize: 'Largest first',
     sortName: 'Name (A–Z)',
     sortProgress: 'Progress',
+    pauseAll: 'Pause all',
     clear: 'Clear completed',
     settings: 'Settings',
     select: 'Select all'
@@ -263,6 +264,8 @@ const en = {
       launchAtStartup: 'Launch Pulse when the system starts',
       launchAtStartupHint: 'Automatically start Pulse after you sign in to Windows or Linux.',
       launchAtStartupUnsupported: 'Auto-start is available in the installed version, not the portable build.',
+      startMinimized: 'Start minimized to the tray at login',
+      startMinimizedHint: 'When the system launches Pulse automatically, keep it in the tray instead of opening the main window.',
       notify: 'Show a notification when a download finishes or fails',
       clipboard: 'Watch the clipboard for links',
       clipboardHint: 'Pulse offers to download links you copy in other apps.'
@@ -417,6 +420,7 @@ const en = {
     added: 'Added to the queue',
     complete: 'Download complete',
     paused: 'Download paused',
+    pausedAll: 'All active downloads paused',
     resumed: 'Download resumed',
     removed: 'Download removed',
     copied: 'Link copied',
@@ -489,6 +493,7 @@ const fa: typeof en = {
     sortSize: 'بزرگ‌ترین',
     sortName: 'نام (الف–ی)',
     sortProgress: 'پیشرفت',
+    pauseAll: 'توقف همه',
     clear: 'پاک‌کردن تکمیل‌شده‌ها',
     settings: 'تنظیمات',
     select: 'انتخاب همه'
@@ -718,6 +723,8 @@ const fa: typeof en = {
       launchAtStartup: 'اجرای خودکار پالس هنگام روشن‌شدن سیستم',
       launchAtStartupHint: 'پس از ورود به ویندوز یا لینوکس، پالس به‌صورت خودکار اجرا شود.',
       launchAtStartupUnsupported: 'اجرای خودکار فقط در نسخهٔ نصب‌شده فعال است، نه نسخهٔ Portable.',
+      startMinimized: 'شروع در سینی سیستم هنگام ورود',
+      startMinimizedHint: 'وقتی ویندوز یا لینوکس پالس را خودکار اجرا می‌کند، پنجره اصلی باز نشود و پالس در سینی سیستم بماند.',
       notify: 'نمایش اعلان پس از پایان یا خطای دانلود',
       clipboard: 'پایش حافظه موقت برای یافتن لینک',
       clipboardHint: 'وقتی لینکی را در برنامه‌های دیگر کپی می‌کنید، پالس پیشنهاد دانلود می‌دهد.'
@@ -872,6 +879,7 @@ const fa: typeof en = {
     added: 'به صف اضافه شد',
     complete: 'دانلود تکمیل شد',
     paused: 'دانلود متوقف شد',
+    pausedAll: 'همه دانلودهای فعال متوقف شدند',
     resumed: 'دانلود ادامه یافت',
     removed: 'دانلود حذف شد',
     copied: 'لینک کپی شد',
@@ -944,6 +952,7 @@ const ja: typeof en = {
     sortSize: 'サイズの大きい順',
     sortName: '名前 (A–Z)',
     sortProgress: '進行状況',
+    pauseAll: 'すべて一時停止',
     clear: '完了済みをクリア',
     settings: '設定',
     select: 'すべて選択'
@@ -1173,6 +1182,8 @@ const ja: typeof en = {
       launchAtStartup: 'システム起動時に Pulse を自動起動',
       launchAtStartupHint: 'Windows または Linux へのサインイン後に Pulse を自動的に起動します。',
       launchAtStartupUnsupported: '自動起動はインストール版でのみ利用できます（ポータブル版では使用できません）。',
+      startMinimized: 'ログイン時にトレイで最小化して起動',
+      startMinimizedHint: 'Windows または Linux が Pulse を自動起動したとき、メインウィンドウを開かずトレイに常駐します。',
       notify: 'ダウンロードの完了時または失敗時に通知を表示',
       clipboard: 'クリップボードのリンクを監視',
       clipboardHint: '他のアプリでリンクをコピーしたとき、Pulse がダウンロードを提案します。'
@@ -1327,6 +1338,7 @@ const ja: typeof en = {
     added: 'キューに追加されました',
     complete: 'ダウンロード完了',
     paused: 'ダウンロード一時停止',
+    pausedAll: 'すべてのアクティブなダウンロードを一時停止しました',
     resumed: 'ダウンロード再開',
     removed: 'ダウンロード削除',
     copied: 'リンクをコピーしました',
@@ -1399,6 +1411,7 @@ const ru: typeof en = {
     sortSize: 'Сначала по размеру',
     sortName: 'Имя (A–Z)',
     sortProgress: 'Прогресс',
+    pauseAll: 'Приостановить все',
     clear: 'Очистить завершённые',
     settings: 'Настройки',
     select: 'Выделить всё'
@@ -1628,6 +1641,8 @@ const ru: typeof en = {
       launchAtStartup: 'Запускать Pulse при входе в систему',
       launchAtStartupHint: 'Автоматически запускать Pulse после входа в Windows или Linux.',
       launchAtStartupUnsupported: 'Автозапуск доступен только в установленной версии, не в портативной.',
+      startMinimized: 'Запускать свёрнутым в трей при входе',
+      startMinimizedHint: 'Когда Windows или Linux запускает Pulse автоматически, главное окно не открывается, а Pulse остаётся в трее.',
       notify: 'Показывать уведомление после завершения или ошибки загрузки',
       clipboard: 'Следить за буфером обмена на наличие ссылок',
       clipboardHint: 'Когда вы копируете ссылку в другом приложении, Pulse предложит скачать её.'
@@ -1782,6 +1797,7 @@ const ru: typeof en = {
     added: 'Добавлено в очередь',
     complete: 'Загрузка завершена',
     paused: 'Загрузка приостановлена',
+    pausedAll: 'Все активные загрузки приостановлены',
     resumed: 'Загрузка возобновлена',
     removed: 'Загрузка удалена',
     copied: 'Ссылка скопирована',

@@ -81,6 +81,8 @@ export function registerIpc(
 
   handle(IP.pause, (id: string) => manager.pause(id))
 
+  handle(IP.pauseAll, () => manager.pauseAll())
+
   handle(IP.resume, (id: string) => manager.resume(id))
 
   handle(IP.cancel, (id: string) => manager.cancel(id))
