@@ -5,6 +5,7 @@ import type {
   GithubRepoDetails,
   GithubSearchResult
 } from '@shared/types'
+import { proxiedFetch } from './proxy'
 
 const API = 'https://api.github.com'
 
@@ -73,7 +74,7 @@ function headers(token: string, accept = 'application/vnd.github+json'): Record<
 async function ghFetch<T>(url: string, token: string, attempt = 0): Promise<T> {
   let res: Response
   try {
-    res = await fetch(url, {
+    res = await proxiedFetch(url, {
       headers: headers(token),
       signal: AbortSignal.timeout(25_000),
       redirect: 'follow'

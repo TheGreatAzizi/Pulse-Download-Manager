@@ -1,10 +1,11 @@
-import { app, net, shell } from 'electron'
+import { app, shell } from 'electron'
 import { createWriteStream } from 'node:fs'
 import { Readable, Transform } from 'node:stream'
 import { pipeline } from 'node:stream/promises'
 import { join } from 'node:path'
 import { spawn } from 'node:child_process'
 import type { UpdateAsset, UpdateInfo } from '@shared/types'
+import { proxiedFetch } from './proxy'
 
 const REPO = 'TheGreatAzizi/Pulse-Download-Manager'
 const LATEST_API = `https://api.github.com/repos/${REPO}/releases/latest`
@@ -64,7 +65,7 @@ export async function check(token?: string): Promise<UpdateInfo> {
   }
   if (token && token.trim()) headers.Authorization = `Bearer ${token.trim()}`
 
-  const res = await net.fetch(LATEST_API, { headers })
+  const res = await proxiedFetch(LATEST_API, { headers })
   if (!res.ok) {
     if (res.status === 403 || res.status === 429) {
       throw new Error('GitHub rate limit reached. Please try again later.')
@@ -119,7 +120,7 @@ export async function download(
   }
   try {
     const target = join(app.getPath('downloads'), asset.name)
-    const res = await net.fetch(asset.url, {
+    const res = await proxiedFetch(asset.url, {
       headers: { 'User-Agent': `Pulse/${info.current}`, Accept: 'application/octet-stream' }
     })
     if (!res.ok || !res.body) throw new Error(`Download failed (HTTP ${res.status}).`)

@@ -5,6 +5,7 @@ import { app } from 'electron'
 import type { Settings, YoutubeFormatOption, YoutubeProbe, YoutubeMeta } from '@shared/types'
 import type { EngineHost, TaskHandle } from './http'
 import { ensureDir, sanitizeFileName } from '../util'
+import { currentProxy, proxiedFetch } from '../proxy'
 
 export interface BinInfo {
   cmd: string
@@ -241,6 +242,11 @@ export class YoutubeEngine {
     return []
   }
 
+  private proxyArgs(): string[] {
+    const proxy = currentProxy()
+    return proxy ? ['--proxy', proxy.url] : []
+  }
+
   async status(): Promise<{
     ytdlp: { available: boolean; version?: string; path?: string }
     ffmpeg: { available: boolean; path?: string }
@@ -287,6 +293,7 @@ export class YoutubeEngine {
       '--retries',
       '3',
       ...this.cookieArgs(),
+      ...this.proxyArgs(),
       ...(await this.jsRuntimeArgs()),
       url
     ]
@@ -506,7 +513,8 @@ export class YoutubeEngine {
       selector,
       '-o',
       outputTemplate,
-      ...this.cookieArgs()
+      ...this.cookieArgs(),
+      ...this.proxyArgs()
     ]
     args.push(...(await this.jsRuntimeArgs()))
     if (process.platform === 'win32') args.push('--windows-filenames')
@@ -699,7 +707,7 @@ export class YoutubeEngine {
     const target = join(dir, exe)
     const url = `https://github.com/yt-dlp/yt-dlp/releases/latest/download/${exe}`
     try {
-      const res = await fetch(url, { redirect: 'follow' })
+      const res = await proxiedFetch(url, { redirect: 'follow' })
       if (!res.ok) return { ok: false, message: `Download failed: HTTP ${res.status}` }
       const buf = Buffer.from(await res.arrayBuffer())
       if (buf.length < 1_000_000) {

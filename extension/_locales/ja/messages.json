@@ -162,7 +162,7 @@
     "message": "Pulse でこのページをダウンロード"
   },
   "menuSelection": {
-    "message": "選択したリンクを Pulse でダウンロード"
+    "message": "選択したリンクを Pulse に送信"
   },
   "menuAllLinks": {
     "message": "すべてのリンクを Pulse でダウンロード"

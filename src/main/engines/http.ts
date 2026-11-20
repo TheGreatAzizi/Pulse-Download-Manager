@@ -2,6 +2,7 @@ import { promises as fs, existsSync } from 'node:fs'
 import type { FileHandle } from 'node:fs/promises'
 import { join } from 'node:path'
 import type { DownloadTask, Settings, SegmentState } from '@shared/types'
+import { proxiedFetch } from '../proxy'
 import {
   GlobalThrottle,
   ensureDir,
@@ -106,7 +107,7 @@ export class HttpEngine {
     const controller = new AbortController()
     const timeout = setTimeout(() => controller.abort(), 30_000)
     try {
-      const res = await fetch(url, {
+      const res = await proxiedFetch(url, {
         headers: {
           'User-Agent': userAgent || settings.userAgent,
           Accept: '*/*',
@@ -402,7 +403,7 @@ export class HttpEngine {
           const headers = { ...this.baseHeaders(task) }
           if (ranged) headers.Range = `bytes=${seg.position}-${seg.end - 1}`
 
-          const res = await fetch(state.finalUrl, {
+          const res = await proxiedFetch(state.finalUrl, {
             headers,
             signal: controller.signal,
             redirect: 'follow'
@@ -536,7 +537,7 @@ export class HttpEngine {
     let downloaded = 0
     const started = Date.now()
     try {
-      const res = await fetch(finalUrl, {
+      const res = await proxiedFetch(finalUrl, {
         headers: this.baseHeaders(task),
         signal: controller.signal,
         redirect: 'follow'

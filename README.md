@@ -23,6 +23,8 @@
   <a href="#screenshots">Screenshots</a> |
   <a href="#download">Download</a> |
   <a href="#browser-extension">Browser extension</a> |
+  <a href="#proxy-support">Proxy</a> |
+  <a href="#notifications">Notifications</a> |
   <a href="#development">Development</a> |
   <a href="#troubleshooting">Troubleshooting</a> |
   <a href="#contributing">Contributing</a>
@@ -39,11 +41,12 @@ The app is local-first: settings, task state and files stay on your machine. It 
 | Area | Highlights |
 | --- | --- |
 | HTTP downloads | Multi-connection engine, resume, smart queue, global speed limit, expired link recovery, batch links |
+| Network | HTTP, HTTPS, SOCKS5 and SOCKS5H proxy support with optional authentication |
 | Video and audio | yt-dlp integration, 1000+ supported sites, quality selection, audio extraction, subtitles, thumbnails, playlists |
 | BitTorrent | Magnet links and `.torrent` files, file selection, secure resume, peer and seeder stats, upload ratio |
-| Browser integration | Chrome/Edge extension, download takeover, context menus, cookies/referrer/user agent forwarding, popup, `Alt+Shift+P` |
+| Browser integration | Chrome/Edge extension, download takeover, context menus, multi-link selection, cookies/referrer/user agent forwarding, popup, `Alt+Shift+P` |
 | GitHub | Repository search, source ZIPs, release assets, optional personal access token |
-| Desktop experience | English, Persian (RTL), Japanese, Russian, light and dark themes, auto-start, tray, in-app updates |
+| Desktop experience | English, Persian (RTL), Japanese, Russian, light and dark themes, completion and failure notifications, auto-start, tray, in-app updates |
 | Privacy | Local WebSocket bridge on `127.0.0.1`, pinned extension origin, no account required |
 
 ## Screenshots
@@ -119,12 +122,13 @@ The Windows installer lets you choose the install directory, creates desktop and
 
 ## Browser extension
 
-Pulse ships a Manifest V3 extension for Chrome and Edge. It works like a classic download manager extension: it hands downloads to Pulse, adds right-click actions, and shows live progress from the popup.
+Pulse ships a Manifest V3 extension for Chrome and Edge. It works like a classic download manager extension: it hands downloads to Pulse, adds right-click actions, and shows live progress from the popup. The popup and options page use a light palette that matches the desktop app.
 
 ### What it does
 
 - **Download takeover:** new Chrome/Edge downloads are cancelled in the browser and queued in Pulse with cookies, referrer and user agent.
 - **Context menus:** send a link, image, video or audio file, the current page, a text selection, or every link on a page.
+- **Multi-link selection:** highlight one or more links or any text that contains links, right-click, and choose **Send selected links to Pulse**. The selection is collected from the page, so link text works without copying the destination URL.
 - **Popup:** connection status, current page, an **Add a link** field, active downloads, and a takeover switch.
 - **Shortcut:** `Alt+Shift+P` sends the current page.
 - **Domain exclusions:** disable takeover for specific sites in the extension options.
@@ -156,6 +160,38 @@ The extension ID is fixed by the key in `extension/manifest.json`, so unpacked i
 ## GitHub integration
 
 Open **GitHub** in the sidebar to search public repositories, download a repository ZIP for the default branch or a tag, and fetch release assets directly into the download queue. Add a personal access token in **Settings → Tools → GitHub token** to raise the GitHub API limit from 60 to 5,000 requests per hour.
+
+## Proxy support
+
+Pulse can send its network traffic through an HTTP, HTTPS or SOCKS5 proxy. Open **Settings → Proxy**, enter the proxy address, and save. Leave the field empty for a direct connection.
+
+| Scheme | Example | Notes |
+| --- | --- | --- |
+| HTTP | `http://127.0.0.1:8080` | Used when the address has no scheme |
+| HTTPS | `https://proxy.example.com:8443` | Encrypted connection to the proxy itself |
+| SOCKS5 | `socks5://127.0.0.1:1080` | Resolves host names locally |
+| SOCKS5H | `socks5h://127.0.0.1:1080` | Resolves host names through the proxy |
+
+Authentication is optional and can be embedded in the address:
+
+```text
+socks5://user:password@127.0.0.1:1080
+```
+
+Percent-encode special characters in the username or password, for example `@` becomes `%40`. `socks://` is accepted as an alias for `socks5://`. SOCKS4 is not supported.
+
+The proxy applies to:
+
+- Direct HTTP and HTTPS downloads, including segmented transfers and resume.
+- YouTube and other yt-dlp downloads, plus the yt-dlp installer.
+- GitHub API requests, repository downloads and release assets.
+- Update checks and update downloads.
+
+BitTorrent traffic, including peer connections and trackers, stays direct. Pulse does not change the system proxy or the Chromium session proxy.
+
+## Notifications
+
+Pulse can show a system notification when a download completes or fails. Turn on **Settings → General → Show a notification when a download finishes or fails**. Failed downloads include the task name and the error detail. Notifications are best effort and depend on support in the operating system.
 
 ## Development
 
@@ -198,6 +234,7 @@ docs/         Screenshots and documentation assets
 
 - Settings and task state are stored in Electron's `userData` directory as `pulse-state.json`.
 - Unfinished HTTP downloads use `.pulse-part` and `.pulse-meta` sidecars.
+- Proxy settings are stored in the same file. Embedded proxy credentials are saved as plain text.
 - The global speed limit is available in **Settings → Bandwidth** or from the status bar.
 - Optional binaries can be placed in `resources/bin/` (`yt-dlp` and `ffmpeg`) to bundle them with the app. Otherwise Pulse discovers them from system paths or user data.
 
@@ -224,6 +261,7 @@ Keep `yt-dlp` newer than 2025.11 for JavaScript runtime support.
 | AppImage does not start | Install `fuse2`, or run `./Pulse-*.AppImage --appimage-extract-and-run`. |
 | SmartScreen warning on Windows | Builds are unsigned; choose **More info → Run anyway**. |
 | Cookie database is locked | Close the browser before reading cookies, or use an exported `cookies.txt`. |
+| Proxy downloads fail | Check the address, port and credentials in **Settings → Proxy**. Percent-encode special characters. SOCKS4 is not supported; use SOCKS5 or SOCKS5H. |
 | Speed is lower than expected | Raise the connection count or remove the speed limit in **Settings → Bandwidth**. |
 
 ## Contributing

@@ -162,7 +162,7 @@
     "message": "Download this page with Pulse"
   },
   "menuSelection": {
-    "message": "Download links in selection with Pulse"
+    "message": "Send selected links to Pulse"
   },
   "menuAllLinks": {
     "message": "Download all links with Pulse"

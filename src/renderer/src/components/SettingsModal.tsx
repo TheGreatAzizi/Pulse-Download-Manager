@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import {
   Activity,
+  AlertTriangle,
   Check,
   ChevronRight,
   Copy,
@@ -15,6 +16,7 @@ import {
   Loader2,
   Monitor,
   Moon,
+  Network,
   RefreshCw,
   Settings2,
   ShieldCheck,
@@ -22,13 +24,14 @@ import {
   Wrench
 } from 'lucide-react'
 import type { Settings } from '@shared/types'
+import { parseProxy, proxyEndpoint } from '@shared/proxy'
 import { useApp } from '../state'
 import { dictionaries } from '../i18n'
 import { Modal } from './Modal'
 import { Logo, Toggle } from './primitives'
 import { cn } from '../lib/format'
 
-type Tab = 'general' | 'speed' | 'appearance' | 'tools' | 'about'
+type Tab = 'general' | 'speed' | 'proxy' | 'appearance' | 'tools' | 'about'
 
 export function SettingsModal(): React.JSX.Element {
   const {
@@ -62,13 +65,19 @@ export function SettingsModal(): React.JSX.Element {
   }, [settingsOpen])
 
   const merged = useMemo<Settings>(() => ({ ...settings, ...draft }), [settings, draft])
+  const proxy = useMemo(() => parseProxy(String(merged.proxy || '')), [merged.proxy])
 
   const set = <K extends keyof Settings>(key: K, value: Settings[K]): void => {
     setDraft((prev) => ({ ...prev, [key]: value }))
   }
 
   const save = (): void => {
-    patchSettings(draft)
+    if (!proxy.ok) {
+      pushToast('error', t.settings.proxy.errors[proxy.error])
+      setTab('proxy')
+      return
+    }
+    patchSettings({ ...draft, proxy: proxy.proxy?.url ?? '' })
     pushToast('success', dictionaries[merged.language].toast.settingsSaved)
     setSettingsOpen(false)
   }
@@ -108,6 +117,7 @@ export function SettingsModal(): React.JSX.Element {
   const tabs: Array<{ id: Tab; label: string; icon: React.ReactNode }> = [
     { id: 'general', label: t.settings.tabs.general, icon: <Settings2 size={15} /> },
     { id: 'speed', label: t.settings.tabs.speed, icon: <Gauge size={15} /> },
+    { id: 'proxy', label: t.settings.tabs.proxy, icon: <Network size={15} /> },
     { id: 'appearance', label: t.settings.tabs.appearance, icon: <Monitor size={15} /> },
     { id: 'tools', label: t.settings.tabs.tools, icon: <Wrench size={15} /> },
     { id: 'about', label: t.settings.tabs.about, icon: <Info size={15} /> }
@@ -295,6 +305,87 @@ export function SettingsModal(): React.JSX.Element {
                     </div>
                   </div>
                   <div className="pb-2 text-[9.5px] text-faint">{t.settings.speed.note}</div>
+                </div>
+              </div>
+            </div>
+          ) : null}
+
+          {tab === 'proxy' ? (
+            <div className="space-y-5">
+              <div className="rounded-xl border border-line bg-elev/30 p-4">
+                <div className="flex items-center gap-2 text-[12px] font-semibold">
+                  <Network size={16} className="text-brand" />
+                  {t.settings.proxy.title}
+                </div>
+                <p className="mt-1 text-[10.5px] leading-relaxed text-muted">{t.settings.proxy.desc}</p>
+                <label className="mt-3 block">
+                  <span className="mb-1 block text-[9.5px] font-semibold text-muted">
+                    {t.settings.proxy.address}
+                  </span>
+                  <div className="flex gap-1.5">
+                    <input
+                      value={merged.proxy}
+                      onChange={(e) => set('proxy', e.target.value)}
+                      placeholder={t.settings.proxy.placeholder}
+                      aria-label={t.settings.proxy.address}
+                      className={cn(
+                        'field h-9 min-w-0 flex-1 px-3 text-[11px]',
+                        !proxy.ok && 'border-bad/60'
+                      )}
+                      dir="ltr"
+                      autoComplete="off"
+                      spellCheck={false}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => set('proxy', '')}
+                      disabled={!merged.proxy}
+                      className="btn btn-ghost h-9 shrink-0 px-2.5 text-[9.5px] disabled:opacity-40"
+                    >
+                      {t.settings.proxy.clear}
+                    </button>
+                  </div>
+                </label>
+                <div className="mt-2 flex items-start gap-1.5 text-[9.5px] leading-relaxed">
+                  {!proxy.ok ? (
+                    <>
+                      <AlertTriangle size={12} className="mt-0.5 shrink-0 text-bad" />
+                      <span className="text-bad">{t.settings.proxy.errors[proxy.error]}</span>
+                    </>
+                  ) : proxy.proxy ? (
+                    <>
+                      <ShieldCheck size={12} className="mt-0.5 shrink-0 text-ok" />
+                      <span className="text-ok">
+                        {t.settings.proxy.active}:{' '}
+                        <span dir="ltr" className="font-medium">
+                          {proxyEndpoint(proxy.proxy)}
+                        </span>
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <Globe2 size={12} className="mt-0.5 shrink-0 text-faint" />
+                      <span className="text-faint">{t.settings.proxy.direct}</span>
+                    </>
+                  )}
+                </div>
+                <p className="mt-1.5 text-[9px] leading-relaxed text-faint">{t.settings.proxy.hint}</p>
+              </div>
+
+              <div className="rounded-xl border border-line bg-elev/25 p-3">
+                <div className="flex items-center gap-2 text-[10.5px] font-semibold">
+                  <ShieldCheck size={13} className="text-faint" />
+                  {t.settings.proxy.scopeTitle}
+                </div>
+                <p className="mt-1 text-[9px] leading-relaxed text-faint">{t.settings.proxy.scope}</p>
+                <p className="mt-2 text-[9px] leading-relaxed text-faint">{t.settings.proxy.authHint}</p>
+                <div className="mt-2 rounded-lg border border-line/70 bg-panel/40 px-2.5 py-2">
+                  <div className="text-[8.5px] font-semibold text-muted">
+                    {t.settings.proxy.examplesLabel}
+                  </div>
+                  <div className="mt-1 text-[9px] leading-relaxed text-faint" dir="ltr">
+                    {t.settings.proxy.examples}
+                  </div>
                 </div>
               </div>
             </div>

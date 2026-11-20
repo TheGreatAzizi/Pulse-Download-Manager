@@ -246,6 +246,7 @@ const en = {
     tabs: {
       general: 'General',
       speed: 'Bandwidth',
+      proxy: 'Proxy',
       appearance: 'Appearance',
       tools: 'Tools',
       about: 'About'
@@ -262,7 +263,7 @@ const en = {
       launchAtStartup: 'Launch Pulse when the system starts',
       launchAtStartupHint: 'Automatically start Pulse after you sign in to Windows or Linux.',
       launchAtStartupUnsupported: 'Auto-start is available in the installed version, not the portable build.',
-      notify: 'Show a notification when a download finishes',
+      notify: 'Show a notification when a download finishes or fails',
       clipboard: 'Watch the clipboard for links',
       clipboardHint: 'Pulse offers to download links you copy in other apps.'
     },
@@ -274,6 +275,29 @@ const en = {
       mbps: 'MB/s',
       apply: 'Apply limit',
       note: 'Set 0 for unlimited speed.'
+    },
+    proxy: {
+      title: 'Proxy server',
+      desc: 'Route downloads through an HTTP, HTTPS or SOCKS5 proxy.',
+      address: 'Proxy address',
+      placeholder: 'socks5://user:password@127.0.0.1:1080',
+      hint: 'Leave this empty for a direct connection. Username and password can be included in the address.',
+      direct: 'Direct connection',
+      active: 'Active',
+      clear: 'Clear',
+      scopeTitle: 'What goes through the proxy',
+      scope:
+        'HTTP and HTTPS downloads, YouTube video and audio, GitHub requests, update checks and the yt-dlp tool. BitTorrent peer traffic stays direct.',
+      authHint:
+        'Credentials are saved as plain text in your local Pulse settings. Percent-encode special characters, for example @ becomes %40.',
+      examplesLabel: 'Examples',
+      examples: 'http://127.0.0.1:8080  ·  socks5://127.0.0.1:1080  ·  socks5h://user:pass@host:1080',
+      errors: {
+        invalid: 'Enter a proxy address like host:port or socks5://host:port.',
+        scheme: 'Use http, https, socks5 or socks5h. SOCKS4 is not supported.',
+        port: 'The proxy port must be a number between 1 and 65535.',
+        credentials: 'The proxy credentials are not valid. Percent-encode special characters.'
+      }
     },
     appearance: {
       theme: 'Theme',
@@ -677,6 +701,7 @@ const fa: typeof en = {
     tabs: {
       general: 'عمومی',
       speed: 'پهنای باند',
+      proxy: 'پروکسی',
       appearance: 'ظاهر',
       tools: 'ابزارها',
       about: 'درباره'
@@ -693,7 +718,7 @@ const fa: typeof en = {
       launchAtStartup: 'اجرای خودکار پالس هنگام روشن‌شدن سیستم',
       launchAtStartupHint: 'پس از ورود به ویندوز یا لینوکس، پالس به‌صورت خودکار اجرا شود.',
       launchAtStartupUnsupported: 'اجرای خودکار فقط در نسخهٔ نصب‌شده فعال است، نه نسخهٔ Portable.',
-      notify: 'نمایش اعلان پس از پایان دانلود',
+      notify: 'نمایش اعلان پس از پایان یا خطای دانلود',
       clipboard: 'پایش حافظه موقت برای یافتن لینک',
       clipboardHint: 'وقتی لینکی را در برنامه‌های دیگر کپی می‌کنید، پالس پیشنهاد دانلود می‌دهد.'
     },
@@ -705,6 +730,29 @@ const fa: typeof en = {
       mbps: 'مگابایت بر ثانیه',
       apply: 'اعمال محدودیت',
       note: 'برای سرعت نامحدود مقدار ۰ را وارد کنید.'
+    },
+    proxy: {
+      title: 'سرور پروکسی',
+      desc: 'دانلودها را از طریق پروکسی HTTP، HTTPS یا SOCKS5 انجام دهید.',
+      address: 'نشانی پروکسی',
+      placeholder: 'socks5://user:password@127.0.0.1:1080',
+      hint: 'برای اتصال مستقیم خالی بگذارید. نام کاربری و رمز عبور را می‌توانید داخل نشانی بنویسید.',
+      direct: 'اتصال مستقیم',
+      active: 'فعال',
+      clear: 'پاک کردن',
+      scopeTitle: 'چه چیزهایی از پروکسی عبور می‌کنند',
+      scope:
+        'دانلودهای HTTP و HTTPS، ویدیو و صدای یوتیوب، درخواست‌های گیت‌هاب، بررسی به‌روزرسانی و ابزار yt-dlp. ترافیک همتای تورنت مستقیم می‌ماند.',
+      authHint:
+        'نام کاربری و رمز عبور به‌صورت متن ساده در تنظیمات محلی پالس ذخیره می‌شوند. کاراکترهای ویژه را درصدی کد کنید، مثلاً @ به %40 تبدیل شود.',
+      examplesLabel: 'نمونه‌ها',
+      examples: 'http://127.0.0.1:8080  ·  socks5://127.0.0.1:1080  ·  socks5h://user:pass@host:1080',
+      errors: {
+        invalid: 'نشانی پروکسی را مانند host:port یا socks5://host:port وارد کنید.',
+        scheme: 'از http، https، socks5 یا socks5h استفاده کنید. SOCKS4 پشتیبانی نمی‌شود.',
+        port: 'پورت پروکسی باید عددی بین ۱ و ۶۵۵۳۵ باشد.',
+        credentials: 'اطلاعات ورود پروکسی معتبر نیست. کاراکترهای ویژه را درصدی کد کنید.'
+      }
     },
     appearance: {
       theme: 'پوسته',
@@ -1108,6 +1156,7 @@ const ja: typeof en = {
     tabs: {
       general: '一般',
       speed: '帯域幅',
+      proxy: 'プロキシ',
       appearance: '外観',
       tools: 'ツール',
       about: 'バージョン情報'
@@ -1124,7 +1173,7 @@ const ja: typeof en = {
       launchAtStartup: 'システム起動時に Pulse を自動起動',
       launchAtStartupHint: 'Windows または Linux へのサインイン後に Pulse を自動的に起動します。',
       launchAtStartupUnsupported: '自動起動はインストール版でのみ利用できます（ポータブル版では使用できません）。',
-      notify: 'ダウンロード完了時に通知を表示',
+      notify: 'ダウンロードの完了時または失敗時に通知を表示',
       clipboard: 'クリップボードのリンクを監視',
       clipboardHint: '他のアプリでリンクをコピーしたとき、Pulse がダウンロードを提案します。'
     },
@@ -1136,6 +1185,29 @@ const ja: typeof en = {
       mbps: 'MB/s',
       apply: '制限を適用',
       note: '無制限にする場合は 0 を設定してください。'
+    },
+    proxy: {
+      title: 'プロキシサーバー',
+      desc: 'HTTP、HTTPS、SOCKS5 プロキシ経由でダウンロードします。',
+      address: 'プロキシアドレス',
+      placeholder: 'socks5://user:password@127.0.0.1:1080',
+      hint: '空欄のままにすると直接接続します。ユーザー名とパスワードはアドレスに含められます。',
+      direct: '直接接続',
+      active: '有効',
+      clear: 'クリア',
+      scopeTitle: 'プロキシを使用する通信',
+      scope:
+        'HTTP/HTTPS のダウンロード、YouTube の動画と音声、GitHub へのリクエスト、アップデート確認、yt-dlp。BitTorrent のピア通信は直接接続のままです。',
+      authHint:
+        '認証情報は Pulse のローカル設定に平文で保存されます。特殊文字はパーセントエンコードしてください（例: @ は %40）。',
+      examplesLabel: '例',
+      examples: 'http://127.0.0.1:8080  ·  socks5://127.0.0.1:1080  ·  socks5h://user:pass@host:1080',
+      errors: {
+        invalid: 'host:port や socks5://host:port の形式でプロキシアドレスを入力してください。',
+        scheme: 'http、https、socks5、socks5h のいずれかを使用してください。SOCKS4 には対応していません。',
+        port: 'プロキシポートは 1〜65535 の数値で指定してください。',
+        credentials: 'プロキシの認証情報が正しくありません。特殊文字はパーセントエンコードしてください。'
+      }
     },
     appearance: {
       theme: 'テーマ',
@@ -1539,6 +1611,7 @@ const ru: typeof en = {
     tabs: {
       general: 'Основное',
       speed: 'Пропускная способность',
+      proxy: 'Прокси',
       appearance: 'Внешний вид',
       tools: 'Инструменты',
       about: 'О программе'
@@ -1555,7 +1628,7 @@ const ru: typeof en = {
       launchAtStartup: 'Запускать Pulse при входе в систему',
       launchAtStartupHint: 'Автоматически запускать Pulse после входа в Windows или Linux.',
       launchAtStartupUnsupported: 'Автозапуск доступен только в установленной версии, не в портативной.',
-      notify: 'Показывать уведомление после завершения загрузки',
+      notify: 'Показывать уведомление после завершения или ошибки загрузки',
       clipboard: 'Следить за буфером обмена на наличие ссылок',
       clipboardHint: 'Когда вы копируете ссылку в другом приложении, Pulse предложит скачать её.'
     },
@@ -1567,6 +1640,29 @@ const ru: typeof en = {
       mbps: 'МБ/с',
       apply: 'Применить лимит',
       note: 'Установите 0 для безлимитной скорости.'
+    },
+    proxy: {
+      title: 'Прокси-сервер',
+      desc: 'Загружайте файлы через прокси HTTP, HTTPS или SOCKS5.',
+      address: 'Адрес прокси',
+      placeholder: 'socks5://user:password@127.0.0.1:1080',
+      hint: 'Оставьте поле пустым для прямого подключения. Логин и пароль можно указать в адресе.',
+      direct: 'Прямое подключение',
+      active: 'Активен',
+      clear: 'Очистить',
+      scopeTitle: 'Что использует прокси',
+      scope:
+        'Загрузки по HTTP и HTTPS, видео и аудио с YouTube, запросы к GitHub, проверка обновлений и yt-dlp. Обмен с пирами BitTorrent идёт напрямую.',
+      authHint:
+        'Учётные данные хранятся в открытом виде в локальных настройках Pulse. Специальные символы нужно кодировать процентами, например @ как %40.',
+      examplesLabel: 'Примеры',
+      examples: 'http://127.0.0.1:8080  ·  socks5://127.0.0.1:1080  ·  socks5h://user:pass@host:1080',
+      errors: {
+        invalid: 'Введите адрес прокси в виде host:port или socks5://host:port.',
+        scheme: 'Используйте http, https, socks5 или socks5h. SOCKS4 не поддерживается.',
+        port: 'Порт прокси должен быть числом от 1 до 65535.',
+        credentials: 'Учётные данные прокси недействительны. Закодируйте специальные символы процентами.'
+      }
     },
     appearance: {
       theme: 'Тема',

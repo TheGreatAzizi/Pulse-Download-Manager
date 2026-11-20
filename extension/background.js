@@ -298,13 +298,13 @@ async function addBatch(urls, referrer) {
 
 function feedback(result, name) {
   if (result.ok) {
-    flashBadge('✓', '#2563eb')
+    flashBadge('✓', '#2f5fd0')
     if (settings.notifications) {
       notify(t('notifSentTitle'), t('notifSent', [name || t('added')]))
     }
     return
   }
-  flashBadge('!', '#dc2626')
+  flashBadge('!', '#c81e3f')
   if (settings.notifications) {
     notify(t('notifFailedTitle'), result.error || t('notifFailed'))
   }
@@ -313,6 +313,24 @@ function feedback(result, name) {
 async function sendWithFeedback(url, referrer) {
   const result = await addDownload({ url, referrer })
   feedback(result, result.name || url)
+  return result
+}
+
+async function sendBatchWithFeedback(urls, referrer) {
+  const unique = [...new Set((urls || []).filter(validUrl))].slice(0, MAX_BATCH)
+  if (!unique.length) {
+    if (settings.notifications) notify(t('notifFailedTitle'), t('notifNoLinks'))
+    return { ok: false, error: t('noLinks') }
+  }
+  const result = await addBatch(unique, referrer)
+  if (result.ok) {
+    flashBadge('✓', '#2f5fd0')
+    if (settings.notifications) {
+      notify(t('notifSentTitle'), t('notifBatch', [String(result.added || unique.length)]))
+    }
+  } else {
+    feedback(result)
+  }
   return result
 }
 
@@ -341,6 +359,48 @@ async function collectLinks(tab) {
     return [...new Set(list)].slice(0, MAX_BATCH)
   } catch {
     return []
+  }
+}
+
+/**
+ * Collects the links covered by the current text selection. Selected link text
+ * does not contain the destination URL, so the anchors that intersect the
+ * selection range are read directly from the page.
+ */
+async function collectSelectedLinks(tab, frameId, fallbackText) {
+  if (!tab || !tab.id) return parseUrls(fallbackText)
+  try {
+    const target = { tabId: tab.id }
+    if (Number.isInteger(frameId)) target.frameIds = [frameId]
+    const results = await chrome.scripting.executeScript({
+      target,
+      func: () => {
+        const collected = []
+        const selection = window.getSelection()
+        if (selection && !selection.isCollapsed && selection.rangeCount) {
+          const range = selection.getRangeAt(0)
+          for (const anchor of document.querySelectorAll('a[href]')) {
+            if (!range.intersectsNode(anchor)) continue
+            const href = anchor.href || ''
+            if (/^https?:/i.test(href)) collected.push(href)
+          }
+          const text = selection.toString()
+          const matches = text.match(/https?:\/\/[^\s<>"']+/gi) || []
+          for (const match of matches) collected.push(match)
+        }
+        return collected
+      }
+    })
+    const list = results && results[0] && Array.isArray(results[0].result) ? results[0].result : []
+    const cleaned = []
+    for (const raw of list) {
+      const url = String(raw || '').replace(/[),.;!?]+$/g, '')
+      if (validUrl(url)) cleaned.push(url)
+    }
+    const unique = [...new Set(cleaned)]
+    return unique.length ? unique.slice(0, MAX_BATCH) : parseUrls(fallbackText)
+  } catch {
+    return parseUrls(fallbackText)
   }
 }
 
@@ -375,40 +435,13 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
     return
   }
   if (info.menuItemId === 'pulse-selection') {
-    const urls = parseUrls(info.selectionText)
-    if (!urls.length) {
-      if (settings.notifications) notify(t('notifFailedTitle'), t('notifNoLinks'))
-      return
-    }
-    void addBatch(urls, referrer).then((result) => {
-      if (result.ok) {
-        flashBadge('✓', '#2563eb')
-        if (settings.notifications) {
-          notify(t('notifSentTitle'), t('notifBatch', [String(result.added || urls.length)]))
-        }
-      } else {
-        feedback(result)
-      }
-    })
+    void collectSelectedLinks(tab, info.frameId, info.selectionText).then((urls) =>
+      sendBatchWithFeedback(urls, referrer)
+    )
     return
   }
   if (info.menuItemId === 'pulse-all-links') {
-    void collectLinks(tab).then((urls) => {
-      if (!urls.length) {
-        if (settings.notifications) notify(t('notifFailedTitle'), t('notifNoLinks'))
-        return
-      }
-      return addBatch(urls, referrer).then((result) => {
-        if (result.ok) {
-          flashBadge('✓', '#2563eb')
-          if (settings.notifications) {
-            notify(t('notifSentTitle'), t('notifBatch', [String(result.added || urls.length)]))
-          }
-        } else {
-          feedback(result)
-        }
-      })
-    })
+    void collectLinks(tab).then((urls) => sendBatchWithFeedback(urls, referrer))
   }
 })
 
@@ -448,7 +481,7 @@ chrome.downloads.onCreated.addListener((item) => {
     })
 
     if (result.ok) {
-      flashBadge('✓', '#2563eb')
+      flashBadge('✓', '#2f5fd0')
       return
     }
 

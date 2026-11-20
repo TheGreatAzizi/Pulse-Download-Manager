@@ -182,8 +182,8 @@ body {
 }
 
 .textarea:focus {
-  border-color: color-mix(in srgb, var(--brand) 55%, var(--line));
-  box-shadow: 0 0 0 3px var(--brand-soft);
+  border-color: color-mix(in srgb, var(--brand) 70%, transparent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--brand) 22%, transparent);
 }
 
 .about .panel-actions {

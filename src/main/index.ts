@@ -7,6 +7,7 @@ import { DownloadManager } from './manager'
 import { BrowserBridge } from './browserBridge'
 import { registerIpc } from './ipc'
 import { applyLaunchAtStartup } from './autostart'
+import { configureProxy } from './proxy'
 import { IP } from '@shared/ipc'
 import type { MainEvent } from '@shared/types'
 import { isLocalUrl, scanClipboardUrls } from '@shared/urls'
@@ -231,6 +232,7 @@ async function bootstrap(): Promise<void> {
 
   store = new Store()
   await store.load()
+  configureProxy(store.settings.proxy)
   nativeTheme.themeSource = store.settings.theme
   void applyLaunchAtStartup(store.settings.launchAtStartup)
 

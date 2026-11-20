@@ -126,7 +126,7 @@
 
   function flashBadge(text, color) {
     try {
-      chrome.action.setBadgeBackgroundColor({ color: color || '#2563eb' })
+      chrome.action.setBadgeBackgroundColor({ color: color || '#2f5fd0' })
       chrome.action.setBadgeText({ text: text || '' })
       if (text) {
         setTimeout(() => chrome.action.setBadgeText({ text: '' }), 2200)

@@ -8,6 +8,7 @@ import type {
   AddTorrentInput,
   DownloadTask,
   GlobalStats,
+  Language,
   MainEvent,
   ProbeResult,
   ResumeWithUrlResult,
@@ -29,6 +30,8 @@ import { HttpEngine, type EngineHost, type TaskHandle } from './engines/http'
 import { YoutubeEngine } from './engines/youtube'
 import { TorrentEngine } from './engines/torrent'
 import { applyLaunchAtStartup } from './autostart'
+import { configureProxy, disposeProxy } from './proxy'
+import { parseProxy } from '@shared/proxy'
 
 interface ManagerDeps {
   store: Store
@@ -37,6 +40,13 @@ interface ManagerDeps {
 
 const ACTIVE: TaskStatus[] = ['connecting', 'downloading', 'verifying']
 const RESUMABLE: TaskStatus[] = ['paused', 'error', 'canceled']
+
+const NOTIFICATION_COPY: Record<Language, { complete: string; failed: string }> = {
+  en: { complete: 'Download complete', failed: 'Download failed' },
+  fa: { complete: 'دانلود کامل شد', failed: 'دانلود ناموفق بود' },
+  ja: { complete: 'ダウンロード完了', failed: 'ダウンロード失敗' },
+  ru: { complete: 'Загрузка завершена', failed: 'Ошибка загрузки' }
+}
 
 export class DownloadManager implements EngineHost {
   readonly store: Store
@@ -126,31 +136,40 @@ export class DownloadManager implements EngineHost {
 
   patch(task: DownloadTask, patch: Partial<DownloadTask>): void {
     const wasCompleted = task.status === 'completed'
+    const previousStatus = task.status
     Object.assign(task, patch)
     task.updatedAt = Date.now()
     if (patch.fileName && this.autoNames.has(task.id)) task.name = patch.fileName
     if (patch.fileName) task.category = categoryFor(patch.fileName)
-    if (!wasCompleted && task.status === 'completed') this.handleCompleted(task)
+    if (previousStatus !== task.status) {
+      if (task.status === 'completed') this.handleCompleted(task)
+      else if (task.status === 'error') this.notifyResult(task, 'failed')
+    }
     this.persistSoon()
     this.emit({ type: 'task:update', task })
     if (wasCompleted !== (task.status === 'completed')) this.emitStats(true)
+  }
+
+  private notifyResult(task: DownloadTask, outcome: 'complete' | 'failed'): void {
+    if (!this.store.settings.notifyOnComplete || !Notification.isSupported()) return
+    const copy = NOTIFICATION_COPY[this.store.settings.language] || NOTIFICATION_COPY.en
+    const detail = outcome === 'failed' ? (task.error || '').replace(/\s+/g, ' ').trim() : ''
+    try {
+      new Notification({
+        title: outcome === 'failed' ? copy.failed : copy.complete,
+        body: detail ? `${task.name}\n${detail.slice(0, 180)}` : task.name,
+        silent: false
+      }).show()
+    } catch {
+      /* notifications are best effort */
+    }
   }
 
   private handleCompleted(task: DownloadTask): void {
     task.speed = 0
     task.eta = 0
     task.connections = 0
-    if (this.store.settings.notifyOnComplete && Notification.isSupported()) {
-      try {
-        new Notification({
-          title: 'Download complete',
-          body: task.name,
-          silent: false
-        }).show()
-      } catch {
-        /* ignore */
-      }
-    }
+    this.notifyResult(task, 'complete')
     void this.store.flush()
   }
 
@@ -591,7 +610,16 @@ export class DownloadManager implements EngineHost {
 
   updateSettings(patch: Partial<Settings>): Settings {
     const prev = this.store.settings
-    const settings = this.store.patchSettings(patch)
+    let nextPatch = patch
+    if (patch.proxy !== undefined) {
+      const parsed = parseProxy(patch.proxy)
+      if (!parsed.ok) throw new Error('The proxy address is not valid.')
+      nextPatch = { ...patch, proxy: parsed.proxy?.url ?? '' }
+    }
+    const settings = this.store.patchSettings(nextPatch)
+    if (nextPatch.proxy !== undefined) {
+      configureProxy(settings.proxy)
+    }
     if (patch.globalSpeedLimit !== undefined) {
       this.throttle.setLimit(settings.globalSpeedLimit)
       this.torrent.setLimit(settings.globalSpeedLimit)
@@ -684,6 +712,7 @@ export class DownloadManager implements EngineHost {
       task.connections = 0
     }
     await this.torrent.destroy()
+    await disposeProxy()
     await this.store.flush()
   }
 
