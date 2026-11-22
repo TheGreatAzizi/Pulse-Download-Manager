@@ -69,6 +69,10 @@
         "to": "LICENSE"
       },
       {
+        "from": "src/renderer/src/assets/fonts/OFL.txt",
+        "to": "licenses/Vazirmatn-OFL.txt"
+      },
+      {
         "from": "resources/icon.png",
         "to": "icon.png"
       },

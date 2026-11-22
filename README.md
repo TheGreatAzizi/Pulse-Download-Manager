@@ -41,13 +41,13 @@ The app is local-first: settings, task state and files stay on your machine. It 
 
 | Area | Highlights |
 | --- | --- |
-| HTTP downloads | Multi-connection engine, resume, smart queue, global speed limit, expired link recovery, batch links |
+| HTTP downloads | Multi-connection engine, resume, named queues with schedules, global speed limit, expired link recovery, batch links |
 | Network | HTTP, HTTPS, SOCKS5 and SOCKS5H proxy support with optional authentication |
 | Video and audio | yt-dlp integration, 1000+ supported sites, quality selection, audio extraction, subtitles, thumbnails, playlists |
 | BitTorrent | Magnet links and `.torrent` files, file selection, secure resume, peer and seeder stats, upload ratio |
 | Browser integration | Chrome/Edge extension, download takeover, history-safe startup, context menus, multi-link selection, cookies/referrer/user agent forwarding, popup, `Alt+Shift+P` |
 | GitHub | Repository search, source ZIPs, release assets, optional personal access token |
-| Desktop experience | English, Persian (RTL), Japanese, Russian, light and dark themes, completion and failure notifications, start minimized to tray, pause all, auto-start, tray, in-app updates |
+| Desktop experience | English, Persian (RTL), Japanese, Russian, Vazirmatn for Persian, light and dark themes, completion and failure notifications, start minimized to tray, pause all, multi-select bulk actions, auto-start, tray, in-app updates |
 | Privacy | Local WebSocket bridge on `127.0.0.1`, pinned extension origin, no account required |
 
 ## Screenshots
@@ -161,7 +161,9 @@ The extension ID is fixed by the key in `extension/manifest.json`, so unpacked i
 ## Startup and bulk actions
 
 - **Start minimized to tray:** enable **Settings → General → Start minimized to the tray at login** to keep Pulse out of the way when Windows or Linux starts it automatically. The tray icon still opens the main window.
-- **Pause all:** use the **Pause all** button in the toolbar to stop every queued and active download at once. Paused downloads can be resumed individually.
+- **Pause all:** use the **Pause all** button above the download list to stop every queued and active download at once. Paused downloads can be resumed individually.
+- **Select multiple:** choose **Select** above the download list, tick any downloads, then pause, resume, move them to another queue or delete them together.
+- **Download queues:** open **Manage queues** in the sidebar to add named queues, set daily time windows, limit each queue's simultaneous downloads, and choose the queue used for new downloads.
 
 ## GitHub integration
 
@@ -279,7 +281,7 @@ Before opening a pull request:
 
 - Run `npm run typecheck` and `npm run build`.
 - Keep changes focused and describe the behavior you changed.
-- When you add or change UI text, update all four locale files in `src/renderer/src/i18n.ts` and the extension locales in `extension/_locales/`.
+- When you add or change UI text, update all four locales in `src/renderer/src/i18n.ts` and `src/renderer/src/queueI18n.ts`, and the extension locales in `extension/_locales/`.
 
 For security-sensitive reports, contact the maintainer privately instead of opening a public issue.
 
@@ -296,6 +298,8 @@ GNU General Public License v3.0 or later.
 Copyright (C) 2026 TheGreatAzizi.
 
 See [LICENSE](LICENSE) for the full text. Pulse is free software; you can redistribute it and modify it under the terms of the GPL-3.0.
+
+The bundled [Vazirmatn](https://github.com/rastikerdar/vazirmatn) Persian font is copyright 2015 The Vazirmatn Project Authors and is licensed under the SIL Open Font License 1.1. Its license text is included at [src/renderer/src/assets/fonts/OFL.txt](src/renderer/src/assets/fonts/OFL.txt) and in packaged builds at `resources/licenses/Vazirmatn-OFL.txt`.
 
 <p align="center">
   <sub>If Pulse saves you time, consider starring the repository. It helps the project grow.</sub>

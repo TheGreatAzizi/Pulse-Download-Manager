@@ -17,6 +17,7 @@ import type {
   Settings,
   UpdateInfo
 } from '@shared/types'
+import { DEFAULT_QUEUE_ID, makeDefaultQueue } from '@shared/queues'
 import type { Lang } from './i18n'
 import { dictionaries, type Dict } from './i18n'
 import { cleanIpcError } from './lib/format'
@@ -86,6 +87,11 @@ interface AppContextValue {
   closeAdd: () => void
   settingsOpen: boolean
   setSettingsOpen: (open: boolean) => void
+  /** Queue used to filter the download list; null shows every queue. */
+  queueFilter: string | null
+  setQueueFilter: (id: string | null) => void
+  queuesOpen: boolean
+  setQueuesOpen: (open: boolean) => void
   toasts: ToastItem[]
   pushToast: (level: ToastLevel, message: string, opts?: { actionLabel?: string; action?: () => void; ttl?: number }) => void
   dismissToast: (id: string) => void
@@ -129,7 +135,9 @@ const fallbackSettings: Settings = {
   cookiesBrowser: '',
   cookiesFile: '',
   githubToken: '',
-  browserIntegration: true
+  browserIntegration: true,
+  queues: [makeDefaultQueue()],
+  defaultQueueId: DEFAULT_QUEUE_ID
 }
 
 const AppCtx = createContext<AppContextValue | null>(null)
@@ -149,6 +157,8 @@ export function AppProvider({ children }: { children: ReactNode }): React.JSX.El
   const [addOpen, setAddOpen] = useState(false)
   const [addInitial, setAddInitial] = useState<AddInitial | null>(null)
   const [settingsOpen, setSettingsOpen] = useState(false)
+  const [queueFilter, setQueueFilter] = useState<string | null>(null)
+  const [queuesOpen, setQueuesOpen] = useState(false)
   const [toasts, setToasts] = useState<ToastItem[]>([])
   const [maximized, setMaximized] = useState(false)
   const [updateInfo, setUpdateInfo] = useState<UpdateInfo | null>(null)
@@ -389,6 +399,12 @@ export function AppProvider({ children }: { children: ReactNode }): React.JSX.El
   }, [lang, dir])
 
   useEffect(() => {
+    if (!queueFilter) return
+    if (settings.queues.some((queue) => queue.id === queueFilter)) return
+    setQueueFilter(null)
+  }, [queueFilter, settings.queues])
+
+  useEffect(() => {
     document.documentElement.dataset.theme = settings.theme
   }, [settings.theme])
 
@@ -447,6 +463,10 @@ export function AppProvider({ children }: { children: ReactNode }): React.JSX.El
     closeAdd,
     settingsOpen,
     setSettingsOpen,
+    queueFilter,
+    setQueueFilter,
+    queuesOpen,
+    setQueuesOpen,
     toasts,
     pushToast,
     dismissToast,

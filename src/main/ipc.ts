@@ -83,11 +83,23 @@ export function registerIpc(
 
   handle(IP.pauseAll, () => manager.pauseAll())
 
+  handle(IP.pauseTasks, (ids: string[]) => manager.pauseTasks(ids))
+
   handle(IP.resume, (id: string) => manager.resume(id))
+
+  handle(IP.resumeTasks, (ids: string[]) => manager.resumeTasks(ids))
 
   handle(IP.cancel, (id: string) => manager.cancel(id))
 
   handle(IP.remove, (id: string, deleteFile: boolean) => manager.remove(id, deleteFile))
+
+  handle(IP.removeTasks, (ids: string[], deleteFile: boolean) =>
+    manager.removeTasks(ids, deleteFile)
+  )
+
+  handle(IP.setTasksQueue, (ids: string[], queueId: string) =>
+    manager.setTasksQueue(ids, queueId)
+  )
 
   handle(IP.retry, (id: string) => manager.retry(id))
 

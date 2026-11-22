@@ -8,6 +8,7 @@ import {
   FileUp,
   FolderOpen,
   Globe,
+  ListChecks,
   ListPlus,
   Loader2,
   Magnet,
@@ -19,8 +20,10 @@ import {
   Zap
 } from 'lucide-react'
 import type { ProbeResult, YoutubeFormatOption, YoutubeProbe } from '@shared/types'
+import { DEFAULT_QUEUE_ID } from '@shared/queues'
 import { MAX_BATCH_URLS, isDirectBatchUrl } from '@shared/urls'
 import { useApp } from '../state'
+import { queueCopy } from '../queueI18n'
 import { Modal } from './Modal'
 import { cleanIpcError, cn, formatBytes, formatDuration, hostOf } from '../lib/format'
 
@@ -83,11 +86,13 @@ function videoIdFrom(url: string): string | undefined {
 export function AddDownloadModal(): React.JSX.Element {
   const { addOpen, closeAdd, addInitial, t, settings, lang, pushToast, setSelectedId, setView, tasks } =
     useApp()
+  const copy = queueCopy[lang]
 
   const [tab, setTab] = useState<Tab>('link')
   const [url, setUrl] = useState('')
   const [magnet, setMagnet] = useState('')
   const [dir, setDir] = useState(settings.downloadDir)
+  const [queueId, setQueueId] = useState(settings.defaultQueueId)
   const [fileName, setFileName] = useState('')
   const [probe, setProbe] = useState<ProbeResult | null>(null)
   const [yt, setYt] = useState<YoutubeProbe | null>(null)
@@ -140,6 +145,7 @@ export function AddDownloadModal(): React.JSX.Element {
     setBatchText(addInitial?.batchUrls?.join('\n') || '')
     setBatchProgress(null)
     setDir(settings.downloadDir)
+    setQueueId(settings.defaultQueueId)
     setConnections(settings.connections)
     const initialUrl = addInitial?.url || ''
     const isMagnet = /^magnet:/i.test(initialUrl)
@@ -299,6 +305,7 @@ export function AddDownloadModal(): React.JSX.Element {
             url: entry.url,
             kind: 'youtube',
             dir,
+            queueId,
             title: entry.title,
             thumbnail: entry.thumbnail,
             youtube: {
@@ -351,6 +358,7 @@ export function AddDownloadModal(): React.JSX.Element {
           url: valid[i],
           kind: 'http',
           dir,
+          queueId,
           connections
         })
         lastId = task.id
@@ -408,6 +416,7 @@ export function AddDownloadModal(): React.JSX.Element {
           kind: 'http',
           fileName: fileName.trim() || undefined,
           dir,
+          queueId,
           connections,
           headers: Object.keys(headers).length ? headers : undefined
         })
@@ -430,6 +439,7 @@ export function AddDownloadModal(): React.JSX.Element {
           url: yt.url,
           kind: 'youtube',
           dir,
+          queueId,
           title: yt.title,
           thumbnail: yt.thumbnail,
           youtube: {
@@ -457,6 +467,7 @@ export function AddDownloadModal(): React.JSX.Element {
           data: !torrentPath && !magnet.trim() ? torrentData || undefined : undefined,
           name: torrentName || undefined,
           dir,
+          queueId,
           sequential
         })
         finish(task.id)
@@ -1085,7 +1096,7 @@ export function AddDownloadModal(): React.JSX.Element {
       </div>
 
       <div className="flex shrink-0 items-center gap-2 border-t border-line/70 bg-panel/60 px-6 py-3">
-        <div className="hidden items-center gap-1.5 text-[9.5px] text-faint sm:flex">
+        <div className="hidden min-w-0 items-center gap-1.5 text-[9.5px] text-faint xl:flex">
           {tab === 'batch' ? (
             <>
               <ListPlus size={11} />
@@ -1098,7 +1109,23 @@ export function AddDownloadModal(): React.JSX.Element {
             </>
           )}
         </div>
-        <div className="ms-auto flex items-center gap-2">
+        <div className="ms-auto flex shrink-0 items-center gap-2">
+          <label className="hidden items-center gap-1.5 text-[10.5px] text-muted sm:flex">
+            <ListChecks size={13} className="text-faint" />
+            <span className="hidden md:inline">{copy.assignTo}</span>
+            <select
+              value={queueId}
+              onChange={(e) => setQueueId(e.target.value)}
+              aria-label={copy.assignTo}
+              className="field h-8 max-w-[150px] cursor-pointer px-2 text-[11px]"
+            >
+              {settings.queues.map((queue) => (
+                <option key={queue.id} value={queue.id} className="bg-panel text-ink">
+                  {queue.id === DEFAULT_QUEUE_ID ? copy.defaultQueue : queue.name || copy.defaultQueue}
+                </option>
+              ))}
+            </select>
+          </label>
           <button type="button" className="btn btn-ghost h-9 px-3.5 text-[11.5px]" onClick={requestClose} disabled={busy}>
             {t.common.cancel}
           </button>

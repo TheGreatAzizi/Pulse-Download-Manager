@@ -2,6 +2,7 @@ import { app } from 'electron'
 import { promises as fs } from 'node:fs'
 import { dirname, join } from 'node:path'
 import type { DownloadTask, Settings } from '@shared/types'
+import { DEFAULT_QUEUE_ID, makeDefaultQueue, normalizeQueues, resolveQueueId } from '@shared/queues'
 import { defaultDownloadDir } from './util'
 
 interface Persisted {
@@ -35,7 +36,9 @@ export function defaultSettings(): Settings {
     cookiesBrowser: '',
     cookiesFile: '',
     githubToken: '',
-    browserIntegration: true
+    browserIntegration: true,
+    queues: [makeDefaultQueue()],
+    defaultQueueId: DEFAULT_QUEUE_ID
   }
 }
 
@@ -57,10 +60,17 @@ export class Store {
       const raw = await fs.readFile(this.file, 'utf8')
       const parsed = JSON.parse(raw) as Partial<Persisted>
       const defaults = defaultSettings()
+      const settings = { ...defaults, ...(parsed.settings || {}) } as Settings
+      settings.queues = normalizeQueues(settings.queues)
+      settings.defaultQueueId = resolveQueueId(settings.queues, settings.defaultQueueId)
+      const tasks = (Array.isArray(parsed.tasks) ? parsed.tasks : []).map((task) => ({
+        ...task,
+        queueId: resolveQueueId(settings.queues, task.queueId)
+      }))
       this.data = {
         version: 1,
-        tasks: Array.isArray(parsed.tasks) ? parsed.tasks : [],
-        settings: { ...defaults, ...(parsed.settings || {}) }
+        tasks,
+        settings
       }
       if (!this.data.settings.downloadDir) this.data.settings.downloadDir = defaults.downloadDir
     } catch {

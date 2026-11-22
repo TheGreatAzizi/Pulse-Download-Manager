@@ -6,6 +6,7 @@ import { basename, join, relative, isAbsolute } from 'node:path'
 import type {
   AddDownloadInput,
   AddTorrentInput,
+  DownloadQueue,
   DownloadTask,
   GlobalStats,
   Language,
@@ -32,6 +33,7 @@ import { TorrentEngine } from './engines/torrent'
 import { applyLaunchAtStartup } from './autostart'
 import { configureProxy, disposeProxy } from './proxy'
 import { parseProxy } from '@shared/proxy'
+import { normalizeQueues, queueIsActive, resolveQueueId } from '@shared/queues'
 
 interface ManagerDeps {
   store: Store
@@ -69,6 +71,9 @@ export class DownloadManager implements EngineHost {
   private shuttingDown = false
   private lastStatsEmit = 0
   private torrentPayloads = new Map<string, { data?: Buffer; file?: number[] }>()
+  /** Tasks paused by a queue schedule, so they resume when the queue opens. */
+  private queueHold = new Set<string>()
+  private queueOpenState = new Map<string, boolean>()
 
   constructor(deps: ManagerDeps) {
     this.store = deps.store
@@ -80,6 +85,10 @@ export class DownloadManager implements EngineHost {
 
   settings(): Settings {
     return this.store.settings
+  }
+
+  queues(): DownloadQueue[] {
+    return normalizeQueues(this.store.settings.queues)
   }
 
   async init(): Promise<void> {
@@ -102,6 +111,7 @@ export class DownloadManager implements EngineHost {
       }
       this.tasks.set(task.id, task)
       this.lastDownloaded.set(task.id, task.downloaded)
+      if (task.heldByQueue) this.queueHold.add(task.id)
     }
     this.throttle.setLimit(this.store.settings.globalSpeedLimit)
     this.ticker = setInterval(() => this.tick(), 1000)
@@ -193,7 +203,9 @@ export class DownloadManager implements EngineHost {
   async addDownload(input: AddDownloadInput): Promise<DownloadTask> {
     const rawUrl = (input.url || '').trim()
     if (!rawUrl) throw new Error('URL is empty')
-    if (/^magnet:/i.test(rawUrl)) return this.addTorrent({ uri: rawUrl, dir: input.dir })
+    if (/^magnet:/i.test(rawUrl)) {
+      return this.addTorrent({ uri: rawUrl, dir: input.dir, queueId: input.queueId })
+    }
     let url: string
     try {
       url = new URL(rawUrl).toString()
@@ -240,7 +252,8 @@ export class DownloadManager implements EngineHost {
       thumbnail: input.thumbnail,
       maxConnections: input.connections,
       category: categoryFor(fileName),
-      order: this.nextOrder()
+      order: this.nextOrder(),
+      queueId: resolveQueueId(this.queues(), input.queueId || this.store.settings.defaultQueueId)
     }
     this.autoNames.add(task.id)
     if (kind === 'youtube') {
@@ -300,6 +313,7 @@ export class DownloadManager implements EngineHost {
       updatedAt: Date.now(),
       category: 'other',
       order: this.nextOrder(),
+      queueId: resolveQueueId(this.queues(), input.queueId || this.store.settings.defaultQueueId),
       torrent: {
         infoHash: '',
         peers: 0,
@@ -337,19 +351,101 @@ export class DownloadManager implements EngineHost {
 
   private schedule(): void {
     if (this.shuttingDown) return
-    const active = [...this.tasks.values()].filter((t) => ACTIVE.includes(t.status)).length
+    const now = new Date()
+    const queues = this.queues()
+    const activeByQueue = new Map<string, number>()
+    let activeTotal = 0
+    for (const task of this.tasks.values()) {
+      if (!ACTIVE.includes(task.status)) continue
+      activeTotal++
+      const queueId = resolveQueueId(queues, task.queueId)
+      activeByQueue.set(queueId, (activeByQueue.get(queueId) || 0) + 1)
+    }
     const limit = Math.max(1, this.store.settings.maxConcurrent)
-    let slots = limit - active
-    if (slots <= 0) return
+    let globalSlots = limit - activeTotal
+    if (globalSlots <= 0) return
+    // Only queues that are open right now get a slot budget.
+    const queueSlots = new Map<string, number>()
+    for (const queue of queues) {
+      if (!queueIsActive(queue, now)) continue
+      const queueLimit =
+        queue.maxConcurrent > 0 ? Math.min(limit, queue.maxConcurrent) : limit
+      const remaining = queueLimit - (activeByQueue.get(queue.id) || 0)
+      queueSlots.set(queue.id, Math.max(0, remaining))
+    }
     const queued = [...this.tasks.values()]
-      .filter((t) => t.status === 'queued')
+      .filter((task) => task.status === 'queued')
       .sort((a, b) => a.order - b.order)
     for (const task of queued) {
-      if (slots <= 0) break
+      if (globalSlots <= 0) break
       if (this.controllers.has(task.id)) continue
-      slots--
+      const queueId = resolveQueueId(queues, task.queueId)
+      const slots = queueSlots.get(queueId)
+      if (slots === undefined || slots <= 0) continue
+      queueSlots.set(queueId, slots - 1)
+      globalSlots--
       void this.startTask(task)
     }
+  }
+
+  private stopForQueue(task: DownloadTask): void {
+    if (!ACTIVE.includes(task.status) && task.status !== 'queued') return
+    this.queueHold.add(task.id)
+    this.resumeFlags.add(task.id)
+    task.heldByQueue = true
+    this.controllers.get(task.id)?.abort()
+    if (task.kind === 'torrent') this.torrent.pause(task.id)
+    if (task.kind === 'youtube') this.youtube.stop(task.id)
+    if (task.status === 'queued') {
+      this.patch(task, { status: 'paused', speed: 0, eta: 0, connections: 0, heldByQueue: true })
+    }
+    this.persistSoon()
+  }
+
+  /**
+   * Stops downloads whose queue schedule closed and requeues downloads that
+   * were paused by a schedule once their queue opens again.
+   */
+  private enforceQueueSchedules(): boolean {
+    const now = new Date()
+    const queues = this.queues()
+    const states = new Map<string, boolean>()
+    let changed = false
+    for (const queue of queues) {
+      const open = queueIsActive(queue, now)
+      states.set(queue.id, open)
+      if (this.queueOpenState.get(queue.id) !== open) changed = true
+    }
+    this.queueOpenState = states
+    for (const task of this.tasks.values()) {
+      if (!ACTIVE.includes(task.status)) continue
+      const queueId = resolveQueueId(queues, task.queueId)
+      if (states.get(queueId) === false) {
+        this.stopForQueue(task)
+        changed = true
+      }
+    }
+    for (const task of [...this.tasks.values()]) {
+      if (!this.queueHold.has(task.id)) continue
+      const queueId = resolveQueueId(queues, task.queueId)
+      if (states.get(queueId) !== true) continue
+      if (task.status === 'paused') {
+        this.queueHold.delete(task.id)
+        this.patch(task, {
+          status: 'queued',
+          error: undefined,
+          speed: 0,
+          eta: 0,
+          connections: 0,
+          heldByQueue: false
+        })
+        changed = true
+      } else if (!ACTIVE.includes(task.status) && task.status !== 'queued') {
+        this.queueHold.delete(task.id)
+        task.heldByQueue = false
+      }
+    }
+    return changed
   }
 
   private async startTask(task: DownloadTask): Promise<void> {
@@ -416,12 +512,14 @@ export class DownloadManager implements EngineHost {
     const task = this.tasks.get(id)
     if (!task) return
     if (!ACTIVE.includes(task.status) && task.status !== 'queued') return
+    this.queueHold.delete(id)
+    task.heldByQueue = false
     this.resumeFlags.add(id)
     this.controllers.get(id)?.abort()
     if (task.kind === 'torrent') this.torrent.pause(id)
     if (task.kind === 'youtube') this.youtube.stop(id)
     if (task.status === 'queued') {
-      this.patch(task, { status: 'paused', speed: 0, eta: 0, connections: 0 })
+      this.patch(task, { status: 'paused', speed: 0, eta: 0, connections: 0, heldByQueue: false })
     }
     this.persistSoon()
   }
@@ -437,19 +535,54 @@ export class DownloadManager implements EngineHost {
     return count
   }
 
+  pauseTasks(ids: string[]): number {
+    let count = 0
+    for (const id of ids) {
+      const task = this.tasks.get(id)
+      if (!task) continue
+      if (!ACTIVE.includes(task.status) && task.status !== 'queued') continue
+      this.pause(id)
+      count++
+    }
+    return count
+  }
+
   async resume(id: string): Promise<void> {
     const task = this.tasks.get(id)
     if (!task) return
     if (!RESUMABLE.includes(task.status)) return
+    this.queueHold.delete(id)
     this.resumeFlags.add(id)
     this.patch(task, {
       status: 'queued',
       error: undefined,
       speed: 0,
       eta: 0,
-      connections: 0
+      connections: 0,
+      heldByQueue: false
     })
     this.schedule()
+  }
+
+  resumeTasks(ids: string[]): number {
+    let count = 0
+    for (const id of ids) {
+      const task = this.tasks.get(id)
+      if (!task || !RESUMABLE.includes(task.status)) continue
+      this.queueHold.delete(id)
+      this.resumeFlags.add(id)
+      this.patch(task, {
+        status: 'queued',
+        error: undefined,
+        speed: 0,
+        eta: 0,
+        connections: 0,
+        heldByQueue: false
+      })
+      count++
+    }
+    if (count > 0) this.schedule()
+    return count
   }
 
   /**
@@ -501,7 +634,8 @@ export class DownloadManager implements EngineHost {
       downloaded: restarted ? 0 : task.downloaded,
       segments: restarted ? undefined : task.segments,
       size: restarted ? prepared.size || 0 : task.size || prepared.size || 0,
-      resumable: restarted ? undefined : task.resumable
+      resumable: restarted ? undefined : task.resumable,
+      heldByQueue: false
     })
     this.resumeFlags.add(id)
     this.schedule()
@@ -536,11 +670,51 @@ export class DownloadManager implements EngineHost {
     this.lastDownloaded.delete(id)
     this.autoNames.delete(id)
     this.resumeFlags.delete(id)
+    this.queueHold.delete(id)
     if (deleteFile) await this.deleteFiles(task)
     this.emit({ type: 'task:remove', id })
     this.persistSoon()
     this.emitStats(true)
     this.schedule()
+  }
+
+  /** Removes several downloads at once and reports how many were removed. */
+  async removeTasks(ids: string[], deleteFile: boolean): Promise<number> {
+    let removed = 0
+    for (const id of new Set(ids)) {
+      if (!this.tasks.has(id)) continue
+      await this.remove(id, deleteFile)
+      removed++
+    }
+    return removed
+  }
+
+  /** Moves downloads to another queue, keeping their running state intact. */
+  setTasksQueue(ids: string[], queueId: string): number {
+    const queues = this.queues()
+    const resolved = resolveQueueId(queues, queueId)
+    let count = 0
+    for (const id of new Set(ids)) {
+      const task = this.tasks.get(id)
+      if (!task || task.queueId === resolved) continue
+      const wasHeld = this.queueHold.delete(id)
+      this.patch(task, {
+        queueId: resolved,
+        ...(wasHeld
+          ? {
+              status: 'queued' as TaskStatus,
+              error: undefined,
+              speed: 0,
+              eta: 0,
+              connections: 0,
+              heldByQueue: false
+            }
+          : {})
+      })
+      count++
+    }
+    if (count > 0) this.schedule()
+    return count
   }
 
   private safeInside(dir: string, target: string): boolean {
@@ -582,7 +756,8 @@ export class DownloadManager implements EngineHost {
       error: undefined,
       speed: 0,
       eta: 0,
-      connections: 0
+      connections: 0,
+      heldByQueue: false
     })
     this.schedule()
   }
@@ -636,6 +811,19 @@ export class DownloadManager implements EngineHost {
       this.torrent.setLimit(settings.globalSpeedLimit)
     }
     if (patch.maxConcurrent !== undefined) this.schedule()
+    if (patch.queues !== undefined || patch.defaultQueueId !== undefined) {
+      const queues = normalizeQueues(settings.queues)
+      settings.queues = queues
+      settings.defaultQueueId = resolveQueueId(queues, settings.defaultQueueId)
+      for (const task of this.tasks.values()) {
+        const next = resolveQueueId(queues, task.queueId)
+        if (task.queueId === next) continue
+        this.patch(task, { queueId: next })
+      }
+      this.persistSoon()
+      this.queueOpenState.clear()
+      this.schedule()
+    }
     if (patch.downloadDir && patch.downloadDir !== prev.downloadDir) {
       void ensureDir(settings.downloadDir)
     }
@@ -659,6 +847,7 @@ export class DownloadManager implements EngineHost {
 
   private tick(): void {
     const now = Date.now()
+    if (this.enforceQueueSchedules()) this.schedule()
     for (const task of this.tasks.values()) {
       const last = this.lastDownloaded.get(task.id) ?? task.downloaded
       const isActive = task.status === 'downloading'
@@ -713,6 +902,7 @@ export class DownloadManager implements EngineHost {
 
   async shutdown(): Promise<void> {
     this.shuttingDown = true
+    this.queueHold.clear()
     if (this.ticker) clearInterval(this.ticker)
     this.ticker = null
     for (const controller of this.controllers.values()) controller.abort()

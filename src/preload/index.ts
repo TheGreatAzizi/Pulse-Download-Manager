@@ -26,10 +26,16 @@ const api: PulseAPI = {
   addTorrent: (input: AddTorrentInput) => ipcRenderer.invoke(IP.addTorrent, input),
   pauseTask: (id: string) => ipcRenderer.invoke(IP.pause, id) as Promise<void>,
   pauseAll: () => ipcRenderer.invoke(IP.pauseAll) as Promise<number>,
+  pauseTasks: (ids: string[]) => ipcRenderer.invoke(IP.pauseTasks, ids) as Promise<number>,
   resumeTask: (id: string) => ipcRenderer.invoke(IP.resume, id) as Promise<void>,
+  resumeTasks: (ids: string[]) => ipcRenderer.invoke(IP.resumeTasks, ids) as Promise<number>,
   cancelTask: (id: string) => ipcRenderer.invoke(IP.cancel, id) as Promise<void>,
   removeTask: (id: string, deleteFile: boolean) =>
     ipcRenderer.invoke(IP.remove, id, deleteFile) as Promise<void>,
+  removeTasks: (ids: string[], deleteFile: boolean) =>
+    ipcRenderer.invoke(IP.removeTasks, ids, deleteFile) as Promise<number>,
+  setTasksQueue: (ids: string[], queueId: string) =>
+    ipcRenderer.invoke(IP.setTasksQueue, ids, queueId) as Promise<number>,
   retryTask: (id: string) => ipcRenderer.invoke(IP.retry, id) as Promise<void>,
   revealTask: (id: string) => ipcRenderer.invoke(IP.reveal, id) as Promise<void>,
   openTask: (id: string) => ipcRenderer.invoke(IP.open, id) as Promise<void>,

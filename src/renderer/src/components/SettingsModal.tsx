@@ -127,26 +127,26 @@ export function SettingsModal(): React.JSX.Element {
   const ffmpeg = stats?.ffmpeg
 
   return (
-    <Modal open={settingsOpen} onClose={() => setSettingsOpen(false)} width={880} className="flex h-[600px] max-h-[88vh] flex-col" label={t.settings.title}>
+    <Modal open={settingsOpen} onClose={() => setSettingsOpen(false)} width={1060} className="flex h-[760px] max-h-[90vh] flex-col" label={t.settings.title}>
       <div className="flex shrink-0 items-center gap-3 border-b border-line/70 px-6 py-4">
         <div className="grid h-9 w-9 place-items-center rounded-xl bg-brand/12 text-brand">
           <Settings2 size={17} />
         </div>
         <div>
-          <h2 className="text-[15px] font-extrabold tracking-tight">{t.settings.title}</h2>
-          <p className="text-[10.5px] text-muted">{t.settings.subtitle}</p>
+          <h2 className="text-[17px] font-extrabold tracking-tight">{t.settings.title}</h2>
+          <p className="text-[12.5px] text-muted">{t.settings.subtitle}</p>
         </div>
       </div>
 
       <div className="flex min-h-0 flex-1">
-        <div className="flex w-[190px] shrink-0 flex-col gap-0.5 border-e border-line/70 p-2.5">
+        <div className="flex w-[220px] shrink-0 flex-col gap-0.5 border-e border-line/70 p-3">
           {tabs.map((item) => (
             <button
               key={item.id}
               type="button"
               onClick={() => setTab(item.id)}
               className={cn(
-                'flex items-center gap-2.5 rounded-lg px-3 py-2 text-[11.5px] font-medium transition',
+                'flex items-center gap-2.5 rounded-lg px-3 py-2 text-[13.5px] font-medium transition',
                 tab === item.id ? 'bg-brand/12 text-ink' : 'text-muted hover:bg-elev2/70 hover:text-ink'
               )}
             >
@@ -155,7 +155,7 @@ export function SettingsModal(): React.JSX.Element {
               <ChevronRight size={12} className={cn('ms-auto text-faint flip-x', tab === item.id ? 'opacity-100' : 'opacity-0')} />
             </button>
           ))}
-          <div className="mt-auto px-1 pb-1 text-[9px] leading-relaxed text-faint">
+          <div className="mt-auto px-1 pb-1 text-[11px] leading-relaxed text-faint">
             Pulse v{system?.appVersion ?? '1.0.0'} · {system?.platform === 'linux' ? 'Linux' : 'Windows'}
           </div>
         </div>
@@ -169,10 +169,10 @@ export function SettingsModal(): React.JSX.Element {
                     value={merged.downloadDir}
                     onChange={(e) => set('downloadDir', e.target.value)}
                     aria-label={t.settings.general.dir}
-                    className="field h-9 min-w-0 flex-1 px-3 text-[10.5px]"
+                    className="field h-9 min-w-0 flex-1 px-3 text-[12.5px]"
                     dir="ltr"
                   />
-                  <button type="button" className="btn btn-ghost h-9 px-3 text-[10.5px]" onClick={() => void chooseDir()}>
+                  <button type="button" className="btn btn-ghost h-9 px-3 text-[12.5px]" onClick={() => void chooseDir()}>
                     <FolderOpen size={14} />
                     {t.add.browse}
                   </button>
@@ -199,7 +199,7 @@ export function SettingsModal(): React.JSX.Element {
                       aria-label={t.settings.general.connections}
                       className="flex-1 accent-[var(--c-brand)]"
                     />
-                    <span className="chip text-[10px]! text-brand! tabular">{merged.connections}</span>
+                    <span className="chip text-[12px]! text-brand! tabular">{merged.connections}</span>
                   </div>
                 </Group>
               </div>
@@ -252,11 +252,11 @@ export function SettingsModal(): React.JSX.Element {
           {tab === 'speed' ? (
             <div className="space-y-5">
               <div className="rounded-xl border border-line bg-elev/30 p-4">
-                <div className="flex items-center gap-2 text-[12px] font-semibold">
+                <div className="flex items-center gap-2 text-[14px] font-semibold">
                   <Gauge size={16} className="text-brand" />
                   {t.settings.speed.title}
                 </div>
-                <p className="mt-1 text-[10.5px] leading-relaxed text-muted">{t.settings.speed.desc}</p>
+                <p className="mt-1 text-[12.5px] leading-relaxed text-muted">{t.settings.speed.desc}</p>
                 <div className="mt-3 grid grid-cols-3 gap-1.5">
                   {[
                     { value: 0, label: t.settings.speed.unlimited },
@@ -276,7 +276,7 @@ export function SettingsModal(): React.JSX.Element {
                           setCustomLimit(preset.value ? String(preset.value / (1024 * 1024)) : '')
                         }}
                         className={cn(
-                          'rounded-lg border px-2 py-2 text-[10.5px] transition',
+                          'rounded-lg border px-2 py-2 text-[12.5px] transition',
                           active
                             ? 'border-brand/50 bg-brand/10 font-semibold text-brand'
                             : 'border-line bg-panel/40 text-muted hover:border-line2 hover:text-ink'
@@ -289,7 +289,7 @@ export function SettingsModal(): React.JSX.Element {
                 </div>
                 <div className="mt-3 flex items-end gap-2">
                   <div className="flex-1">
-                    <div className="mb-1 text-[9.5px] font-semibold text-muted">{t.settings.speed.custom}</div>
+                    <div className="mb-1 text-[11.5px] font-semibold text-muted">{t.settings.speed.custom}</div>
                     <div className="relative">
                       <input
                         type="number"
@@ -303,15 +303,15 @@ export function SettingsModal(): React.JSX.Element {
                         }}
                         placeholder="0"
                         aria-label={t.settings.speed.custom}
-                        className="field h-9 w-full px-3 pe-16 text-[11px] tabular"
+                        className="field h-9 w-full px-3 pe-16 text-[13px] tabular"
                         dir="ltr"
                       />
-                      <span className="absolute end-3 top-1/2 -translate-y-1/2 text-[9px] text-faint">
+                      <span className="absolute end-3 top-1/2 -translate-y-1/2 text-[11px] text-faint">
                         MB/s
                       </span>
                     </div>
                   </div>
-                  <div className="pb-2 text-[9.5px] text-faint">{t.settings.speed.note}</div>
+                  <div className="pb-2 text-[11.5px] text-faint">{t.settings.speed.note}</div>
                 </div>
               </div>
             </div>
@@ -320,13 +320,13 @@ export function SettingsModal(): React.JSX.Element {
           {tab === 'proxy' ? (
             <div className="space-y-5">
               <div className="rounded-xl border border-line bg-elev/30 p-4">
-                <div className="flex items-center gap-2 text-[12px] font-semibold">
+                <div className="flex items-center gap-2 text-[14px] font-semibold">
                   <Network size={16} className="text-brand" />
                   {t.settings.proxy.title}
                 </div>
-                <p className="mt-1 text-[10.5px] leading-relaxed text-muted">{t.settings.proxy.desc}</p>
+                <p className="mt-1 text-[12.5px] leading-relaxed text-muted">{t.settings.proxy.desc}</p>
                 <label className="mt-3 block">
-                  <span className="mb-1 block text-[9.5px] font-semibold text-muted">
+                  <span className="mb-1 block text-[11.5px] font-semibold text-muted">
                     {t.settings.proxy.address}
                   </span>
                   <div className="flex gap-1.5">
@@ -336,7 +336,7 @@ export function SettingsModal(): React.JSX.Element {
                       placeholder={t.settings.proxy.placeholder}
                       aria-label={t.settings.proxy.address}
                       className={cn(
-                        'field h-9 min-w-0 flex-1 px-3 text-[11px]',
+                        'field h-9 min-w-0 flex-1 px-3 text-[13px]',
                         !proxy.ok && 'border-bad/60'
                       )}
                       dir="ltr"
@@ -347,13 +347,13 @@ export function SettingsModal(): React.JSX.Element {
                       type="button"
                       onClick={() => set('proxy', '')}
                       disabled={!merged.proxy}
-                      className="btn btn-ghost h-9 shrink-0 px-2.5 text-[9.5px] disabled:opacity-40"
+                      className="btn btn-ghost h-9 shrink-0 px-2.5 text-[11.5px] disabled:opacity-40"
                     >
                       {t.settings.proxy.clear}
                     </button>
                   </div>
                 </label>
-                <div className="mt-2 flex items-start gap-1.5 text-[9.5px] leading-relaxed">
+                <div className="mt-2 flex items-start gap-1.5 text-[11.5px] leading-relaxed">
                   {!proxy.ok ? (
                     <>
                       <AlertTriangle size={12} className="mt-0.5 shrink-0 text-bad" />
@@ -376,21 +376,21 @@ export function SettingsModal(): React.JSX.Element {
                     </>
                   )}
                 </div>
-                <p className="mt-1.5 text-[9px] leading-relaxed text-faint">{t.settings.proxy.hint}</p>
+                <p className="mt-1.5 text-[11px] leading-relaxed text-faint">{t.settings.proxy.hint}</p>
               </div>
 
               <div className="rounded-xl border border-line bg-elev/25 p-3">
-                <div className="flex items-center gap-2 text-[10.5px] font-semibold">
+                <div className="flex items-center gap-2 text-[12.5px] font-semibold">
                   <ShieldCheck size={13} className="text-faint" />
                   {t.settings.proxy.scopeTitle}
                 </div>
-                <p className="mt-1 text-[9px] leading-relaxed text-faint">{t.settings.proxy.scope}</p>
-                <p className="mt-2 text-[9px] leading-relaxed text-faint">{t.settings.proxy.authHint}</p>
+                <p className="mt-1 text-[11px] leading-relaxed text-faint">{t.settings.proxy.scope}</p>
+                <p className="mt-2 text-[11px] leading-relaxed text-faint">{t.settings.proxy.authHint}</p>
                 <div className="mt-2 rounded-lg border border-line/70 bg-panel/40 px-2.5 py-2">
-                  <div className="text-[8.5px] font-semibold text-muted">
+                  <div className="text-[10.5px] font-semibold text-muted">
                     {t.settings.proxy.examplesLabel}
                   </div>
-                  <div className="mt-1 text-[9px] leading-relaxed text-faint" dir="ltr">
+                  <div className="mt-1 text-[11px] leading-relaxed text-faint" dir="ltr">
                     {t.settings.proxy.examples}
                   </div>
                 </div>
@@ -425,7 +425,7 @@ export function SettingsModal(): React.JSX.Element {
                     type="button"
                     onClick={() => set('language', 'fa')}
                     className={cn(
-                      'flex items-center justify-between rounded-xl border px-3 py-3 text-[12px] transition',
+                      'flex items-center justify-between rounded-xl border px-3 py-3 text-[14px] transition',
                       merged.language === 'fa'
                         ? 'border-brand/50 bg-brand/10 font-semibold text-brand'
                         : 'border-line bg-elev/25 text-muted hover:border-line2'
@@ -441,7 +441,7 @@ export function SettingsModal(): React.JSX.Element {
                     type="button"
                     onClick={() => set('language', 'en')}
                     className={cn(
-                      'flex items-center justify-between rounded-xl border px-3 py-3 text-[12px] transition',
+                      'flex items-center justify-between rounded-xl border px-3 py-3 text-[14px] transition',
                       merged.language === 'en'
                         ? 'border-brand/50 bg-brand/10 font-semibold text-brand'
                         : 'border-line bg-elev/25 text-muted hover:border-line2'
@@ -457,7 +457,7 @@ export function SettingsModal(): React.JSX.Element {
                     type="button"
                     onClick={() => set('language', 'ja')}
                     className={cn(
-                      'flex items-center justify-between rounded-xl border px-3 py-3 text-[12px] transition',
+                      'flex items-center justify-between rounded-xl border px-3 py-3 text-[14px] transition',
                       merged.language === 'ja'
                         ? 'border-brand/50 bg-brand/10 font-semibold text-brand'
                         : 'border-line bg-elev/25 text-muted hover:border-line2'
@@ -473,7 +473,7 @@ export function SettingsModal(): React.JSX.Element {
                     type="button"
                     onClick={() => set('language', 'ru')}
                     className={cn(
-                      'flex items-center justify-between rounded-xl border px-3 py-3 text-[12px] transition',
+                      'flex items-center justify-between rounded-xl border px-3 py-3 text-[14px] transition',
                       merged.language === 'ru'
                         ? 'border-brand/50 bg-brand/10 font-semibold text-brand'
                         : 'border-line bg-elev/25 text-muted hover:border-line2'
@@ -505,13 +505,13 @@ export function SettingsModal(): React.JSX.Element {
                       type="button"
                       onClick={() => void installYtdlp()}
                       disabled={installing}
-                      className="btn btn-soft h-8 px-2.5 text-[10px]"
+                      className="btn btn-soft h-8 px-2.5 text-[12px]"
                     >
                       {installing ? <Loader2 size={12} className="animate-spin" /> : <Download size={12} />}
                       {installing ? t.settings.tools.installing : t.settings.tools.install}
                     </button>
                   ) : (
-                    <span className="flex items-center gap-1 text-[9.5px] font-semibold text-ok">
+                    <span className="flex items-center gap-1 text-[11.5px] font-semibold text-ok">
                       <Check size={12} /> {t.settings.tools.installed}
                     </span>
                   )
@@ -525,11 +525,11 @@ export function SettingsModal(): React.JSX.Element {
                 t={t}
                 action={
                   ffmpeg?.available ? (
-                    <span className="flex items-center gap-1 text-[9.5px] font-semibold text-ok">
+                    <span className="flex items-center gap-1 text-[11.5px] font-semibold text-ok">
                       <Check size={12} /> {t.settings.tools.available}
                     </span>
                   ) : (
-                    <span className="text-[9.5px] font-semibold text-bad">{t.settings.tools.missing}</span>
+                    <span className="text-[11.5px] font-semibold text-bad">{t.settings.tools.missing}</span>
                   )
                 }
               />
@@ -540,24 +540,24 @@ export function SettingsModal(): React.JSX.Element {
                 t={t}
                 extra={
                   <div className="flex items-center gap-2">
-                    <span className="text-[9.5px] text-faint">{t.settings.tools.port}</span>
+                    <span className="text-[11.5px] text-faint">{t.settings.tools.port}</span>
                     <input
                       type="number"
                       value={merged.torrentPort}
                       onChange={(e) => set('torrentPort', Number(e.target.value) || 51413)}
                       aria-label={t.settings.tools.port}
-                      className="field h-7 w-[76px] px-2 text-[10px] tabular"
+                      className="field h-7 w-[76px] px-2 text-[12px] tabular"
                       dir="ltr"
                     />
                   </div>
                 }
                 action={
                   stats?.torrentEngine === 'ready' ? (
-                    <span className="flex items-center gap-1 text-[9.5px] font-semibold text-ok">
+                    <span className="flex items-center gap-1 text-[11.5px] font-semibold text-ok">
                       <Check size={12} /> {t.settings.tools.engineReady}
                     </span>
                   ) : (
-                    <span className="text-[9.5px] font-semibold text-warn">
+                    <span className="text-[11.5px] font-semibold text-warn">
                       {stats?.torrentEngine === 'starting' ? t.add.analyzing : t.settings.tools.engineIdle}
                     </span>
                   )
@@ -568,10 +568,10 @@ export function SettingsModal(): React.JSX.Element {
                   <Globe2 size={13} className="mt-0.5 shrink-0 text-faint" />
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className="text-[11.5px] font-semibold">{t.settings.tools.browser}</span>
+                      <span className="text-[13.5px] font-semibold">{t.settings.tools.browser}</span>
                       <span
                         className={cn(
-                          'text-[9px] font-semibold',
+                          'text-[11px] font-semibold',
                           browser?.running ? 'text-ok' : 'text-faint'
                         )}
                       >
@@ -580,14 +580,14 @@ export function SettingsModal(): React.JSX.Element {
                           : t.settings.tools.browserStopped}
                       </span>
                     </div>
-                    <p className="mt-0.5 text-[9.5px] leading-relaxed text-muted">
+                    <p className="mt-0.5 text-[11.5px] leading-relaxed text-muted">
                       {t.settings.tools.browserDesc}
                     </p>
                     <div className="mt-2 flex flex-wrap items-center gap-1.5">
                       <button
                         type="button"
                         onClick={() => void window.pulse.openExtensionFolder()}
-                        className="btn btn-ghost h-7 px-2 text-[9.5px]"
+                        className="btn btn-ghost h-7 px-2 text-[11.5px]"
                       >
                         <FolderOpen size={11} />
                         {t.settings.tools.browserFolder}
@@ -595,12 +595,12 @@ export function SettingsModal(): React.JSX.Element {
                       <button
                         type="button"
                         onClick={() => void copyExtensionPath()}
-                        className="btn btn-ghost h-7 px-2 text-[9.5px]"
+                        className="btn btn-ghost h-7 px-2 text-[11.5px]"
                       >
                         <Copy size={11} />
                         {t.settings.tools.browserCopyPath}
                       </button>
-                      <span className="text-[9px] text-faint">
+                      <span className="text-[11px] text-faint">
                         {browser?.running
                           ? browser.clients > 0
                             ? t.settings.tools.browserClients.replace(
@@ -611,14 +611,14 @@ export function SettingsModal(): React.JSX.Element {
                           : t.settings.tools.browserInstall}
                       </span>
                     </div>
-                    <p className="mt-2 text-[8.5px] leading-relaxed text-faint">
+                    <p className="mt-2 text-[10.5px] leading-relaxed text-faint">
                       {t.settings.tools.browserInstallHint}
                     </p>
-                    <div className="mt-1 truncate text-[8.5px] text-faint" dir="ltr">
+                    <div className="mt-1 truncate text-[10.5px] text-faint" dir="ltr">
                       {browser?.extensionPath || ''}
                     </div>
                     {browser?.error ? (
-                      <p className="mt-1 text-[9px] text-bad">{browser.error}</p>
+                      <p className="mt-1 text-[11px] text-bad">{browser.error}</p>
                     ) : null}
                   </div>
                   <Toggle
@@ -627,23 +627,23 @@ export function SettingsModal(): React.JSX.Element {
                     label={t.settings.tools.browserEnabled}
                   />
                 </div>
-                <p className="mt-2 text-[8.5px] leading-relaxed text-faint">
+                <p className="mt-2 text-[10.5px] leading-relaxed text-faint">
                   {t.settings.tools.browserEnabledHint}
                 </p>
               </div>
               <div className="rounded-xl border border-line bg-elev/25 p-3">
                 <div className="flex items-center gap-2">
                   <ShieldCheck size={13} className="text-faint" />
-                  <span className="text-[10.5px] font-semibold">{t.settings.tools.youtubeAuth}</span>
+                  <span className="text-[12.5px] font-semibold">{t.settings.tools.youtubeAuth}</span>
                 </div>
-                <p className="mt-1 text-[9px] leading-relaxed text-faint">{t.settings.tools.youtubeAuthHint}</p>
+                <p className="mt-1 text-[11px] leading-relaxed text-faint">{t.settings.tools.youtubeAuthHint}</p>
                 <div className="mt-2.5 grid grid-cols-2 gap-2">
                   <label className="block">
-                    <span className="mb-1 block text-[9px] text-faint">{t.settings.tools.cookiesBrowser}</span>
+                    <span className="mb-1 block text-[11px] text-faint">{t.settings.tools.cookiesBrowser}</span>
                     <select
                       value={merged.cookiesBrowser}
                       onChange={(e) => set('cookiesBrowser', e.target.value as Settings['cookiesBrowser'])}
-                      className="field h-8 w-full px-2 text-[10px]"
+                      className="field h-8 w-full px-2 text-[12px]"
                       dir="ltr"
                     >
                       <option value="">{t.settings.tools.noCookies}</option>
@@ -657,19 +657,19 @@ export function SettingsModal(): React.JSX.Element {
                     </select>
                   </label>
                   <label className="block">
-                    <span className="mb-1 block text-[9px] text-faint">{t.settings.tools.cookiesFile}</span>
+                    <span className="mb-1 block text-[11px] text-faint">{t.settings.tools.cookiesFile}</span>
                     <div className="flex gap-1.5">
                       <input
                         value={merged.cookiesFile}
                         onChange={(e) => set('cookiesFile', e.target.value)}
                         placeholder="cookies.txt"
-                        className="field h-8 min-w-0 flex-1 px-2 text-[10px]"
+                        className="field h-8 min-w-0 flex-1 px-2 text-[12px]"
                         dir="ltr"
                       />
                       <button
                         type="button"
                         onClick={() => void chooseCookies()}
-                        className="btn btn-ghost h-8 px-2 text-[9.5px]"
+                        className="btn btn-ghost h-8 px-2 text-[11.5px]"
                         title={t.settings.tools.chooseCookies}
                       >
                         <FolderOpen size={12} />
@@ -677,14 +677,14 @@ export function SettingsModal(): React.JSX.Element {
                     </div>
                   </label>
                 </div>
-                <p className="mt-1.5 text-[8.5px] leading-relaxed text-faint">
+                <p className="mt-1.5 text-[10.5px] leading-relaxed text-faint">
                   {t.settings.tools.cookiesFileHint} {t.settings.tools.cookiesBrowserHint}
                 </p>
               </div>
               <div className="rounded-xl border border-line bg-elev/25 p-3">
                 <div className="flex items-center gap-2">
                   <KeyRound size={13} className="text-faint" />
-                  <span className="text-[10.5px] font-semibold">{t.settings.tools.githubToken}</span>
+                  <span className="text-[12.5px] font-semibold">{t.settings.tools.githubToken}</span>
                   <button
                     type="button"
                     onClick={() =>
@@ -692,13 +692,13 @@ export function SettingsModal(): React.JSX.Element {
                         'https://github.com/settings/tokens/new?scopes=public_repo&description=Pulse'
                       )
                     }
-                    className="ms-auto flex items-center gap-1 text-[9px] text-brand transition hover:underline"
+                    className="ms-auto flex items-center gap-1 text-[11px] text-brand transition hover:underline"
                   >
                     <ExternalLink size={10} />
                     github.com
                   </button>
                 </div>
-                <p className="mt-1 text-[9px] leading-relaxed text-faint">
+                <p className="mt-1 text-[11px] leading-relaxed text-faint">
                   {t.settings.tools.githubTokenHint}
                 </p>
                 <input
@@ -707,21 +707,21 @@ export function SettingsModal(): React.JSX.Element {
                   onChange={(e) => set('githubToken', e.target.value)}
                   placeholder={t.settings.tools.githubTokenPlaceholder}
                   aria-label={t.settings.tools.githubToken}
-                  className="field mt-2 h-8 w-full px-2 text-[10px]"
+                  className="field mt-2 h-8 w-full px-2 text-[12px]"
                   dir="ltr"
                   autoComplete="off"
                   spellCheck={false}
                 />
               </div>
               <div className="flex items-center justify-between rounded-xl border border-line bg-elev/25 px-3 py-2.5">
-                <div className="flex items-center gap-2 text-[10.5px] text-muted">
+                <div className="flex items-center gap-2 text-[12.5px] text-muted">
                   <Cpu size={13} className="text-faint" />
                   {t.settings.tools.path}
                 </div>
                 <button
                   type="button"
                   onClick={() => refreshTools()}
-                  className="btn btn-ghost h-7 px-2 text-[9.5px]"
+                  className="btn btn-ghost h-7 px-2 text-[11.5px]"
                 >
                   <RefreshCw size={11} />
                   {t.settings.tools.rescan}
@@ -733,15 +733,15 @@ export function SettingsModal(): React.JSX.Element {
           {tab === 'about' ? (
             <div className="flex flex-col items-center py-6 text-center">
               <Logo size={64} glow={false} />
-              <h3 className="mt-4 text-[19px] font-semibold tracking-tight">Pulse Download Manager</h3>
-              <p className="mt-1 max-w-sm text-[11px] leading-relaxed text-muted">{t.settings.about.built}</p>
+              <h3 className="mt-4 text-[22px] font-semibold tracking-tight">Pulse Download Manager</h3>
+              <p className="mt-1 max-w-sm text-[13px] leading-relaxed text-muted">{t.settings.about.built}</p>
               <div className="mt-3 flex flex-wrap justify-center gap-1.5">
                 <span className="chip"><Activity size={10} /> HTTP ×{merged.connections}</span>
                 <span className="chip"><Globe2 size={10} /> yt-dlp</span>
                 <span className="chip"><Activity size={10} /> BitTorrent</span>
                 <span className="chip"><Moon size={10} /> RTL</span>
               </div>
-              <p className="mt-3 max-w-md text-[10px] leading-relaxed text-faint">{t.settings.about.features}</p>
+              <p className="mt-3 max-w-md text-[12px] leading-relaxed text-faint">{t.settings.about.features}</p>
               <div className="mt-5 w-full max-w-sm divide-y divide-line/60 overflow-hidden rounded-xl border border-line text-start">
                 <Row label={t.settings.about.version} value={system?.appVersion ?? '1.0.0'} />
                 <Row label={t.settings.about.platform} value={`${system?.platform} ${system?.version}`} />
@@ -764,10 +764,10 @@ export function SettingsModal(): React.JSX.Element {
                 />
                 <div className="flex items-center justify-between gap-3 px-3 py-2">
                   <div className="min-w-0">
-                    <div className="text-[9.5px] text-faint">{t.settings.about.updates}</div>
+                    <div className="text-[11.5px] text-faint">{t.settings.about.updates}</div>
                     <div
                       className={cn(
-                        'mt-0.5 truncate text-[9.5px] font-medium',
+                        'mt-0.5 truncate text-[11.5px] font-medium',
                         updateInfo?.hasUpdate ? 'text-brand' : 'text-muted'
                       )}
                     >
@@ -789,7 +789,7 @@ export function SettingsModal(): React.JSX.Element {
                       else void checkUpdates()
                     }}
                     disabled={updatePhase === 'checking'}
-                    className="btn btn-ghost h-7 shrink-0 px-2.5 text-[9.5px]"
+                    className="btn btn-ghost h-7 shrink-0 px-2.5 text-[11.5px]"
                   >
                     <RefreshCw size={11} className={cn(updatePhase === 'checking' && 'animate-spin')} />
                     {updateInfo?.hasUpdate ? t.toast.viewUpdate : t.settings.about.checkUpdates}
@@ -802,11 +802,11 @@ export function SettingsModal(): React.JSX.Element {
       </div>
 
       <div className="flex shrink-0 items-center justify-end gap-2 border-t border-line/70 bg-panel/60 px-5 py-3">
-        <button type="button" className="btn btn-ghost h-9 px-3.5 text-[11px]" onClick={() => setSettingsOpen(false)}>
+        <button type="button" className="btn btn-ghost h-9 px-3.5 text-[13px]" onClick={() => setSettingsOpen(false)}>
           {t.settings.close}
         </button>
         {tab !== 'about' ? (
-          <button type="button" className="btn btn-primary h-9 px-4 text-[11px]" onClick={save}>
+          <button type="button" className="btn btn-primary h-9 px-4 text-[13px]" onClick={save}>
             <Check size={14} />
             {t.settings.save}
           </button>
@@ -828,8 +828,8 @@ function Group({
   return (
     <div>
       <div className="mb-1.5 flex items-baseline justify-between gap-2">
-        <span className="text-[11px] font-semibold">{title}</span>
-        {hint ? <span className="text-[9px] text-faint">{hint}</span> : null}
+        <span className="text-[13px] font-semibold">{title}</span>
+        {hint ? <span className="text-[11px] text-faint">{hint}</span> : null}
       </div>
       {children}
     </div>
@@ -854,18 +854,18 @@ function Stepper({
         type="button"
         onClick={() => onChange(Math.max(min, value - 1))}
         aria-label={t.common.decrease}
-        className="icon-btn h-8! w-8! border border-line text-[14px]"
+        className="icon-btn h-8! w-8! border border-line text-[16px]"
       >
         −
       </button>
-      <div className="field flex h-8 flex-1 items-center justify-center text-[12px] font-semibold tabular">
+      <div className="field flex h-8 flex-1 items-center justify-center text-[14px] font-semibold tabular">
         {value}
       </div>
       <button
         type="button"
         onClick={() => onChange(Math.min(max, value + 1))}
         aria-label={t.common.increase}
-        className="icon-btn h-8! w-8! border border-line text-[14px]"
+        className="icon-btn h-8! w-8! border border-line text-[16px]"
       >
         +
       </button>
@@ -889,8 +889,8 @@ function ToggleRow({
   return (
     <div className="flex items-center gap-3 px-3 py-2.5">
       <div className="min-w-0 flex-1">
-        <div className="text-[10.5px] font-medium">{title}</div>
-        {hint ? <div className="mt-0.5 text-[9px] text-faint">{hint}</div> : null}
+        <div className="text-[12.5px] font-medium">{title}</div>
+        {hint ? <div className="mt-0.5 text-[11px] text-faint">{hint}</div> : null}
       </div>
       <Toggle checked={checked} onChange={onChange} label={title} disabled={disabled} />
     </div>
@@ -938,11 +938,11 @@ function ThemeCard({
         />
       </div>
       <div className="flex-1">
-        <div className={cn('flex items-center gap-1.5 text-[11px] font-semibold', active && 'text-brand')}>
+        <div className={cn('flex items-center gap-1.5 text-[13px] font-semibold', active && 'text-brand')}>
           {icon}
           {label}
         </div>
-        {active ? <div className="mt-0.5 text-[9px] text-brand/80">active</div> : null}
+        {active ? <div className="mt-0.5 text-[11px] text-brand/80">active</div> : null}
       </div>
     </button>
   )
@@ -978,15 +978,15 @@ function ToolCard({
         />
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
-            <span className="text-[11.5px] font-semibold">{title}</span>
-            {version ? <span className="chip py-0! text-[8.5px]!">v{version}</span> : null}
-            <span className={cn('text-[9px] font-semibold', ready ? 'text-ok' : 'text-faint')}>
+            <span className="text-[13.5px] font-semibold">{title}</span>
+            {version ? <span className="chip py-0! text-[10.5px]!">v{version}</span> : null}
+            <span className={cn('text-[11px] font-semibold', ready ? 'text-ok' : 'text-faint')}>
               {ready ? t.settings.tools.available : t.settings.tools.missing}
             </span>
           </div>
-          <p className="mt-0.5 text-[9.5px] leading-relaxed text-muted">{desc}</p>
+          <p className="mt-0.5 text-[11.5px] leading-relaxed text-muted">{desc}</p>
           {path ? (
-            <div className="mt-1 truncate text-[8.5px] text-faint" dir="ltr">
+            <div className="mt-1 truncate text-[10.5px] text-faint" dir="ltr">
               {path}
             </div>
           ) : null}
@@ -1001,8 +1001,8 @@ function ToolCard({
 function Row({ label, value }: { label: string; value: string }): React.JSX.Element {
   return (
     <div className="flex items-center justify-between px-3 py-2">
-      <span className="text-[9.5px] text-faint">{label}</span>
-      <span className="max-w-[60%] truncate text-[9.5px] font-medium text-muted" dir="ltr">
+      <span className="text-[11.5px] text-faint">{label}</span>
+      <span className="max-w-[60%] truncate text-[11.5px] font-medium text-muted" dir="ltr">
         {value}
       </span>
     </div>
@@ -1024,8 +1024,8 @@ function LinkRow({
       onClick={onClick}
       className="flex w-full items-center justify-between px-3 py-2 text-start transition hover:bg-elev/50"
     >
-      <span className="text-[9.5px] text-faint">{label}</span>
-      <span className="flex max-w-[60%] items-center gap-1 text-[9.5px] font-medium text-brand" dir="ltr">
+      <span className="text-[11.5px] text-faint">{label}</span>
+      <span className="flex max-w-[60%] items-center gap-1 text-[11.5px] font-medium text-brand" dir="ltr">
         <span className="truncate">{value}</span>
         <ExternalLink size={10} className="shrink-0" />
       </span>

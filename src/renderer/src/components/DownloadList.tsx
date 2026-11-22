@@ -1,11 +1,13 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   ArrowDownUp,
+  CheckSquare,
   Copy,
   ExternalLink,
   FolderOpen,
   LayoutGrid,
   Link2,
+  ListChecks,
   Pause,
   Play,
   Plus,
@@ -15,7 +17,9 @@ import {
   X
 } from 'lucide-react'
 import type { DownloadTask } from '@shared/types'
+import { DEFAULT_QUEUE_ID, resolveQueueId } from '@shared/queues'
 import { useApp, type SortId, type ViewId } from '../state'
+import { queueCopy } from '../queueI18n'
 import { cn, formatBytes, formatEta, formatSpeed, hostOf, percentOf, isActive } from '../lib/format'
 import { EmptyArt, KindIcon, ProgressBar, StatusPill } from './primitives'
 import { Modal } from './Modal'
@@ -43,15 +47,42 @@ function matchesView(task: DownloadTask, view: ViewId): boolean {
   }
 }
 
+function fillCount(template: string, count: number): string {
+  return template.replace('{count}', String(count))
+}
+
 export function DownloadList(): React.JSX.Element {
-  const { t, tasks, view, query, sort, setSort, setSelectedId, selectedId, pushToast, openAdd, stats } =
-    useApp()
-  const [removeTarget, setRemoveTarget] = useState<DownloadTask | null>(null)
+  const {
+    t,
+    tasks,
+    view,
+    query,
+    sort,
+    setSort,
+    setSelectedId,
+    selectedId,
+    pushToast,
+    openAdd,
+    stats,
+    settings,
+    lang,
+    queueFilter,
+    setQueueFilter
+  } = useApp()
+  const copy = queueCopy[lang]
+  const [removeState, setRemoveState] = useState<{ ids: string[]; name?: string } | null>(null)
   const [deleteFile, setDeleteFile] = useState(false)
+  const [selectMode, setSelectMode] = useState(false)
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
     let list = tasks.filter((task) => matchesView(task, view))
+    if (queueFilter) {
+      list = list.filter(
+        (task) => resolveQueueId(settings.queues, task.queueId) === queueFilter
+      )
+    }
     if (q) {
       list = list.filter(
         (task) =>
@@ -82,14 +113,101 @@ export function DownloadList(): React.JSX.Element {
         break
     }
     return sorted
-  }, [tasks, view, query, sort])
+  }, [tasks, view, query, sort, queueFilter, settings.queues])
+
+  useEffect(() => {
+    setSelectedIds((prev) => {
+      if (prev.size === 0) return prev
+      const next = new Set<string>()
+      for (const id of prev) {
+        if (tasks.some((task) => task.id === id)) next.add(id)
+      }
+      return next.size === prev.size ? prev : next
+    })
+  }, [tasks])
+
+  useEffect(() => {
+    if (!selectMode) setSelectedIds((prev) => (prev.size ? new Set() : prev))
+  }, [selectMode])
+
+  // Hidden selections could otherwise be acted on after changing the view,
+  // search text or queue filter.
+  useEffect(() => {
+    setSelectedIds((prev) => (prev.size ? new Set() : prev))
+  }, [view, query, queueFilter])
+
+  const toggleSelected = (id: string): void => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
+  const allVisibleSelected =
+    filtered.length > 0 && filtered.every((task) => selectedIds.has(task.id))
+
+  const toggleAll = (): void => {
+    setSelectedIds((prev) => {
+      if (allVisibleSelected) {
+        const next = new Set(prev)
+        for (const task of filtered) next.delete(task.id)
+        return next
+      }
+      const next = new Set(prev)
+      for (const task of filtered) next.add(task.id)
+      return next
+    })
+  }
+
+  const queueNameFor = (id: string): string => {
+    const queue = settings.queues.find((item) => item.id === id)
+    if (!queue) return copy.defaultQueue
+    return queue.id === DEFAULT_QUEUE_ID ? copy.defaultQueue : queue.name || copy.defaultQueue
+  }
+
+  const pauseAll = async (): Promise<void> => {
+    const count = await window.pulse.pauseAll()
+    if (count > 0) pushToast('info', t.toast.pausedAll)
+  }
+
+  const pauseSelected = async (): Promise<void> => {
+    const ids = [...selectedIds]
+    if (ids.length === 0) return
+    const count = await window.pulse.pauseTasks(ids)
+    pushToast('info', fillCount(copy.pausedCount, count))
+    setSelectedIds(new Set())
+  }
+
+  const resumeSelected = async (): Promise<void> => {
+    const ids = [...selectedIds]
+    if (ids.length === 0) return
+    const count = await window.pulse.resumeTasks(ids)
+    pushToast('info', fillCount(copy.resumedCount, count))
+    setSelectedIds(new Set())
+  }
+
+  const moveSelected = async (queueId: string): Promise<void> => {
+    if (!queueId || selectedIds.size === 0) return
+    const count = await window.pulse.setTasksQueue([...selectedIds], queueId)
+    pushToast('info', fillCount(copy.movedCount, count))
+    setSelectedIds(new Set())
+  }
 
   const remove = async (): Promise<void> => {
-    if (!removeTarget) return
-    await window.pulse.removeTask(removeTarget.id, deleteFile)
-    pushToast('info', t.toast.removed)
-    setRemoveTarget(null)
+    if (!removeState) return
+    const { ids } = removeState
+    if (ids.length > 1) {
+      const count = await window.pulse.removeTasks(ids, deleteFile)
+      pushToast('info', fillCount(copy.deletedCount, count))
+    } else if (ids.length === 1) {
+      await window.pulse.removeTask(ids[0], deleteFile)
+      pushToast('info', t.toast.removed)
+    }
+    setRemoveState(null)
     setDeleteFile(false)
+    setSelectedIds(new Set())
   }
 
   const sortOptions: Array<{ id: SortId; label: string }> = [
@@ -100,22 +218,75 @@ export function DownloadList(): React.JSX.Element {
     { id: 'progress', label: t.toolbar.sortProgress }
   ]
 
+  const pauseCandidates = [...selectedIds].some((id) => {
+    const task = tasks.find((item) => item.id === id)
+    return !!task && (isActive(task) || task.status === 'queued')
+  })
+  const resumeCandidates = [...selectedIds].some((id) => {
+    const task = tasks.find((item) => item.id === id)
+    return !!task && ['paused', 'error', 'canceled'].includes(task.status)
+  })
+  const anyPausable = tasks.some((task) => isActive(task) || task.status === 'queued')
+  const visibleSize = filtered.reduce((acc, task) => acc + (task.size || 0), 0)
+
   return (
     <section className="flex min-h-0 flex-1 flex-col">
-      <div className="flex shrink-0 items-center gap-2 px-5 pb-2 pt-0.5">
+      <div className="flex shrink-0 flex-wrap items-center gap-2 px-5 pb-2 pt-0.5">
         <div className="text-[10.5px] font-medium text-faint">
           {filtered.length} {t.stats.tasks}
           {filtered.length > 0 ? (
             <span className="ms-1.5 normal-case tracking-normal text-faint/80">
-              ·{' '}
+              <span className="mx-1">·</span>
               <span dir="ltr" className="inline-block">
-                {formatBytes(filtered.reduce((acc, x) => acc + (x.size || 0), 0))}
+                {formatBytes(visibleSize)}
               </span>
             </span>
           ) : null}
         </div>
 
-        <div className="ms-auto flex items-center gap-1.5">
+        {queueFilter ? (
+          <button
+            type="button"
+            onClick={() => setQueueFilter(null)}
+            className="chip border-brand/25! bg-brand/10! text-[10px]! text-brand!"
+            title={copy.clearFilter}
+          >
+            <ListChecks size={11} />
+            {queueNameFor(queueFilter)}
+            <X size={11} />
+          </button>
+        ) : null}
+
+        <div className="ms-auto flex flex-wrap items-center gap-1.5">
+          {anyPausable ? (
+            <button
+              type="button"
+              onClick={() => void pauseAll()}
+              className="flex items-center gap-1 rounded-md border border-line/70 px-2 py-1 text-[10.5px] font-medium text-muted transition hover:border-line2 hover:bg-elev2 hover:text-ink"
+              title={t.toolbar.pauseAll}
+            >
+              <Pause size={12} />
+              {copy.pauseAll}
+            </button>
+          ) : null}
+
+          {filtered.length > 0 ? (
+            <button
+              type="button"
+              onClick={() => setSelectMode((value) => !value)}
+              className={cn(
+                'flex items-center gap-1 rounded-md px-2 py-1 text-[10.5px] font-medium transition',
+                selectMode
+                  ? 'bg-brand/15 text-brand'
+                  : 'text-muted hover:bg-elev2 hover:text-ink'
+              )}
+              aria-pressed={selectMode}
+            >
+              <CheckSquare size={12} />
+              {copy.select}
+            </button>
+          ) : null}
+
           {sort === 'newest' ? (
             <ArrowDownUp size={13} className="text-faint" />
           ) : (
@@ -149,6 +320,84 @@ export function DownloadList(): React.JSX.Element {
         </div>
       </div>
 
+      {selectMode ? (
+        <div className="mx-5 mb-2 flex shrink-0 flex-wrap items-center gap-2 rounded-xl border border-brand/25 bg-brand/8 px-3 py-2">
+          <button
+            type="button"
+            onClick={toggleAll}
+            className="flex items-center gap-1.5 rounded-md px-1.5 py-1 text-[11px] font-semibold text-brand transition hover:bg-brand/10"
+          >
+            <CheckSquare size={13} />
+            {allVisibleSelected ? copy.clearSelection : copy.selectAll}
+          </button>
+          <span className="text-[11px] text-muted">
+            {fillCount(copy.selected, selectedIds.size)}
+          </span>
+
+          <div className="ms-auto flex flex-wrap items-center gap-1.5">
+            <button
+              type="button"
+              disabled={!pauseCandidates}
+              onClick={() => void pauseSelected()}
+              className="btn btn-ghost h-8 px-2.5 text-[11px] disabled:opacity-40"
+            >
+              <Pause size={12} />
+              {copy.bulkPause}
+            </button>
+            <button
+              type="button"
+              disabled={!resumeCandidates}
+              onClick={() => void resumeSelected()}
+              className="btn btn-ghost h-8 px-2.5 text-[11px] disabled:opacity-40"
+            >
+              <Play size={12} />
+              {copy.bulkResume}
+            </button>
+            <select
+              value=""
+              disabled={selectedIds.size === 0}
+              onChange={(e) => {
+                const value = e.target.value
+                e.currentTarget.value = ''
+                if (value) void moveSelected(value)
+              }}
+              aria-label={copy.assign}
+              className="field h-8 max-w-[170px] cursor-pointer px-2 text-[11px] disabled:opacity-40"
+            >
+              <option value="" disabled>
+                {copy.assign}
+              </option>
+              {settings.queues.map((queue) => (
+                <option key={queue.id} value={queue.id} className="bg-panel text-ink">
+                  {queue.id === DEFAULT_QUEUE_ID ? copy.defaultQueue : queue.name || copy.defaultQueue}
+                </option>
+              ))}
+            </select>
+            <button
+              type="button"
+              disabled={selectedIds.size === 0}
+              onClick={() => {
+                setRemoveState({ ids: [...selectedIds] })
+                setDeleteFile(false)
+              }}
+              className="btn h-8 border-bad/30 bg-bad/12 px-2.5 text-[11px] font-semibold text-bad hover:bg-bad/20 disabled:opacity-40"
+            >
+              <Trash2 size={12} />
+              {copy.bulkDelete}
+            </button>
+            <button
+              type="button"
+              onClick={() => setSelectMode(false)}
+              className="icon-btn h-8 w-8"
+              title={copy.clearSelection}
+              aria-label={copy.clearSelection}
+            >
+              <X size={14} />
+            </button>
+          </div>
+        </div>
+      ) : null}
+
       <div className="scroll-y flex-1 px-5 pb-4">
         {filtered.length === 0 ? (
           <EmptyState
@@ -165,9 +414,13 @@ export function DownloadList(): React.JSX.Element {
                 key={task.id}
                 task={task}
                 selected={selectedId === task.id}
+                checked={selectedIds.has(task.id)}
+                selectMode={selectMode}
+                queueName={queueNameFor(resolveQueueId(settings.queues, task.queueId))}
                 onSelect={() => setSelectedId(task.id)}
+                onToggle={() => toggleSelected(task.id)}
                 onRemove={() => {
-                  setRemoveTarget(task)
+                  setRemoveState({ ids: [task.id], name: task.name })
                   setDeleteFile(false)
                 }}
                 onToast={pushToast}
@@ -177,17 +430,22 @@ export function DownloadList(): React.JSX.Element {
         )}
         {stats && stats.activeCount > 0 ? (
           <div className="pb-4 text-center text-[10px] text-faint">
-            {stats.activeCount} {t.stats.active.toLowerCase()} · {formatSpeed(stats.downSpeed)}
+            {stats.activeCount} {t.stats.active.toLowerCase()}
+            <span className="mx-1.5">·</span>
+            {formatSpeed(stats.downSpeed)}
           </div>
         ) : null}
       </div>
 
       <Modal
-        open={!!removeTarget}
-        onClose={() => setRemoveTarget(null)}
-        width={430}
+        open={!!removeState}
+        onClose={() => {
+          setRemoveState(null)
+          setDeleteFile(false)
+        }}
+        width={440}
         hideClose
-        label={t.common.removeTitle}
+        label={removeState && removeState.ids.length > 1 ? copy.bulkDeleteTitle : t.common.removeTitle}
       >
         <div className="p-5">
           <div className="flex items-start gap-3">
@@ -195,11 +453,21 @@ export function DownloadList(): React.JSX.Element {
               <Trash2 size={18} />
             </div>
             <div className="min-w-0">
-              <h3 className="text-[14px] font-bold">{t.common.removeTitle}</h3>
-              <p className="mt-1 text-[11.5px] leading-relaxed text-muted">{t.common.removeDesc}</p>
-              <div className="mt-2 truncate rounded-lg bg-elev2/60 px-2 py-1.5 text-[11px] text-muted">
-                {removeTarget?.name}
-              </div>
+              <h3 className="text-[14px] font-bold">
+                {removeState && removeState.ids.length > 1
+                  ? copy.bulkDeleteTitle
+                  : t.common.removeTitle}
+              </h3>
+              <p className="mt-1 text-[11.5px] leading-relaxed text-muted">
+                {removeState && removeState.ids.length > 1
+                  ? fillCount(copy.bulkDeleteDesc, removeState.ids.length)
+                  : t.common.removeDesc}
+              </p>
+              {removeState?.name ? (
+                <div className="mt-2 truncate rounded-lg bg-elev2/60 px-2 py-1.5 text-[11px] text-muted">
+                  {removeState.name}
+                </div>
+              ) : null}
             </div>
           </div>
           <label className="mt-4 flex cursor-pointer items-center gap-2 text-[11.5px] text-muted">
@@ -209,13 +477,16 @@ export function DownloadList(): React.JSX.Element {
               onChange={(e) => setDeleteFile(e.target.checked)}
               className="h-3.5 w-3.5 accent-[var(--c-bad)]"
             />
-            {t.common.deleteFile}
+            {copy.deleteFilesToo}
           </label>
           <div className="mt-5 flex items-center justify-end gap-2">
             <button
               type="button"
               className="btn btn-ghost h-9 px-3 text-[11.5px]"
-              onClick={() => setRemoveTarget(null)}
+              onClick={() => {
+                setRemoveState(null)
+                setDeleteFile(false)
+              }}
             >
               {t.common.cancel}
             </button>
@@ -225,7 +496,7 @@ export function DownloadList(): React.JSX.Element {
               className="btn h-9 border-bad/30 bg-bad/15 px-3 text-[11.5px] font-semibold text-bad hover:bg-bad/25"
             >
               <Trash2 size={14} />
-              {t.common.delete}
+              {removeState && removeState.ids.length > 1 ? copy.bulkDelete : t.common.delete}
             </button>
           </div>
         </div>
@@ -237,17 +508,25 @@ export function DownloadList(): React.JSX.Element {
 function TaskRow({
   task,
   selected,
+  checked,
+  selectMode,
+  queueName,
   onSelect,
+  onToggle,
   onRemove,
   onToast
 }: {
   task: DownloadTask
   selected: boolean
+  checked: boolean
+  selectMode: boolean
+  queueName: string
   onSelect: () => void
+  onToggle: () => void
   onRemove: () => void
   onToast: (level: 'info' | 'success' | 'error', message: string) => void
 }): React.JSX.Element {
-  const { t, lang, openNewLink } = useApp()
+  const { t, lang, openNewLink, settings } = useApp()
   const percent = percentOf(task)
   const active = task.status === 'downloading'
   const paused = task.status === 'paused' || task.status === 'error' || task.status === 'canceled'
@@ -255,6 +534,8 @@ function TaskRow({
   const expiredLink = task.kind === 'http' && !!task.linkExpired
 
   const metaParts: string[] = []
+  const resolvedQueue = resolveQueueId(settings.queues, task.queueId)
+  if (resolvedQueue !== DEFAULT_QUEUE_ID) metaParts.push(queueName)
   if (task.kind === 'youtube') {
     if (task.youtube?.quality) metaParts.push(task.youtube.quality)
     if (task.youtube?.duration) metaParts.push(`${Math.floor(task.youtube.duration / 60)}:${String(Math.floor(task.youtube.duration % 60)).padStart(2, '0')}`)
@@ -296,15 +577,32 @@ function TaskRow({
     <div
       className={cn(
         'row-hover group relative overflow-hidden rounded-xl2 border border-line/70 bg-panel',
-        selected && 'row-selected'
+        (selected || checked) && 'row-selected'
       )}
     >
       <div className="flex items-center gap-3 px-3.5 py-2.5">
+        {selectMode ? (
+          <button
+            type="button"
+            onClick={onToggle}
+            aria-pressed={checked}
+            aria-label={task.name}
+            className={cn(
+              'grid h-5 w-5 shrink-0 place-items-center rounded-[6px] border transition',
+              checked
+                ? 'border-brand bg-brand text-white'
+                : 'border-line2 bg-elev2 text-transparent hover:border-brand/60'
+            )}
+          >
+            <CheckSquare size={13} />
+          </button>
+        ) : null}
+
         <button
           type="button"
-          onClick={onSelect}
+          onClick={selectMode ? onToggle : onSelect}
           onDoubleClick={() => {
-            if (completed) void window.pulse.openTask(task.id)
+            if (!selectMode && completed) void window.pulse.openTask(task.id)
           }}
           aria-label={`${task.name}, ${t.status[task.status]}, ${Math.round(percent)}%`}
           className="flex min-w-0 flex-1 items-center gap-3 rounded-md text-start"
@@ -316,6 +614,9 @@ function TaskRow({
                 {task.name}
               </span>
               <StatusPill status={task.status} label={t.status[task.status]} />
+              {task.heldByQueue ? (
+                <span className="chip py-0! text-[9px]! text-warn!">{queueCopy[lang].held}</span>
+              ) : null}
               {task.kind === 'youtube' && task.youtube?.audioOnly ? (
                 <span className="chip py-0! text-[9px]!">audio</span>
               ) : null}
@@ -468,7 +769,7 @@ function EmptyState({
   addLabel: string
   onAdd: () => void
 }): React.JSX.Element {
-  const { t, setQuery, setView } = useApp()
+  const { t, setQuery, setView, setQueueFilter } = useApp()
   return (
     <div className="anim-fade flex h-full min-h-[280px] flex-col items-center justify-center gap-4 py-10 text-center">
       <EmptyArt />
@@ -487,6 +788,7 @@ function EmptyState({
           onClick={() => {
             setQuery('')
             setView('all')
+            setQueueFilter(null)
           }}
           className="btn btn-soft h-9 px-3.5 text-[11.5px]"
         >

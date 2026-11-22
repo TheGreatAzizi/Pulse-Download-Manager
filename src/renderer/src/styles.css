@@ -1,5 +1,13 @@
 @import 'tailwindcss';
 
+@font-face {
+  font-family: 'Vazirmatn';
+  src: url('./assets/fonts/Vazirmatn.woff2') format('woff2');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
 @theme {
   --font-sans:
     'Segoe UI Variable Text', 'Segoe UI', system-ui,
@@ -82,6 +90,15 @@ body {
   overflow: hidden;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+}
+
+/* Persian always uses the bundled Vazirmatn face, including form controls. */
+html[lang='fa'] body,
+html[lang='fa'] button,
+html[lang='fa'] input,
+html[lang='fa'] select,
+html[lang='fa'] textarea {
+  font-family: 'Vazirmatn', 'Segoe UI', Tahoma, sans-serif;
 }
 
 ::selection {

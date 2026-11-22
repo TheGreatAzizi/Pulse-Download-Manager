@@ -17,6 +17,25 @@ export type TaskStatus =
 
 export type Language = 'fa' | 'en' | 'ja' | 'ru'
 export type Theme = 'dark' | 'light'
+export type QueueScheduleMode = 'always' | 'window'
+
+export interface DownloadQueue {
+  id: string
+  /** Empty for the built-in default queue, which the UI localizes. */
+  name: string
+  enabled: boolean
+  schedule: QueueScheduleMode
+  /** 0 = Sunday through 6 = Saturday. Used for time windows. */
+  days: number[]
+  /** Local time in HH:MM. */
+  start: string
+  /** Local time in HH:MM. A smaller value than start wraps past midnight. */
+  end: string
+  /** 0 uses the global simultaneous download limit. */
+  maxConcurrent: number
+  order: number
+}
+
 export type CookiesBrowser =
   | ''
   | 'chrome'
@@ -55,6 +74,10 @@ export interface Settings {
   githubToken: string
   /** Accept downloads from the Pulse browser extension over a local WebSocket. */
   browserIntegration: boolean
+  /** Named queues with optional schedules and per-queue concurrency limits. */
+  queues: DownloadQueue[]
+  /** Queue preselected when a new download is added. */
+  defaultQueueId: string
 }
 
 export interface BrowserStatus {
@@ -179,6 +202,10 @@ export interface DownloadTask {
   torrent?: TorrentMeta
   checksum?: string
   order: number
+  /** Queue that controls when this download may start. */
+  queueId: string
+  /** True while a queue schedule is holding this download. */
+  heldByQueue?: boolean
 }
 
 export interface SpeedSample {
@@ -219,6 +246,7 @@ export interface AddDownloadInput {
   headers?: Record<string, string>
   title?: string
   thumbnail?: string
+  queueId?: string
   youtube?: {
     /** yt-dlp format selector, e.g. "137+140" or "bestaudio/best" */
     selector?: string
@@ -301,6 +329,7 @@ export interface AddTorrentInput {
   dir?: string
   sequential?: boolean
   fileIndices?: number[]
+  queueId?: string
 }
 
 export interface AppSnapshot {
@@ -377,9 +406,13 @@ export interface PulseAPI {
   addTorrent(input: AddTorrentInput): Promise<DownloadTask>
   pauseTask(id: string): Promise<void>
   pauseAll(): Promise<number>
+  pauseTasks(ids: string[]): Promise<number>
   resumeTask(id: string): Promise<void>
+  resumeTasks(ids: string[]): Promise<number>
   cancelTask(id: string): Promise<void>
   removeTask(id: string, deleteFile: boolean): Promise<void>
+  removeTasks(ids: string[], deleteFile: boolean): Promise<number>
+  setTasksQueue(ids: string[], queueId: string): Promise<number>
   retryTask(id: string): Promise<void>
   revealTask(id: string): Promise<void>
   openTask(id: string): Promise<void>

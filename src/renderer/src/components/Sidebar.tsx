@@ -13,22 +13,35 @@ import {
   HardDrive,
   Image as ImageIcon,
   LayoutGrid,
+  ListChecks,
   Magnet,
   Music,
   PauseCircle,
   Settings,
+  SlidersHorizontal,
   Video as Youtube
 } from 'lucide-react'
 import type { DownloadTask } from '@shared/types'
+import { DEFAULT_QUEUE_ID, queueIsActive, resolveQueueId } from '@shared/queues'
 import { useApp, type ViewId } from '../state'
+import { queueCopy } from '../queueI18n'
 import { cn, formatBytes } from '../lib/format'
 
 const isActive = (t: DownloadTask): boolean =>
   t.status === 'downloading' || t.status === 'connecting' || t.status === 'verifying'
 
 export function Sidebar(): React.JSX.Element {
-  const { t, view, setView, tasks, stats, system, setSettingsOpen, settings, patchSettings } =
+  const { t, view, setView, tasks, stats, system, setSettingsOpen, settings, patchSettings, lang, queueFilter, setQueueFilter, setQueuesOpen } =
     useApp()
+  const copy = queueCopy[lang]
+
+  const selectView = (next: ViewId): void => {
+    setView(next)
+    setQueueFilter(null)
+  }
+
+  const queueCount = (id: string): number =>
+    tasks.filter((task) => resolveQueueId(settings.queues, task.queueId) === id).length
 
   const counts = useMemo(() => {
     const c = {
@@ -68,34 +81,62 @@ export function Sidebar(): React.JSX.Element {
     <aside className="flex w-[236px] shrink-0 flex-col border-e border-line/70 bg-panel">
       <nav className="scroll-y flex-1 px-2.5 py-3.5">
         <Section title={t.nav.library}>
-          <Item icon={<LayoutGrid size={16} />} label={t.nav.all} count={counts.all} active={view === 'all'} onClick={() => setView('all')} />
+          <Item icon={<LayoutGrid size={16} />} label={t.nav.all} count={counts.all} active={view === 'all' && !queueFilter} onClick={() => selectView('all')} />
           <Item
             icon={<Activity size={16} />}
             label={t.nav.active}
             count={counts.active}
             active={view === 'active'}
-            onClick={() => setView('active')}
+            onClick={() => selectView('active')}
             live={counts.active > 0}
           />
-          <Item icon={<CircleCheck size={16} />} label={t.nav.completed} count={counts.completed} active={view === 'completed'} onClick={() => setView('completed')} />
-          <Item icon={<PauseCircle size={16} />} label={t.nav.paused} count={counts.paused} active={view === 'paused'} onClick={() => setView('paused')} />
-          <Item icon={<AlertTriangle size={16} />} label={t.nav.error} count={counts.error} active={view === 'error'} onClick={() => setView('error')} danger={counts.error > 0} />
+          <Item icon={<CircleCheck size={16} />} label={t.nav.completed} count={counts.completed} active={view === 'completed'} onClick={() => selectView('completed')} />
+          <Item icon={<PauseCircle size={16} />} label={t.nav.paused} count={counts.paused} active={view === 'paused'} onClick={() => selectView('paused')} />
+          <Item icon={<AlertTriangle size={16} />} label={t.nav.error} count={counts.error} active={view === 'error'} onClick={() => selectView('error')} danger={counts.error > 0} />
+        </Section>
+
+        <Section title={copy.section}>
+          {settings.queues.map((queue) => {
+            const label = queue.id === DEFAULT_QUEUE_ID ? copy.defaultQueue : queue.name || copy.defaultQueue
+            return (
+              <Item
+                key={queue.id}
+                icon={<ListChecks size={16} />}
+                label={label}
+                count={queueCount(queue.id)}
+                active={view === 'all' && queueFilter === queue.id}
+                onClick={() => {
+                  setView('all')
+                  setQueueFilter(queue.id)
+                }}
+                live={queueIsActive(queue)}
+              />
+            )
+          })}
+          <button
+            type="button"
+            onClick={() => setQueuesOpen(true)}
+            className="mt-1 flex w-full items-center gap-2.5 rounded-lg px-2.5 py-[7px] text-[12px] font-medium text-muted transition hover:bg-elev2/70 hover:text-ink"
+          >
+            <SlidersHorizontal size={15} className="text-faint" />
+            {copy.manage}
+          </button>
         </Section>
 
         <Section title={t.nav.sources}>
-          <Item icon={<Youtube size={16} />} label={t.nav.youtube} count={counts.youtube} active={view === 'youtube'} onClick={() => setView('youtube')} />
-          <Item icon={<Magnet size={16} />} label={t.nav.torrents} count={counts.torrents} active={view === 'torrents'} onClick={() => setView('torrents')} />
-          <Item icon={<Globe size={16} />} label={t.nav.direct} count={counts.direct} active={view === 'direct'} onClick={() => setView('direct')} />
-          <Item icon={<GitBranch size={16} />} label={t.nav.github} count={0} active={view === 'github'} onClick={() => setView('github')} />
+          <Item icon={<Youtube size={16} />} label={t.nav.youtube} count={counts.youtube} active={view === 'youtube'} onClick={() => selectView('youtube')} />
+          <Item icon={<Magnet size={16} />} label={t.nav.torrents} count={counts.torrents} active={view === 'torrents'} onClick={() => selectView('torrents')} />
+          <Item icon={<Globe size={16} />} label={t.nav.direct} count={counts.direct} active={view === 'direct'} onClick={() => selectView('direct')} />
+          <Item icon={<GitBranch size={16} />} label={t.nav.github} count={0} active={view === 'github'} onClick={() => selectView('github')} />
         </Section>
 
         <Section title={t.nav.files}>
-          <Item icon={<Film size={16} />} label={t.nav.video} count={counts.video} active={view === 'video'} onClick={() => setView('video')} />
-          <Item icon={<Music size={16} />} label={t.nav.audio} count={counts.audio} active={view === 'audio'} onClick={() => setView('audio')} />
-          <Item icon={<ImageIcon size={16} />} label={t.nav.image} count={counts.image} active={view === 'image'} onClick={() => setView('image')} />
-          <Item icon={<FileArchive size={16} />} label={t.nav.archive} count={counts.archive} active={view === 'archive'} onClick={() => setView('archive')} />
-          <Item icon={<FileText size={16} />} label={t.nav.document} count={counts.document} active={view === 'document'} onClick={() => setView('document')} />
-          <Item icon={<AppWindow size={16} />} label={t.nav.app} count={counts.app} active={view === 'app'} onClick={() => setView('app')} />
+          <Item icon={<Film size={16} />} label={t.nav.video} count={counts.video} active={view === 'video'} onClick={() => selectView('video')} />
+          <Item icon={<Music size={16} />} label={t.nav.audio} count={counts.audio} active={view === 'audio'} onClick={() => selectView('audio')} />
+          <Item icon={<ImageIcon size={16} />} label={t.nav.image} count={counts.image} active={view === 'image'} onClick={() => selectView('image')} />
+          <Item icon={<FileArchive size={16} />} label={t.nav.archive} count={counts.archive} active={view === 'archive'} onClick={() => selectView('archive')} />
+          <Item icon={<FileText size={16} />} label={t.nav.document} count={counts.document} active={view === 'document'} onClick={() => selectView('document')} />
+          <Item icon={<AppWindow size={16} />} label={t.nav.app} count={counts.app} active={view === 'app'} onClick={() => selectView('app')} />
         </Section>
       </nav>
 

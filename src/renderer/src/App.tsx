@@ -10,6 +10,7 @@ import { DetailPanel } from './components/DetailPanel'
 import { StatusBar } from './components/StatusBar'
 import { AddDownloadModal } from './components/AddDownloadModal'
 import { SettingsModal } from './components/SettingsModal'
+import { QueueManagerModal } from './components/QueueManagerModal'
 import { UpdateModal } from './components/UpdateModal'
 import { NewLinkModal } from './components/NewLinkModal'
 import { GithubBrowser } from './components/GithubBrowser'
@@ -143,6 +144,7 @@ export function App(): React.JSX.Element {
 
       <AddDownloadModal />
       <SettingsModal />
+      <QueueManagerModal />
       <UpdateModal />
       <NewLinkModal />
       <Toasts />
