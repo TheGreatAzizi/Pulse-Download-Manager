@@ -33,7 +33,7 @@ import { TorrentEngine } from './engines/torrent'
 import { applyLaunchAtStartup } from './autostart'
 import { configureProxy, disposeProxy } from './proxy'
 import { parseProxy } from '@shared/proxy'
-import { normalizeQueues, queueIsActive, resolveQueueId } from '@shared/queues'
+import { normalizeQueues, queueWindow, resolveQueueId } from '@shared/queues'
 
 interface ManagerDeps {
   store: Store
@@ -74,6 +74,8 @@ export class DownloadManager implements EngineHost {
   /** Tasks paused by a queue schedule, so they resume when the queue opens. */
   private queueHold = new Set<string>()
   private queueOpenState = new Map<string, boolean>()
+  private queueTimer: NodeJS.Timeout | null = null
+  private queueArmedAt = 0
 
   constructor(deps: ManagerDeps) {
     this.store = deps.store
@@ -102,12 +104,16 @@ export class DownloadManager implements EngineHost {
         connections: 0,
         error: raw.status === 'error' ? raw.error : undefined
       }
+      const interrupted = !!task.resumeOnStart
+      delete task.resumeOnStart
       if (ACTIVE.includes(task.status) || task.status === 'queued') {
         if (task.status === 'queued' || autoResume) {
           task.status = 'queued'
         } else {
           task.status = 'paused'
         }
+      } else if (interrupted && autoResume && task.status === 'paused') {
+        task.status = 'queued'
       }
       this.tasks.set(task.id, task)
       this.lastDownloaded.set(task.id, task.downloaded)
@@ -120,7 +126,14 @@ export class DownloadManager implements EngineHost {
     if (this.store.settings.globalSpeedLimit > 0) {
       this.torrent.setLimit(this.store.settings.globalSpeedLimit)
     }
-    setTimeout(() => this.schedule(), 700)
+    this.persistSoon()
+    // Give the torrent engine a moment to come up, then apply queue gates.
+    setTimeout(() => {
+      if (this.shuttingDown) return
+      this.enforceQueueSchedules()
+      this.schedule()
+      this.armQueueTimer()
+    }, 700)
   }
 
   private async refreshTools(): Promise<void> {
@@ -280,6 +293,7 @@ export class DownloadManager implements EngineHost {
     this.emit({ type: 'task:add', task })
     this.emitStats(true)
     this.persistSoon()
+    this.enforceQueueSchedules()
     this.schedule()
     return task
   }
@@ -336,6 +350,7 @@ export class DownloadManager implements EngineHost {
     this.emit({ type: 'task:add', task })
     this.emitStats(true)
     this.persistSoon()
+    this.enforceQueueSchedules()
     this.schedule()
     return task
   }
@@ -367,7 +382,7 @@ export class DownloadManager implements EngineHost {
     // Only queues that are open right now get a slot budget.
     const queueSlots = new Map<string, number>()
     for (const queue of queues) {
-      if (!queueIsActive(queue, now)) continue
+      if (!queueWindow(queue, now).open) continue
       const queueLimit =
         queue.maxConcurrent > 0 ? Math.min(limit, queue.maxConcurrent) : limit
       const remaining = queueLimit - (activeByQueue.get(queue.id) || 0)
@@ -386,6 +401,37 @@ export class DownloadManager implements EngineHost {
       globalSlots--
       void this.startTask(task)
     }
+  }
+
+  /**
+   * Wakes exactly at the next queue boundary. The one second ticker remains a
+   * fallback for system sleep and clock changes.
+   */
+  private armQueueTimer(): void {
+    if (this.queueTimer) {
+      clearTimeout(this.queueTimer)
+      this.queueTimer = null
+    }
+    this.queueArmedAt = Date.now()
+    if (this.shuttingDown) return
+    const now = new Date()
+    let next: number | null = null
+    for (const queue of this.queues()) {
+      const change = queueWindow(queue, now).nextChange
+      if (!change) continue
+      const time = change.getTime()
+      if (time <= now.getTime()) continue
+      if (next === null || time < next) next = time
+    }
+    if (next === null) return
+    const delay = Math.max(100, Math.min(next - Date.now() + 100, 2 ** 31 - 1))
+    this.queueTimer = setTimeout(() => {
+      this.queueTimer = null
+      if (this.shuttingDown) return
+      if (this.enforceQueueSchedules()) this.schedule()
+      this.armQueueTimer()
+    }, delay)
+    this.queueTimer.unref?.()
   }
 
   private stopForQueue(task: DownloadTask): void {
@@ -412,13 +458,14 @@ export class DownloadManager implements EngineHost {
     const states = new Map<string, boolean>()
     let changed = false
     for (const queue of queues) {
-      const open = queueIsActive(queue, now)
+      const open = queueWindow(queue, now).open
       states.set(queue.id, open)
       if (this.queueOpenState.get(queue.id) !== open) changed = true
     }
     this.queueOpenState = states
     for (const task of this.tasks.values()) {
-      if (!ACTIVE.includes(task.status)) continue
+      if (!ACTIVE.includes(task.status) && task.status !== 'queued') continue
+      if (this.queueHold.has(task.id)) continue
       const queueId = resolveQueueId(queues, task.queueId)
       if (states.get(queueId) === false) {
         this.stopForQueue(task)
@@ -561,6 +608,7 @@ export class DownloadManager implements EngineHost {
       connections: 0,
       heldByQueue: false
     })
+    this.enforceQueueSchedules()
     this.schedule()
   }
 
@@ -581,7 +629,10 @@ export class DownloadManager implements EngineHost {
       })
       count++
     }
-    if (count > 0) this.schedule()
+    if (count > 0) {
+      this.enforceQueueSchedules()
+      this.schedule()
+    }
     return count
   }
 
@@ -638,6 +689,7 @@ export class DownloadManager implements EngineHost {
       heldByQueue: false
     })
     this.resumeFlags.add(id)
+    this.enforceQueueSchedules()
     this.schedule()
     return { ok: true, restarted }
   }
@@ -713,7 +765,11 @@ export class DownloadManager implements EngineHost {
       })
       count++
     }
-    if (count > 0) this.schedule()
+    if (count > 0) {
+      this.enforceQueueSchedules()
+      this.schedule()
+      this.armQueueTimer()
+    }
     return count
   }
 
@@ -759,6 +815,7 @@ export class DownloadManager implements EngineHost {
       connections: 0,
       heldByQueue: false
     })
+    this.enforceQueueSchedules()
     this.schedule()
   }
 
@@ -822,7 +879,9 @@ export class DownloadManager implements EngineHost {
       }
       this.persistSoon()
       this.queueOpenState.clear()
+      this.enforceQueueSchedules()
       this.schedule()
+      this.armQueueTimer()
     }
     if (patch.downloadDir && patch.downloadDir !== prev.downloadDir) {
       void ensureDir(settings.downloadDir)
@@ -847,7 +906,13 @@ export class DownloadManager implements EngineHost {
 
   private tick(): void {
     const now = Date.now()
-    if (this.enforceQueueSchedules()) this.schedule()
+    if (this.enforceQueueSchedules()) {
+      this.schedule()
+      this.armQueueTimer()
+    } else if (now - this.queueArmedAt > 60_000) {
+      // Re-arm periodically so DST and manual clock changes do not drift.
+      this.armQueueTimer()
+    }
     for (const task of this.tasks.values()) {
       const last = this.lastDownloaded.get(task.id) ?? task.downloaded
       const isActive = task.status === 'downloading'
@@ -903,8 +968,15 @@ export class DownloadManager implements EngineHost {
   async shutdown(): Promise<void> {
     this.shuttingDown = true
     this.queueHold.clear()
+    if (this.queueTimer) clearTimeout(this.queueTimer)
+    this.queueTimer = null
     if (this.ticker) clearInterval(this.ticker)
     this.ticker = null
+    // Remember transfers that were running so autoResume can continue them
+    // after the next launch instead of leaving them paused.
+    for (const task of this.tasks.values()) {
+      if (ACTIVE.includes(task.status)) task.resumeOnStart = true
+    }
     for (const controller of this.controllers.values()) controller.abort()
     for (const task of this.tasks.values()) {
       if (ACTIVE.includes(task.status)) task.status = 'paused'
@@ -912,6 +984,7 @@ export class DownloadManager implements EngineHost {
       task.eta = 0
       task.connections = 0
     }
+    this.persistSoon()
     await this.torrent.destroy()
     await disposeProxy()
     await this.store.flush()

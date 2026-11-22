@@ -1,19 +1,34 @@
 import { useEffect, useState } from 'react'
-import { ArrowDown, ArrowUp, CalendarClock, Plus, Star, Trash2 } from 'lucide-react'
+import { ArrowDown, ArrowUp, CalendarClock, Clock3, Plus, Star, Trash2 } from 'lucide-react'
 import type { DownloadQueue } from '@shared/types'
-import { DEFAULT_QUEUE_ID, makeQueue, normalizeQueues, queueIsActive } from '@shared/queues'
+import {
+  ALL_DAYS,
+  DEFAULT_QUEUE_ID,
+  makeQueue,
+  normalizeQueues,
+  queueWindow,
+  resolveQueueId
+} from '@shared/queues'
 import { useApp } from '../state'
 import { queueCopy } from '../queueI18n'
 import { Modal } from './Modal'
 import { Toggle } from './primitives'
-import { cn } from '../lib/format'
+import { cn, formatClock, formatMoment } from '../lib/format'
+import { queueScheduleSummary, queueStatusText, queueStatusTitle } from '../lib/schedule'
+import { useNow } from '../lib/useNow'
 
 export function QueueManagerModal(): React.JSX.Element {
   const { queuesOpen, setQueuesOpen, settings, patchSettings, pushToast, lang, tasks, t } = useApp()
   const copy = queueCopy[lang]
+  const now = useNow(1000, queuesOpen)
   const [draft, setDraft] = useState<DownloadQueue[]>(settings.queues)
   const [defaultId, setDefaultId] = useState(settings.defaultQueueId)
   const [pendingDelete, setPendingDelete] = useState<string | null>(null)
+  const presets = [
+    { label: copy.presetNight, days: [...ALL_DAYS], start: '01:00', end: '06:00' },
+    { label: copy.presetWork, days: [1, 2, 3, 4, 5], start: '09:00', end: '18:00' },
+    { label: copy.presetWeekend, days: [0, 6], start: '00:00', end: '00:00' }
+  ]
 
   useEffect(() => {
     if (!queuesOpen) return
@@ -69,7 +84,7 @@ export function QueueManagerModal(): React.JSX.Element {
   }
 
   const taskCount = (id: string): number =>
-    tasks.filter((task) => task.queueId === id || (!task.queueId && id === DEFAULT_QUEUE_ID)).length
+    tasks.filter((task) => resolveQueueId(settings.queues, task.queueId) === id).length
 
   return (
     <Modal
@@ -86,6 +101,16 @@ export function QueueManagerModal(): React.JSX.Element {
         <div className="min-w-0 flex-1">
           <h2 className="text-[17px] font-extrabold tracking-tight">{copy.title}</h2>
           <p className="mt-0.5 text-[12px] leading-relaxed text-muted">{copy.subtitle}</p>
+          <div
+            className="mt-1 flex items-center gap-1.5 text-[11px] text-faint"
+            title={Intl.DateTimeFormat().resolvedOptions().timeZone}
+          >
+            <Clock3 size={12} />
+            {copy.localTime}
+            <span dir="ltr" className="tabular">
+              {formatClock(now, lang)}
+            </span>
+          </div>
         </div>
         <button type="button" onClick={add} className="btn btn-soft h-10 shrink-0 px-3.5 text-[12.5px]">
           <Plus size={15} />
@@ -100,7 +125,8 @@ export function QueueManagerModal(): React.JSX.Element {
         {draft.map((queue, index) => {
           const isDefault = queue.id === DEFAULT_QUEUE_ID
           const isDefaultTarget = defaultId === queue.id
-          const active = queueIsActive(queue)
+          const state = queueWindow(queue, now)
+          const active = state.open
           return (
             <div
               key={queue.id}
@@ -146,12 +172,13 @@ export function QueueManagerModal(): React.JSX.Element {
 
                 <span
                   className={cn(
-                    'flex items-center gap-1.5 rounded-md px-2 py-1 text-[11px] font-medium',
+                    'flex items-center gap-1.5 whitespace-nowrap rounded-md px-2 py-1 text-[11px] font-medium',
                     active ? 'bg-ok/12 text-ok' : 'bg-elev2 text-faint'
                   )}
+                  title={queueStatusTitle(queue, state, copy, lang)}
                 >
                   <span className={cn('h-1.5 w-1.5 rounded-full', active ? 'bg-ok' : 'bg-faint')} />
-                  {active ? copy.open : copy.closed}
+                  {queueStatusText(queue, state, copy, lang, now)}
                 </span>
 
                 <span className="text-[11.5px] text-faint">
@@ -193,6 +220,19 @@ export function QueueManagerModal(): React.JSX.Element {
                 >
                   <Trash2 size={15} />
                 </button>
+              </div>
+
+              <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-faint">
+                <span>{queueScheduleSummary(queue, copy, lang)}</span>
+                {queue.enabled && queue.schedule === 'window' && state.nextChange ? (
+                  <span className="flex items-center gap-1">
+                    <Clock3 size={11} />
+                    {copy.nextChange}:
+                    <span dir="ltr" className="tabular">
+                      {formatMoment(state.nextChange, lang)}
+                    </span>
+                  </span>
+                ) : null}
               </div>
 
               {pendingDelete === queue.id ? (
@@ -257,6 +297,42 @@ export function QueueManagerModal(): React.JSX.Element {
               </div>
 
               {queue.schedule === 'window' ? (
+                <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                  <span className="text-[11px] text-faint">{copy.presets}:</span>
+                  {presets.map((preset) => {
+                    const selected =
+                      queue.start === preset.start &&
+                      queue.end === preset.end &&
+                      queue.days.length === preset.days.length &&
+                      preset.days.every((day) => queue.days.includes(day))
+                    return (
+                      <button
+                        key={preset.label}
+                        type="button"
+                        onClick={() =>
+                          update(queue.id, {
+                            schedule: 'window',
+                            days: [...preset.days],
+                            start: preset.start,
+                            end: preset.end
+                          })
+                        }
+                        aria-pressed={selected}
+                        className={cn(
+                          'rounded-md border px-2 py-1 text-[11px] font-medium transition',
+                          selected
+                            ? 'border-brand/35 bg-brand/15 text-brand'
+                            : 'border-line bg-elev2/50 text-muted hover:border-line2'
+                        )}
+                      >
+                        {preset.label}
+                      </button>
+                    )
+                  })}
+                </div>
+              ) : null}
+
+              {queue.schedule === 'window' ? (
                 <div className="mt-3">
                   <span className="mb-1.5 block text-[11px] font-medium text-muted">{copy.days}</span>
                   <div className="flex flex-wrap gap-1.5">
@@ -286,7 +362,14 @@ export function QueueManagerModal(): React.JSX.Element {
                       )
                     })}
                   </div>
-                  <p className="mt-2 text-[11px] leading-relaxed text-faint">{copy.overnight}</p>
+                  {queue.days.length === 0 ? (
+                    <p className="mt-2 text-[11px] leading-relaxed text-bad">{copy.noDaysWarning}</p>
+                  ) : null}
+                  {queue.start === queue.end ? (
+                    <p className="mt-2 text-[11px] leading-relaxed text-faint">{copy.allDayHint}</p>
+                  ) : queue.start > queue.end ? (
+                    <p className="mt-2 text-[11px] leading-relaxed text-faint">{copy.overnight}</p>
+                  ) : null}
                 </div>
               ) : null}
 

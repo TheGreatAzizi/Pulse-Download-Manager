@@ -192,6 +192,8 @@ export interface DownloadTask {
   error?: string
   /** The server rejected the URL (usually a signed link that expired). */
   linkExpired?: boolean
+  /** Set for transfers that were active when the app closed cleanly. */
+  resumeOnStart?: boolean
   resumable?: boolean
   segments?: SegmentState[]
   maxConnections?: number

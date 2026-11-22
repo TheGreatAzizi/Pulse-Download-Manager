@@ -163,7 +163,7 @@ The extension ID is fixed by the key in `extension/manifest.json`, so unpacked i
 - **Start minimized to tray:** enable **Settings → General → Start minimized to the tray at login** to keep Pulse out of the way when Windows or Linux starts it automatically. The tray icon still opens the main window.
 - **Pause all:** use the **Pause all** button above the download list to stop every queued and active download at once. Paused downloads can be resumed individually.
 - **Select multiple:** choose **Select** above the download list, tick any downloads, then pause, resume, move them to another queue or delete them together.
-- **Download queues:** open **Manage queues** in the sidebar to add named queues, set daily time windows, limit each queue's simultaneous downloads, and choose the queue used for new downloads.
+- **Download queues:** open **Manage queues** in the sidebar to add named queues, set daily time windows with overnight support, limit each queue's simultaneous downloads, and choose the queue used for new downloads. Quick presets cover nightly, work hours and weekend schedules, while each queue shows its local clock state, next transition and a live countdown. Boundaries are applied at the exact minute, with a one second fallback after sleep or clock changes.
 
 ## GitHub integration
 

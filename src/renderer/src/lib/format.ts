@@ -25,15 +25,100 @@ export function formatSpeed(bytes: number): string {
   return `${formatBytes(bytes, 1)}/s`
 }
 
+const LOCALES: Record<Lang, string> = {
+  en: 'en-US',
+  fa: 'fa-IR',
+  ja: 'ja-JP',
+  ru: 'ru-RU'
+}
+
+const TIME_UNITS: Record<
+  Lang,
+  { day: string; hour: string; minute: string; second: string; spaced: boolean }
+> = {
+  en: { day: 'd', hour: 'h', minute: 'm', second: 's', spaced: false },
+  fa: { day: 'روز', hour: 'ساعت', minute: 'دقیقه', second: 'ثانیه', spaced: true },
+  ja: { day: '日', hour: '時間', minute: '分', second: '秒', spaced: false },
+  ru: { day: 'д', hour: 'ч', minute: 'мин', second: 'с', spaced: true }
+}
+
+function unit(value: number, label: string, lang: Lang): string {
+  const units = TIME_UNITS[lang] || TIME_UNITS.en
+  const count = numberFor(value, lang)
+  return units.spaced ? `${count} ${label}` : `${count}${label}`
+}
+
+function joinUnits(parts: string[], lang: Lang): string {
+  return parts.filter(Boolean).join(lang === 'ja' ? '' : ' ')
+}
+
+export function localeOf(lang: Lang): string {
+  return LOCALES[lang] || LOCALES.en
+}
+
+/** Whole numbers in the active locale, including Persian digits. */
+function numberFor(value: number, lang: Lang): string {
+  try {
+    return new Intl.NumberFormat(localeOf(lang), { useGrouping: false }).format(value)
+  } catch {
+    return String(value)
+  }
+}
+
+/** Compact duration used by ETA fields and schedule countdowns. */
 export function formatEta(seconds: number, lang: Lang): string {
   if (!Number.isFinite(seconds) || seconds <= 0) return '-'
+  const units = TIME_UNITS[lang] || TIME_UNITS.en
   const s = Math.round(seconds)
-  if (s < 60) return lang === 'fa' ? `${s} ثانیه` : `${s}s`
+  if (s < 60) return unit(s, units.second, lang)
   const m = Math.floor(s / 60)
-  if (m < 60) return lang === 'fa' ? `${m} دقیقه` : `${m}m`
+  if (m < 60) {
+    const rs = s % 60
+    if (rs > 0 && m < 10) {
+      return joinUnits([unit(m, units.minute, lang), unit(rs, units.second, lang)], lang)
+    }
+    return unit(m, units.minute, lang)
+  }
   const h = Math.floor(m / 60)
-  const rm = m % 60
-  return lang === 'fa' ? `${h} ساعت ${rm} دقیقه` : `${h}h ${rm}m`
+  if (h < 24) {
+    const rm = m % 60
+    return rm > 0
+      ? joinUnits([unit(h, units.hour, lang), unit(rm, units.minute, lang)], lang)
+      : unit(h, units.hour, lang)
+  }
+  const d = Math.floor(h / 24)
+  const rh = h % 24
+  return rh > 0
+    ? joinUnits([unit(d, units.day, lang), unit(rh, units.hour, lang)], lang)
+    : unit(d, units.day, lang)
+}
+
+/** Local wall clock with seconds, used by the schedule editor. */
+export function formatClock(date: Date, lang: Lang): string {
+  try {
+    return new Intl.DateTimeFormat(localeOf(lang), {
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hourCycle: 'h23'
+    }).format(date)
+  } catch {
+    return date.toLocaleTimeString()
+  }
+}
+
+/** Weekday and 24-hour time for the next schedule transition. */
+export function formatMoment(date: Date, lang: Lang): string {
+  try {
+    return new Intl.DateTimeFormat(localeOf(lang), {
+      weekday: 'short',
+      hour: '2-digit',
+      minute: '2-digit',
+      hourCycle: 'h23'
+    }).format(date)
+  } catch {
+    return date.toLocaleString()
+  }
 }
 
 export function formatDuration(seconds?: number): string {
@@ -48,7 +133,7 @@ export function formatDuration(seconds?: number): string {
 
 export function formatDate(ts: number, lang: Lang): string {
   try {
-    return new Date(ts).toLocaleString(lang === 'fa' ? 'fa-IR' : 'en-US', {
+    return new Date(ts).toLocaleString(localeOf(lang), {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
@@ -62,7 +147,7 @@ export function formatDate(ts: number, lang: Lang): string {
 
 export function compactNumber(n: number, lang: Lang): string {
   try {
-    return new Intl.NumberFormat(lang === 'fa' ? 'fa-IR' : 'en-US', {
+    return new Intl.NumberFormat(localeOf(lang), {
       notation: 'compact',
       maximumFractionDigits: 1
     }).format(n)

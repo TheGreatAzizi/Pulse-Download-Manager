@@ -27,6 +27,22 @@ export interface QueueCopy {
   start: string
   end: string
   overnight: string
+  everyDay: string
+  weekdays: string
+  weekends: string
+  allDay: string
+  allDayHint: string
+  noDays: string
+  noDaysWarning: string
+  presets: string
+  presetNight: string
+  presetWork: string
+  presetWeekend: string
+  nextChange: string
+  opensIn: string
+  closesIn: string
+  localTime: string
+  neverOpens: string
   limit: string
   limitHint: string
   unlimited: string
@@ -87,6 +103,22 @@ export const queueCopy: Record<Lang, QueueCopy> = {
     start: 'Start',
     end: 'End',
     overnight: 'When the end time is earlier than the start time, the window continues past midnight.',
+    everyDay: 'Every day',
+    weekdays: 'Weekdays',
+    weekends: 'Weekends',
+    allDay: 'All day',
+    allDayHint: 'Same start and end times mean the whole selected day.',
+    noDays: 'No days selected',
+    noDaysWarning: 'Pick at least one day, otherwise this queue never opens.',
+    presets: 'Quick presets',
+    presetNight: 'Nightly',
+    presetWork: 'Work hours',
+    presetWeekend: 'Weekends',
+    nextChange: 'Next change',
+    opensIn: 'Opens in {time}',
+    closesIn: 'Closes in {time}',
+    localTime: 'Local time',
+    neverOpens: 'Never opens',
     limit: 'Simultaneous downloads',
     limitHint: 'Zero uses the app wide limit.',
     unlimited: 'Unlimited',
@@ -145,6 +177,22 @@ export const queueCopy: Record<Lang, QueueCopy> = {
     start: 'شروع',
     end: 'پایان',
     overnight: 'اگر زمان پایان پیش از شروع باشد، بازه از نیمه‌شب ادامه پیدا می‌کند.',
+    everyDay: 'هر روز',
+    weekdays: 'روزهای کاری',
+    weekends: 'آخر هفته',
+    allDay: 'تمام روز',
+    allDayHint: 'اگر زمان شروع و پایان یکی باشد، تمام روز انتخاب‌شده فعال است.',
+    noDays: 'روزی انتخاب نشده',
+    noDaysWarning: 'حداقل یک روز را انتخاب کنید، وگرنه این صف هرگز باز نمی‌شود.',
+    presets: 'انتخاب سریع',
+    presetNight: 'شبانه',
+    presetWork: 'ساعت کاری',
+    presetWeekend: 'آخر هفته',
+    nextChange: 'تغییر بعدی',
+    opensIn: 'بازگشایی در {time} دیگر',
+    closesIn: 'بسته شدن در {time} دیگر',
+    localTime: 'زمان محلی',
+    neverOpens: 'هرگز باز نمی‌شود',
     limit: 'دانلود هم‌زمان',
     limitHint: 'صفر یعنی استفاده از محدودیت کلی برنامه.',
     unlimited: 'بدون محدودیت',
@@ -203,6 +251,22 @@ export const queueCopy: Record<Lang, QueueCopy> = {
     start: '開始',
     end: '終了',
     overnight: '終了時刻が開始時刻より早い場合、時間帯は翌日に続きます。',
+    everyDay: '毎日',
+    weekdays: '平日',
+    weekends: '週末',
+    allDay: '終日',
+    allDayHint: '開始と終了が同じ場合、選択した曜日は終日稼働します。',
+    noDays: '曜日未選択',
+    noDaysWarning: '曜日を 1 日以上選ぶまで、このキューは停止します。',
+    presets: 'クイック設定',
+    presetNight: '夜間',
+    presetWork: '勤務時間',
+    presetWeekend: '週末',
+    nextChange: '次回の切り替え',
+    opensIn: '再開まで {time}',
+    closesIn: '停止まで {time}',
+    localTime: '現地時刻',
+    neverOpens: '再開しません',
     limit: '同時ダウンロード数',
     limitHint: '0 の場合はアプリ全体の制限を使用します。',
     unlimited: '無制限',
@@ -261,6 +325,22 @@ export const queueCopy: Record<Lang, QueueCopy> = {
     start: 'Начало',
     end: 'Конец',
     overnight: 'Если конец раньше начала, интервал продолжается после полуночи.',
+    everyDay: 'Каждый день',
+    weekdays: 'Будни',
+    weekends: 'Выходные',
+    allDay: 'Весь день',
+    allDayHint: 'Если начало и конец совпадают, выбранный день работает круглосуточно.',
+    noDays: 'Дни не выбраны',
+    noDaysWarning: 'Выберите хотя бы один день, иначе очередь не откроется.',
+    presets: 'Быстрые настройки',
+    presetNight: 'Ночью',
+    presetWork: 'Рабочие часы',
+    presetWeekend: 'Выходные',
+    nextChange: 'Следующее переключение',
+    opensIn: 'Откроется через {time}',
+    closesIn: 'Закроется через {time}',
+    localTime: 'Местное время',
+    neverOpens: 'Не откроется',
     limit: 'Одновременные загрузки',
     limitHint: 'Ноль означает общий лимит приложения.',
     unlimited: 'Без ограничений',

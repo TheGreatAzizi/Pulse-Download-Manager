@@ -106,28 +106,101 @@ export function resolveQueueId(queues: DownloadQueue[], id?: string | null): str
     : queues[0]?.id || DEFAULT_QUEUE_ID
 }
 
+export interface QueueWindowState {
+  open: boolean
+  /** The next open or close moment, or null when the state never changes. */
+  nextChange: Date | null
+  /** When the queue opens next. Null while it is already open. */
+  nextOpen: Date | null
+  /** When the current open window ends. Null while it is closed. */
+  nextClose: Date | null
+}
+
+interface QueueBounds {
+  start: Date
+  end: Date
+}
+
+function timeOnDay(day: Date, offset: number, minutes: number): Date {
+  return new Date(
+    day.getFullYear(),
+    day.getMonth(),
+    day.getDate() + offset,
+    Math.floor(minutes / 60),
+    minutes % 60,
+    0,
+    0
+  )
+}
+
 /**
- * A queue is open when it is enabled and the local clock is inside its
- * schedule. A window whose end is earlier than its start crosses midnight;
- * days refer to the day the window starts. Equal start and end times mean a
- * full-day window on the selected days.
+ * Builds the concrete windows around the current day. Yesterday is included
+ * so an overnight window that started before midnight is still found, and a
+ * full week is included so the next opening can always be calculated.
  */
-export function queueIsActive(queue: DownloadQueue, at: Date = new Date()): boolean {
-  if (!queue.enabled) return false
-  if (queue.schedule !== 'window') return true
+function queueBounds(queue: DownloadQueue, at: Date): QueueBounds[] {
+  if (!queue.days.length) return []
   const start = timeToMinutes(queue.start)
   const end = timeToMinutes(queue.end)
-  if (start === end) return queue.days.includes(at.getDay())
-  const minutes = at.getHours() * 60 + at.getMinutes()
-  const day = at.getDay()
-  if (start < end) {
-    return queue.days.includes(day) && minutes >= start && minutes < end
+  const fullDay = start === end
+  const day = new Date(at.getFullYear(), at.getMonth(), at.getDate())
+  const bounds: QueueBounds[] = []
+  for (let offset = -1; offset <= 7; offset++) {
+    const anchor = new Date(day.getFullYear(), day.getMonth(), day.getDate() + offset)
+    if (!queue.days.includes(anchor.getDay())) continue
+    if (fullDay) {
+      // Equal start and end times mean the whole selected calendar day.
+      bounds.push({ start: timeOnDay(anchor, 0, 0), end: timeOnDay(anchor, 1, 0) })
+    } else {
+      bounds.push({
+        start: timeOnDay(anchor, 0, start),
+        end: timeOnDay(anchor, start < end ? 0 : 1, end)
+      })
+    }
   }
-  const previousDay = (day + 6) % 7
-  return (
-    (queue.days.includes(day) && minutes >= start) ||
-    (queue.days.includes(previousDay) && minutes < end)
+  return bounds
+}
+
+/**
+ * Reports whether a queue is open and when it changes next. A window whose end
+ * is earlier than its start crosses midnight; days refer to the day the window
+ * starts. Equal start and end times mean a full-day window on the selected
+ * days.
+ */
+export function queueWindow(queue: DownloadQueue, at: Date = new Date()): QueueWindowState {
+  if (!queue.enabled) {
+    return { open: false, nextChange: null, nextOpen: null, nextClose: null }
+  }
+  if (queue.schedule !== 'window') {
+    return { open: true, nextChange: null, nextOpen: null, nextClose: null }
+  }
+  const bounds = queueBounds(queue, at)
+  if (!bounds.length) {
+    return { open: false, nextChange: null, nextOpen: null, nextClose: null }
+  }
+  const time = at.getTime()
+  const current = bounds.find(
+    (bound) => time >= bound.start.getTime() && time < bound.end.getTime()
   )
+  let nextOpen: Date | null = null
+  if (!current) {
+    for (const bound of bounds) {
+      const start = bound.start.getTime()
+      if (start <= time) continue
+      if (!nextOpen || start < nextOpen.getTime()) nextOpen = bound.start
+    }
+  }
+  return {
+    open: !!current,
+    nextChange: current ? current.end : nextOpen,
+    nextOpen,
+    nextClose: current ? current.end : null
+  }
+}
+
+/** A queue is open when it is enabled and the local clock is inside its schedule. */
+export function queueIsActive(queue: DownloadQueue, at: Date = new Date()): boolean {
+  return queueWindow(queue, at).open
 }
 
 /** Localized in the renderer; shared code only needs the raw values. */

@@ -22,10 +22,12 @@ import {
   Video as Youtube
 } from 'lucide-react'
 import type { DownloadTask } from '@shared/types'
-import { DEFAULT_QUEUE_ID, queueIsActive, resolveQueueId } from '@shared/queues'
+import { DEFAULT_QUEUE_ID, queueWindow, resolveQueueId } from '@shared/queues'
 import { useApp, type ViewId } from '../state'
 import { queueCopy } from '../queueI18n'
 import { cn, formatBytes } from '../lib/format'
+import { queueStatusTitle } from '../lib/schedule'
+import { useNow } from '../lib/useNow'
 
 const isActive = (t: DownloadTask): boolean =>
   t.status === 'downloading' || t.status === 'connecting' || t.status === 'verifying'
@@ -34,6 +36,7 @@ export function Sidebar(): React.JSX.Element {
   const { t, view, setView, tasks, stats, system, setSettingsOpen, settings, patchSettings, lang, queueFilter, setQueueFilter, setQueuesOpen } =
     useApp()
   const copy = queueCopy[lang]
+  const now = useNow(30_000)
 
   const selectView = (next: ViewId): void => {
     setView(next)
@@ -98,6 +101,7 @@ export function Sidebar(): React.JSX.Element {
         <Section title={copy.section}>
           {settings.queues.map((queue) => {
             const label = queue.id === DEFAULT_QUEUE_ID ? copy.defaultQueue : queue.name || copy.defaultQueue
+            const state = queueWindow(queue, now)
             return (
               <Item
                 key={queue.id}
@@ -109,7 +113,8 @@ export function Sidebar(): React.JSX.Element {
                   setView('all')
                   setQueueFilter(queue.id)
                 }}
-                live={queueIsActive(queue)}
+                live={queue.enabled && state.open}
+                title={queueStatusTitle(queue, state, copy, lang)}
               />
             )
           })}
@@ -215,7 +220,8 @@ function Item({
   active,
   onClick,
   live,
-  danger
+  danger,
+  title
 }: {
   icon: React.ReactNode
   label: string
@@ -224,11 +230,13 @@ function Item({
   onClick: () => void
   live?: boolean
   danger?: boolean
+  title?: string
 }): React.JSX.Element {
   return (
     <button
       type="button"
       onClick={onClick}
+      title={title}
       aria-current={active ? 'page' : undefined}
       className={cn(
         'group relative flex w-full items-center gap-2.5 rounded-lg px-2.5 py-[7px] text-[12px] transition',
