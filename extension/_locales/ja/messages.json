@@ -158,6 +158,9 @@
   "menuMedia": {
     "message": "Pulse でメディアをダウンロード"
   },
+  "menuStream": {
+    "message": "HLS/DASH ストリームを Pulse に送信"
+  },
   "menuPage": {
     "message": "Pulse でこのページをダウンロード"
   },
@@ -181,6 +184,18 @@
   },
   "notifNoLinks": {
     "message": "選択範囲にリンクが見つかりません。"
+  },
+  "notifNoStreams": {
+    "message": "このページで HLS または DASH ストリームが見つかりませんでした。"
+  },
+  "streams": {
+    "message": "HLS/DASH ストリーム"
+  },
+  "streamsHint": {
+    "message": "このページで動画を再生してから、ダウンロードするストリームを選択してください。"
+  },
+  "sendStream": {
+    "message": "送信"
   },
   "notifBatch": {
     "message": "$1 件のリンクを Pulse に送信しました"

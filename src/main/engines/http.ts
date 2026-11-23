@@ -2,7 +2,8 @@ import { promises as fs, existsSync } from 'node:fs'
 import type { FileHandle } from 'node:fs/promises'
 import { join } from 'node:path'
 import type { DownloadTask, Settings, SegmentState } from '@shared/types'
-import { proxiedFetch } from '../proxy'
+import { currentProxy, fetchFromAdapter, proxiedFetch } from '../proxy'
+import { selectedNetworkAdapters } from '../network'
 import {
   GlobalThrottle,
   ensureDir,
@@ -315,9 +316,18 @@ export class HttpEngine {
       return
     }
 
+    const adapters = this.networkAddresses(settings, meta.resumable)
+    const requestedConnections = meta.resumable
+      ? Math.max(1, task.maxConnections || settings.connections)
+      : 1
+    // Multi-network needs at least one stream on each adapter, even when the
+    // user asked for a single connection.
+    const connectionCount = meta.resumable
+      ? Math.min(32, Math.max(requestedConnections, adapters.length))
+      : 1
     const segments: SegmentState[] = meta.segments.length
       ? meta.segments
-      : this.buildSegments(meta.size, meta.resumable ? task.maxConnections || settings.connections : 1)
+      : this.buildSegments(meta.size, connectionCount)
 
     const partExists = existsSync(partPath)
     let handleFs: FileHandle
@@ -356,6 +366,7 @@ export class HttpEngine {
       downloaded: state.downloaded,
       connections: activeConns,
       resumable: state.resumable,
+      networkCount: adapters.length > 1 ? adapters.length : undefined,
       segments: state.segments.map((s) => ({ ...s })),
       error: undefined,
       linkExpired: false
@@ -403,11 +414,19 @@ export class HttpEngine {
           const headers = { ...this.baseHeaders(task) }
           if (ranged) headers.Range = `bytes=${seg.position}-${seg.end - 1}`
 
-          const res = await proxiedFetch(state.finalUrl, {
+          const init: RequestInit = {
             headers,
             signal: controller.signal,
             redirect: 'follow'
-          })
+          }
+          // Retries rotate through the adapters, so one unreachable interface
+          // cannot stall a segment forever.
+          const adapter = adapters.length
+            ? adapters[(index + attempt) % adapters.length]
+            : ''
+          const res = adapter
+            ? await fetchFromAdapter(state.finalUrl, init, adapter)
+            : await proxiedFetch(state.finalUrl, init)
           if (res.status === 416) throw new Error('RANGE_CHANGED')
           if (!res.ok) {
             if (EXPIRED_STATUSES.includes(res.status)) {
@@ -603,6 +622,11 @@ export class HttpEngine {
     } finally {
       handle.signal.removeEventListener('abort', relay)
     }
+  }
+
+  private networkAddresses(settings: Settings, resumable: boolean): string[] {
+    if (!resumable || currentProxy()) return []
+    return selectedNetworkAdapters(settings)
   }
 
   private buildSegments(size: number, connections: number): SegmentState[] {

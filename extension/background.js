@@ -14,7 +14,8 @@ const {
 } = PulseShared
 
 const DEFAULT_SETTINGS = { takeover: true, notifications: true, excluded: [] }
-const MAX_BATCH = 50
+const MAX_BATCH = 200
+const MAX_MEDIA_PER_TAB = 24
 const TAKEOVER_MAX_AGE_MS = 15000
 
 let settings = { ...DEFAULT_SETTINGS }
@@ -28,6 +29,9 @@ let reconnectAttempt = 0
 let nextRequestId = 1
 const pending = new Map()
 const skipOnce = new Map()
+const mediaByTab = new Map()
+let mediaReady = Promise.resolve()
+let mediaSaveTimer = null
 
 let state = {
   connected: false,
@@ -265,6 +269,106 @@ function validUrl(value) {
   }
 }
 
+/**
+ * Manifest URLs are recognized by extension or by the response content type.
+ * Media segments (.ts, .m4s) and ordinary video files are intentionally not
+ * captured: yt-dlp needs the playlist, not its pieces.
+ */
+function mediaKind(url, contentType) {
+  const type = String(contentType || '').toLowerCase()
+  if (/dash\+xml/.test(type) || /\.mpd(?:$|[?#])/i.test(url)) return 'dash'
+  if (/mpegurl/.test(type) || /\.m3u8(?:$|[?#])/i.test(url)) return 'hls'
+  return null
+}
+
+/**
+ * Chrome can suspend the service worker at any time, which would drop the
+ * in-memory capture list. session storage keeps captured manifests available
+ * until the tab is closed or navigates away.
+ */
+function loadMediaStore() {
+  if (!chrome.storage.session) return Promise.resolve()
+  return chrome.storage.session
+    .get('pulseMedia')
+    .then((saved) => {
+      const value = saved && saved.pulseMedia
+      if (!value || typeof value !== 'object') return
+      for (const [key, list] of Object.entries(value)) {
+        const tabId = Number(key)
+        if (!Number.isInteger(tabId) || tabId < 0 || !Array.isArray(list)) continue
+        if (mediaByTab.has(tabId)) continue
+        const clean = list.filter(
+          (entry) => entry && validUrl(entry.url) && (entry.kind === 'hls' || entry.kind === 'dash')
+        )
+        if (clean.length) mediaByTab.set(tabId, clean.slice(0, MAX_MEDIA_PER_TAB))
+      }
+    })
+    .catch(() => undefined)
+}
+
+function persistMedia() {
+  if (!chrome.storage.session || mediaSaveTimer) return
+  mediaSaveTimer = setTimeout(() => {
+    mediaSaveTimer = null
+    const snapshot = {}
+    for (const [tabId, list] of mediaByTab) snapshot[tabId] = list
+    void chrome.storage.session.set({ pulseMedia: snapshot }).catch(() => undefined)
+  }, 300)
+}
+
+mediaReady = loadMediaStore()
+
+function rememberMedia(tabId, url, contentType) {
+  if (!Number.isInteger(tabId) || tabId < 0 || !validUrl(url)) return
+  const kind = mediaKind(url, contentType)
+  if (!kind) return
+  const list = mediaByTab.get(tabId) || []
+  const existing = list.find((entry) => entry.url === url)
+  if (existing) {
+    existing.kind = kind
+    existing.at = Date.now()
+    if (contentType) existing.contentType = String(contentType)
+  } else {
+    list.unshift({
+      url,
+      kind,
+      contentType: contentType ? String(contentType) : '',
+      at: Date.now()
+    })
+    if (list.length > MAX_MEDIA_PER_TAB) list.length = MAX_MEDIA_PER_TAB
+  }
+  mediaByTab.set(tabId, list)
+  persistMedia()
+}
+
+function mediaForTab(tabId) {
+  if (!Number.isInteger(tabId)) return []
+  return (mediaByTab.get(tabId) || []).slice()
+}
+
+function bestMediaForTab(tabId) {
+  const list = mediaForTab(tabId)
+  return (
+    list.find((entry) => /master|manifest|index/i.test(entry.url)) ||
+    list[list.length - 1] ||
+    null
+  )
+}
+
+async function sendMedia(entry, tab, title) {
+  if (!entry) return { ok: false, error: t('notifNoStreams') }
+  const cleanTitle = String(title || '').replace(/\s+/g, ' ').trim().slice(0, 180)
+  const result = await addDownload({
+    url: entry.url,
+    referrer: (tab && tab.url) || '',
+    media: true,
+    title: cleanTitle,
+    fileName: cleanTitle ? cleanTitle + '.mp4' : ''
+  })
+  feedback(result, cleanTitle || entry.url)
+  return result
+}
+
 async function addDownload(input) {
   const url = String(input.url || '').trim()
   if (!validUrl(url)) return { ok: false, error: t('invalidUrl') }
@@ -274,6 +378,8 @@ async function addDownload(input) {
     type: 'add',
     url,
     fileName: input.fileName || '',
+    title: input.title || '',
+    media: input.media === true,
     referrer: input.referrer || '',
     cookies: cookies || '',
     userAgent: navigator.userAgent
@@ -377,12 +483,22 @@ async function collectSelectedLinks(tab, frameId, fallbackText) {
     const results = await chrome.scripting.executeScript({
       target,
       func: () => {
+        // selection.js caches links on contextmenu, before Chrome can collapse
+        // the selection. Prefer that cache, then re-read the live selection.
+        const cached =
+          typeof window.__pulseSelectedLinks === 'function'
+            ? window.__pulseSelectedLinks()
+            : []
         const collected = []
         const selection = window.getSelection()
         if (selection && !selection.isCollapsed && selection.rangeCount) {
           const range = selection.getRangeAt(0)
           for (const anchor of document.querySelectorAll('a[href]')) {
-            if (!range.intersectsNode(anchor)) continue
+            try {
+              if (!range.intersectsNode(anchor)) continue
+            } catch {
+              continue
+            }
             const href = anchor.href || ''
             if (/^https?:/i.test(href)) collected.push(href)
           }
@@ -390,17 +506,30 @@ async function collectSelectedLinks(tab, frameId, fallbackText) {
           const matches = text.match(/https?:\/\/[^\s<>"']+/gi) || []
           for (const match of matches) collected.push(match)
         }
-        return collected
+        return { cached: Array.isArray(cached) ? cached : [], live: collected }
       }
     })
-    const list = results && results[0] && Array.isArray(results[0].result) ? results[0].result : []
-    const cleaned = []
-    for (const raw of list) {
-      const url = String(raw || '').replace(/[),.;!?]+$/g, '')
-      if (validUrl(url)) cleaned.push(url)
+    const cached = []
+    const live = []
+    for (const entry of Array.isArray(results) ? results : []) {
+      const value = entry && entry.result
+      if (!value || typeof value !== 'object') continue
+      if (Array.isArray(value.cached)) cached.push(...value.cached)
+      if (Array.isArray(value.live)) live.push(...value.live)
     }
-    const unique = [...new Set(cleaned)]
-    return unique.length ? unique.slice(0, MAX_BATCH) : parseUrls(fallbackText)
+    const clean = (list) => {
+      const seen = new Set()
+      const urls = []
+      for (const raw of list) {
+        const url = String(raw || '').replace(/[),.;!?]+$/g, '')
+        if (!validUrl(url) || seen.has(url)) continue
+        seen.add(url)
+        urls.push(url)
+      }
+      return urls
+    }
+    const selected = clean(cached.length ? cached : live)
+    return selected.length ? selected.slice(0, MAX_BATCH) : parseUrls(fallbackText)
   } catch {
     return parseUrls(fallbackText)
   }
@@ -412,6 +541,7 @@ function createMenus() {
       { id: 'pulse-link', title: t('menuLink'), contexts: ['link'] },
       { id: 'pulse-image', title: t('menuImage'), contexts: ['image'] },
       { id: 'pulse-media', title: t('menuMedia'), contexts: ['video', 'audio'] },
+      { id: 'pulse-stream', title: t('menuStream'), contexts: ['page', 'video', 'audio', 'frame'] },
       { id: 'pulse-page', title: t('menuPage'), contexts: ['page'] },
       { id: 'pulse-selection', title: t('menuSelection'), contexts: ['selection'] },
       { id: 'pulse-all-links', title: t('menuAllLinks'), contexts: ['page', 'frame'] }
@@ -425,11 +555,28 @@ function createMenus() {
 chrome.contextMenus.onClicked.addListener((info, tab) => {
   const referrer = info.pageUrl || (tab && tab.url) || ''
   if (info.menuItemId === 'pulse-link' && info.linkUrl) {
-    void sendWithFeedback(info.linkUrl, referrer)
+    // Right-clicking a link inside a larger text selection used to send only
+    // that one link. If several links are covered, send the whole selection.
+    void collectSelectedLinks(tab, info.frameId, info.selectionText).then((urls) => {
+      const unique = [...new Set(urls.filter(validUrl))]
+      if (unique.length > 1) return sendBatchWithFeedback(unique, referrer)
+      return sendWithFeedback(info.linkUrl, referrer)
+    })
     return
   }
   if ((info.menuItemId === 'pulse-image' || info.menuItemId === 'pulse-media') && info.srcUrl) {
     void sendWithFeedback(info.srcUrl, referrer)
+    return
+  }
+  if (info.menuItemId === 'pulse-stream') {
+    void mediaReady.then(() => {
+      const entry = bestMediaForTab(tab && tab.id)
+      if (!entry) {
+        feedback({ ok: false, error: t('notifNoStreams') })
+        return
+      }
+      void sendMedia(entry, tab, (tab && tab.title) || '')
+    })
     return
   }
   if (info.menuItemId === 'pulse-page' && referrer) {
@@ -449,6 +596,38 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
 
 chrome.commands.onCommand.addListener((command) => {
   if (command === 'send-page') void sendCurrentPage()
+})
+
+// Manifest capture runs at the service-worker top level so Chrome can wake the
+// worker for a stream even when the popup has never been opened.
+chrome.webRequest.onBeforeRequest.addListener(
+  (details) => rememberMedia(details.tabId, details.url, ''),
+  { urls: ['<all_urls>'] }
+)
+
+chrome.webRequest.onHeadersReceived.addListener(
+  (details) => {
+    const headers = details.responseHeaders || []
+    const contentType = headers.find(
+      (header) => String(header.name || '').toLowerCase() === 'content-type'
+    )
+    const value = contentType && contentType.value ? contentType.value.split(';')[0].trim() : ''
+    if (value) rememberMedia(details.tabId, details.url, value)
+  },
+  { urls: ['<all_urls>'] },
+  ['responseHeaders']
+)
+
+chrome.tabs.onRemoved.addListener((tabId) => {
+  mediaByTab.delete(tabId)
+  persistMedia()
+})
+
+chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
+  if (changeInfo.status === 'loading') {
+    mediaByTab.delete(tabId)
+    persistMedia()
+  }
 })
 
 chrome.downloads.onCreated.addListener((item) => {
@@ -531,6 +710,33 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
 
   if (message.type === 'pulse:add') {
     void addDownload({ url: message.url, referrer: message.referrer || '' }).then(sendResponse)
+    return true
+  }
+
+  if (message.type === 'pulse:get-media') {
+    void mediaReady.then(() =>
+      sendResponse({ ok: true, media: mediaForTab(Number(message.tabId)) })
+    )
+    return true
+  }
+
+  if (message.type === 'pulse:send-media') {
+    void mediaReady
+      .then(async () => {
+        const tabId = Number(message.tabId)
+        const entry = mediaForTab(tabId).find((item) => item.url === message.url) || null
+        let tab = null
+        try {
+          tab = await chrome.tabs.get(tabId)
+        } catch {
+          /* the tab may have closed */
+        }
+        const result = await sendMedia(entry, tab, message.title || (tab && tab.title) || '')
+        sendResponse(result)
+      })
+      .catch(() => {
+        sendResponse({ ok: false, error: t('notifFailed') })
+      })
     return true
   }
 

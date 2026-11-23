@@ -15,6 +15,9 @@ const els = {
   speed: document.getElementById('speed'),
   taskList: document.getElementById('task-list'),
   empty: document.getElementById('empty'),
+  mediaCard: document.getElementById('media-card'),
+  mediaHint: document.getElementById('media-hint'),
+  mediaList: document.getElementById('media-list'),
   takeover: document.getElementById('takeover'),
   settings: document.getElementById('settings'),
   openPulse: document.getElementById('open-pulse'),
@@ -25,6 +28,7 @@ let state = { connected: false, port: 0, appVersion: '', active: 0, speed: 0, ta
 let currentTab = null
 let toastTimer = null
 let pollTimer = null
+let lastMediaKey = ''
 
 function send(message) {
   return new Promise((resolve) => {
@@ -112,6 +116,63 @@ async function refresh() {
   if (next) applyState(next)
 }
 
+function shortMediaUrl(raw) {
+  try {
+    const parsed = new URL(raw)
+    const value = parsed.hostname + parsed.pathname
+    return value.length > 58 ? value.slice(0, 28) + '…' + value.slice(-26) : value
+  } catch {
+    return String(raw).slice(0, 58)
+  }
+}
+
+function renderMedia(list) {
+  const media = Array.isArray(list) ? list : []
+  const key = media.map((entry) => entry.kind + ':' + entry.url).join('\n')
+  if (key === lastMediaKey) return
+  lastMediaKey = key
+  els.mediaCard.classList.toggle('hidden', media.length === 0)
+  els.mediaList.innerHTML = ''
+  for (const entry of media) {
+    const node = document.createElement('button')
+    node.type = 'button'
+    node.className = 'media-item'
+    node.title = entry.url
+    node.innerHTML =
+      '<span class="media-kind">' +
+      (entry.kind === 'dash' ? 'DASH' : 'HLS') +
+      '</span><span class="media-url">' +
+      escapeHtml(shortMediaUrl(entry.url)) +
+      '</span><span class="media-send">' +
+      escapeHtml(t('sendStream')) +
+      '</span>'
+    node.addEventListener('click', () => void sendStream(entry))
+    els.mediaList.appendChild(node)
+  }
+}
+
+async function loadMedia() {
+  if (!currentTab || !Number.isInteger(currentTab.id)) return
+  const result = await send({ type: 'pulse:get-media', tabId: currentTab.id })
+  renderMedia(result && result.media)
+}
+
+async function sendStream(entry) {
+  if (!currentTab || !entry) return
+  const result = await send({
+    type: 'pulse:send-media',
+    tabId: currentTab.id,
+    url: entry.url,
+    title: currentTab.title || ''
+  })
+  if (result && result.ok) {
+    showToast(t('added'), 'ok')
+    await refresh()
+  } else {
+    showToast((result && result.error) || t('addFailed'), 'error')
+  }
+}
+
 async function loadTab() {
   const tabs = await chrome.tabs.query({ active: true, currentWindow: true })
   currentTab = tabs && tabs[0] ? tabs[0] : null
@@ -192,14 +253,16 @@ applyDirection()
 applyI18n()
 els.version.textContent = 'v' + chrome.runtime.getManifest().version
 
-void loadTab()
+void loadTab().then(() => void loadMedia())
 void send({ type: 'pulse:get-state' }).then((next) => {
   if (next) applyState(next)
   void refresh()
+  void loadMedia()
 })
 
 pollTimer = setInterval(() => {
   void refresh()
+  void loadMedia()
 }, 1800)
 
 window.addEventListener('unload', () => {

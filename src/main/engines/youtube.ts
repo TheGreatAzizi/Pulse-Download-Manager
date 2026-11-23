@@ -3,6 +3,7 @@ import { existsSync, promises as fs } from 'node:fs'
 import { isAbsolute, join, resolve as resolvePath } from 'node:path'
 import { app } from 'electron'
 import type { Settings, YoutubeFormatOption, YoutubeProbe, YoutubeMeta } from '@shared/types'
+import { manifestKind } from '@shared/urls'
 import type { EngineHost, TaskHandle } from './http'
 import { ensureDir, sanitizeFileName } from '../util'
 import { currentProxy, proxiedFetch } from '../proxy'
@@ -247,6 +248,24 @@ export class YoutubeEngine {
     return proxy ? ['--proxy', proxy.url] : []
   }
 
+  /**
+   * Browser-captured streams need the page's Referer and Cookie, otherwise
+   * most CDNs answer with 403. yt-dlp has dedicated flags for the two common
+   * headers and accepts everything else through --add-header.
+   */
+  private headerArgs(headers?: Record<string, string>): string[] {
+    const args: string[] = []
+    for (const [rawName, rawValue] of Object.entries(headers || {})) {
+      const name = rawName.replace(/[^A-Za-z0-9-]/g, '').slice(0, 64)
+      const value = String(rawValue || '').replace(/[\r\n]/g, ' ').trim()
+      if (!name || !value || value.length > 8192) continue
+      if (name.toLowerCase() === 'user-agent') args.push('--user-agent', value)
+      else if (name.toLowerCase() === 'referer') args.push('--referer', value)
+      else args.push('--add-header', `${name}:${value}`)
+    }
+    return args
+  }
+
   async status(): Promise<{
     ytdlp: { available: boolean; version?: string; path?: string }
     ffmpeg: { available: boolean; path?: string }
@@ -273,13 +292,14 @@ export class YoutubeEngine {
     return status
   }
 
-  async probe(url: string): Promise<YoutubeProbe> {
+  async probe(url: string, headers: Record<string, string> = {}): Promise<YoutubeProbe> {
     const bin = await this.resolveBin()
     if (!bin) {
       throw new Error(
         'yt-dlp was not found. Install it from Settings → Tools, or place the binary in the app "bin" folder.'
       )
     }
+    const manifest = manifestKind(url)
     const args = [
       ...bin.prefix,
       '-J',
@@ -294,6 +314,7 @@ export class YoutubeEngine {
       '3',
       ...this.cookieArgs(),
       ...this.proxyArgs(),
+      ...this.headerArgs(headers),
       ...(await this.jsRuntimeArgs()),
       url
     ]
@@ -337,7 +358,9 @@ export class YoutubeEngine {
         isPlaylist: true,
         playlistCount: entries.length,
         entries,
-        formats: []
+        formats: [],
+        vod: manifest ? true : undefined,
+        manifest: manifest || undefined
       }
     }
 
@@ -355,7 +378,9 @@ export class YoutubeEngine {
       viewCount: typeof info.view_count === 'number' ? info.view_count : undefined,
       uploadDate: typeof info.upload_date === 'string' ? info.upload_date : undefined,
       isPlaylist: false,
-      formats: this.buildFormats(formats, await this.resolveFfmpeg())
+      formats: this.buildFormats(formats, await this.resolveFfmpeg()),
+      vod: manifest ? true : undefined,
+      manifest: manifest || undefined
     }
   }
 
@@ -386,7 +411,7 @@ export class YoutubeEngine {
       id: 'best',
       height: 0,
       ext: 'mp4',
-      selector: 'bestvideo*+bestaudio/best',
+      selector: audios.length ? 'bestvideo*+bestaudio/best' : 'best',
       audioOnly: false,
       label: 'Best quality',
       note: ffmpeg ? 'auto merge' : 'single file'
@@ -401,8 +426,13 @@ export class YoutubeEngine {
         .sort((a, b) => (b.tbr || 0) - (a.tbr || 0))[0]
       const useProgressive = !ffmpeg && !!prog
       const chosen = useProgressive ? prog : best
-      const selector =
-        useProgressive || !ffmpeg
+      // HLS variants usually contain both streams. Adding "+bestaudio" for
+      // those makes yt-dlp reject the requested format and fall back to
+      // "best", so a muxed format is selected directly.
+      const muxed = !!chosen.acodec && chosen.acodec !== 'none'
+      const selector = muxed
+        ? String(chosen.format_id)
+        : useProgressive || !ffmpeg
           ? `${chosen.format_id}/${best.format_id}`
           : bestAudio?.format_id
             ? `${best.format_id}+${bestAudio.format_id}`
@@ -483,7 +513,10 @@ export class YoutubeEngine {
     await ensureDir(task.dir)
     if (handle.signal.aborted) return
 
-    let selector = task.youtube?.formatId || task.youtube?.quality || 'bestvideo*+bestaudio/best'
+    let selector =
+      task.youtube?.formatId ||
+      task.youtube?.quality ||
+      (task.youtube?.vod ? 'best' : 'bestvideo*+bestaudio/best')
     if (opts.audioOnly) selector = 'bestaudio/best'
     if (!ffmpeg && selector.includes('+')) {
       // Without ffmpeg yt-dlp cannot merge separate video/audio streams.
@@ -514,7 +547,8 @@ export class YoutubeEngine {
       '-o',
       outputTemplate,
       ...this.cookieArgs(),
-      ...this.proxyArgs()
+      ...this.proxyArgs(),
+      ...this.headerArgs(task.headers)
     ]
     args.push(...(await this.jsRuntimeArgs()))
     if (process.platform === 'win32') args.push('--windows-filenames')

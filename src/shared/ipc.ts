@@ -36,6 +36,7 @@ export const IP = {
   installUpdate: 'pulse:install-update',
   revealUpdate: 'pulse:reveal-update',
   browserStatus: 'pulse:browser-status',
+  networkAdapters: 'pulse:network-adapters',
   openExtensionFolder: 'pulse:open-extension-folder',
   resumeWithUrl: 'pulse:resume-with-url',
   event: 'pulse:event'

@@ -37,6 +37,8 @@ export function defaultSettings(): Settings {
     cookiesFile: '',
     githubToken: '',
     browserIntegration: true,
+    multiNetwork: false,
+    networkAdapters: [],
     queues: [makeDefaultQueue()],
     defaultQueueId: DEFAULT_QUEUE_ID
   }

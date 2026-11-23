@@ -1,4 +1,4 @@
-import { ProxyAgent, fetch as undiciFetch } from 'undici'
+import { Agent, ProxyAgent, fetch as undiciFetch } from 'undici'
 import { parseProxy, type ProxyConfig } from '@shared/proxy'
 
 /**
@@ -12,6 +12,7 @@ import { parseProxy, type ProxyConfig } from '@shared/proxy'
 let activeProxy: ProxyConfig | null = null
 let activeUrl = ''
 let activeAgent: ProxyAgent | null = null
+const adapterAgents = new Map<string, Agent>()
 
 export function configureProxy(value: string): ProxyConfig | null {
   const parsed = parseProxy(value)
@@ -58,10 +59,46 @@ export async function proxiedFetch(
   return response as unknown as Response
 }
 
+function adapterAgent(localAddress: string): Agent {
+  let agent = adapterAgents.get(localAddress)
+  if (!agent) {
+    agent = new Agent({
+      connect: { localAddress, timeout: 30_000 },
+      connections: 64,
+      keepAliveTimeout: 10_000,
+      keepAliveMaxTimeout: 60_000
+    })
+    adapterAgents.set(localAddress, agent)
+  }
+  return agent
+}
+
+/**
+ * Fetch a segment through a specific local IPv4 address. Binding the socket
+ * source address is how the OS chooses the physical adapter (Plexo does the
+ * same with localAddress, plus SO_BINDTODEVICE on Linux). A proxy always wins:
+ * its tunnel owns the connection, so multi-network is skipped there.
+ */
+export async function fetchFromAdapter(
+  input: string | URL,
+  init: RequestInit,
+  localAddress: string
+): Promise<Response> {
+  if (activeProxy) return proxiedFetch(input, init)
+  const response = await undiciFetch(input, {
+    ...(init as Record<string, unknown>),
+    dispatcher: adapterAgent(localAddress)
+  } as Parameters<typeof undiciFetch>[1])
+  return response as unknown as Response
+}
+
 export async function disposeProxy(): Promise<void> {
   const previous = activeAgent
   activeProxy = null
   activeUrl = ''
   activeAgent = null
   if (previous) await previous.close().catch(() => undefined)
+  const agents = [...adapterAgents.values()]
+  adapterAgents.clear()
+  await Promise.allSettled(agents.map((agent) => agent.close()))
 }

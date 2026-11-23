@@ -7,6 +7,7 @@ import type {
   GithubRepoDetails,
   GithubSearchResult,
   MainEvent,
+  NetworkAdapter,
   ProbeResult,
   PulseAPI,
   ResumeWithUrlResult,
@@ -21,7 +22,8 @@ const api: PulseAPI = {
   snapshot: () => ipcRenderer.invoke(IP.snapshot) as Promise<AppSnapshot>,
   probe: (url: string, headers?: Record<string, string>) =>
     ipcRenderer.invoke(IP.probe, url, headers) as Promise<ProbeResult>,
-  probeYoutube: (url: string) => ipcRenderer.invoke(IP.probeYoutube, url) as Promise<YoutubeProbe>,
+  probeYoutube: (url: string, headers?: Record<string, string>) =>
+    ipcRenderer.invoke(IP.probeYoutube, url, headers) as Promise<YoutubeProbe>,
   addDownload: (input: AddDownloadInput) => ipcRenderer.invoke(IP.addDownload, input),
   addTorrent: (input: AddTorrentInput) => ipcRenderer.invoke(IP.addTorrent, input),
   pauseTask: (id: string) => ipcRenderer.invoke(IP.pause, id) as Promise<void>,
@@ -67,6 +69,7 @@ const api: PulseAPI = {
   resumeWithUrl: (id: string, url: string) =>
     ipcRenderer.invoke(IP.resumeWithUrl, id, url) as Promise<ResumeWithUrlResult>,
   browserStatus: () => ipcRenderer.invoke(IP.browserStatus) as Promise<BrowserStatus>,
+  networkAdapters: () => ipcRenderer.invoke(IP.networkAdapters) as Promise<NetworkAdapter[]>,
   openExtensionFolder: () => ipcRenderer.invoke(IP.openExtensionFolder) as Promise<void>,
   subscribe: (cb: (event: MainEvent) => void) => {
     const listener = (_event: unknown, payload: MainEvent): void => cb(payload)

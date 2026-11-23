@@ -158,6 +158,9 @@
   "menuMedia": {
     "message": "Скачать медиа с Pulse"
   },
+  "menuStream": {
+    "message": "Отправить поток HLS/DASH в Pulse"
+  },
   "menuPage": {
     "message": "Скачать эту страницу с Pulse"
   },
@@ -181,6 +184,18 @@
   },
   "notifNoLinks": {
     "message": "В выделении не найдено ссылок."
+  },
+  "notifNoStreams": {
+    "message": "На этой странице не найден поток HLS или DASH."
+  },
+  "streams": {
+    "message": "Потоки HLS/DASH"
+  },
+  "streamsHint": {
+    "message": "Запустите видео на странице, затем выберите поток для загрузки."
+  },
+  "sendStream": {
+    "message": "Отправить"
   },
   "notifBatch": {
     "message": "Ссылок отправлено в Pulse: $1"

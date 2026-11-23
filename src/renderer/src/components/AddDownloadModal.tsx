@@ -6,6 +6,7 @@ import {
   ChevronDown,
   ClipboardPaste,
   FileUp,
+  Film,
   FolderOpen,
   Globe,
   ListChecks,
@@ -21,13 +22,13 @@ import {
 } from 'lucide-react'
 import type { ProbeResult, YoutubeFormatOption, YoutubeProbe } from '@shared/types'
 import { DEFAULT_QUEUE_ID } from '@shared/queues'
-import { MAX_BATCH_URLS, isDirectBatchUrl } from '@shared/urls'
+import { MAX_BATCH_URLS, isDirectBatchUrl, manifestKind } from '@shared/urls'
 import { useApp } from '../state'
 import { queueCopy } from '../queueI18n'
 import { Modal } from './Modal'
 import { cleanIpcError, cn, formatBytes, formatDuration, hostOf } from '../lib/format'
 
-type Tab = 'link' | 'video' | 'torrent' | 'batch'
+type Tab = 'link' | 'video' | 'vod' | 'torrent' | 'batch'
 
 interface BatchParsed {
   entered: number
@@ -149,14 +150,17 @@ export function AddDownloadModal(): React.JSX.Element {
     setConnections(settings.connections)
     const initialUrl = addInitial?.url || ''
     const isMagnet = /^magnet:/i.test(initialUrl)
+    const manifest = manifestKind(initialUrl)
     const nextTab: Tab =
-      addInitial?.tab || (isMagnet ? 'torrent' : addInitial?.batchUrls?.length ? 'batch' : 'link')
+      addInitial?.tab ||
+      (isMagnet ? 'torrent' : manifest ? 'vod' : addInitial?.batchUrls?.length ? 'batch' : 'link')
     setTab(nextTab)
     setUrl(initialUrl)
     setMagnet(isMagnet ? initialUrl : '')
     setSelectedFormat('best')
     if (initialUrl && nextTab === 'link') void analyzeLink(initialUrl)
-    if (initialUrl && nextTab === 'video') void analyzeVideo(initialUrl)
+    if (initialUrl && nextTab === 'video') void analyzeVideo(initialUrl, false)
+    if (initialUrl && nextTab === 'vod') void analyzeVideo(initialUrl, true)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [addOpen])
 
@@ -181,8 +185,9 @@ export function AddDownloadModal(): React.JSX.Element {
     }
   }
 
-  const analyzeVideo = async (raw?: string): Promise<void> => {
+  const analyzeVideo = async (raw?: string, forceVod?: boolean): Promise<void> => {
     const target = (raw ?? url).trim()
+    const vod = forceVod ?? tab === 'vod'
     if (!/^https?:\/\//i.test(target)) {
       setError(t.add.errorUrl)
       return
@@ -190,7 +195,16 @@ export function AddDownloadModal(): React.JSX.Element {
     setAnalyzing(true)
     setError(null)
     try {
-      const result = await window.pulse.probeYoutube(target)
+      const headers: Record<string, string> = {}
+      if (vod) {
+        if (referer.trim()) headers.Referer = referer.trim()
+        if (ua.trim()) headers['User-Agent'] = ua.trim()
+        if (cookie.trim()) headers.Cookie = cookie.trim()
+      }
+      const result = await window.pulse.probeYoutube(
+        target,
+        Object.keys(headers).length ? headers : undefined
+      )
       setYt(result)
       if (result.isPlaylist) {
         setSelectedFormat('best')
@@ -220,9 +234,16 @@ export function AddDownloadModal(): React.JSX.Element {
     }
     setUrl(text)
     if (tab === 'video') void analyzeVideo(text)
+    else if (tab === 'vod') void analyzeVideo(text, true)
     else {
-      setTab('link')
-      void analyzeLink(text)
+      const manifest = manifestKind(text)
+      if (manifest) {
+        setTab('vod')
+        void analyzeVideo(text, true)
+      } else {
+        setTab('link')
+        void analyzeLink(text)
+      }
     }
   }
 
@@ -275,8 +296,10 @@ export function AddDownloadModal(): React.JSX.Element {
         setMagnet(text)
       } else if (/^https?:/i.test(text)) {
         setUrl(text)
-        setTab('link')
-        void analyzeLink(text)
+        const manifest = manifestKind(text)
+        setTab(manifest ? 'vod' : 'link')
+        if (manifest) void analyzeVideo(text, true)
+        else void analyzeLink(text)
       }
     }
   }
@@ -421,8 +444,9 @@ export function AddDownloadModal(): React.JSX.Element {
           headers: Object.keys(headers).length ? headers : undefined
         })
         finish(task.id)
-      } else if (tab === 'video') {
-        if (!yt || yt.isPlaylist) {
+      } else if (tab === 'video' || tab === 'vod') {
+        const vod = tab === 'vod'
+        if (!yt || (!vod && yt.isPlaylist)) {
           setError(yt?.isPlaylist ? t.add.playlistNote : t.add.errorProbe)
           setBusy(false)
           return
@@ -435,23 +459,32 @@ export function AddDownloadModal(): React.JSX.Element {
           return
         }
         const audioOnly = !!option.audioOnly
+        const headers: Record<string, string> = {}
+        if (vod) {
+          if (referer.trim()) headers.Referer = referer.trim()
+          if (ua.trim()) headers['User-Agent'] = ua.trim()
+          if (cookie.trim()) headers.Cookie = cookie.trim()
+        }
         const task = await window.pulse.addDownload({
           url: yt.url,
-          kind: 'youtube',
+          kind: vod ? 'vod' : 'youtube',
           dir,
           queueId,
           title: yt.title,
           thumbnail: yt.thumbnail,
+          headers: Object.keys(headers).length ? headers : undefined,
           youtube: {
             selector: option.selector,
             quality: option.label,
             audioOnly,
             audioFormat: audioOnly && option.ext === 'mp3' ? 'mp3' : undefined,
-            subtitles,
-            thumbnail: embedThumb,
-            videoId: videoIdFrom(yt.url),
+            subtitles: vod ? false : subtitles,
+            thumbnail: vod ? false : embedThumb,
+            videoId: vod ? undefined : videoIdFrom(yt.url),
             duration: yt.duration,
-            uploader: yt.uploader
+            uploader: yt.uploader,
+            vod: vod || undefined,
+            manifest: vod ? manifestKind(yt.url) || undefined : undefined
           }
         })
         finish(task.id)
@@ -473,7 +506,12 @@ export function AddDownloadModal(): React.JSX.Element {
         finish(task.id)
       }
     } catch (err) {
-      setError(cleanIpcError(err, t.add.errorTorrent))
+      setError(
+        cleanIpcError(
+          err,
+          tab === 'video' || tab === 'vod' ? t.add.errorProbe : t.add.errorTorrent
+        )
+      )
     } finally {
       setBusy(false)
     }
@@ -482,6 +520,7 @@ export function AddDownloadModal(): React.JSX.Element {
   const tabs: Array<{ id: Tab; label: string; icon: React.ReactNode }> = [
     { id: 'link', label: t.add.tabs.link, icon: <Globe size={14} /> },
     { id: 'video', label: t.add.tabs.video, icon: <Youtube size={14} /> },
+    { id: 'vod', label: t.add.tabs.vod, icon: <Film size={14} /> },
     { id: 'torrent', label: t.add.tabs.torrent, icon: <Magnet size={14} /> },
     { id: 'batch', label: t.add.tabs.batch, icon: <ListPlus size={14} /> }
   ]
@@ -511,7 +550,7 @@ export function AddDownloadModal(): React.JSX.Element {
           </div>
         </div>
 
-        <div className="relative mt-4 grid grid-cols-2 gap-1 rounded-xl border border-line bg-elev/50 p-1 sm:grid-cols-4">
+        <div className="relative mt-4 grid grid-cols-2 gap-1 rounded-xl border border-line bg-elev/50 p-1 sm:grid-cols-5">
           {tabs.map((item) => (
             <button
               key={item.id}
@@ -695,12 +734,19 @@ export function AddDownloadModal(): React.JSX.Element {
           </div>
         ) : null}
 
-        {tab === 'video' ? (
+        {tab === 'video' || tab === 'vod' ? (
           <div className="space-y-3.5">
-            <Labeled label={t.add.videoUrl} hint={t.add.videoHint}>
+            <Labeled
+              label={tab === 'vod' ? t.add.vodUrl : t.add.videoUrl}
+              hint={tab === 'vod' ? t.add.vodHint : t.add.videoHint}
+            >
               <div className="flex gap-2">
                 <div className="relative flex-1">
-                  <Youtube size={15} className="pointer-events-none absolute start-3 top-1/2 -translate-y-1/2 text-bad/80" />
+                  {tab === 'vod' ? (
+                    <Film size={15} className="pointer-events-none absolute start-3 top-1/2 -translate-y-1/2 text-brand" />
+                  ) : (
+                    <Youtube size={15} className="pointer-events-none absolute start-3 top-1/2 -translate-y-1/2 text-bad/80" />
+                  )}
                   <input
                     value={url}
                     autoFocus
@@ -711,8 +757,8 @@ export function AddDownloadModal(): React.JSX.Element {
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') void analyzeVideo()
                     }}
-                    placeholder="https://www.youtube.com/watch?v=…"
-                    aria-label={t.add.videoUrl}
+                    placeholder={tab === 'vod' ? 'https://example.com/master.m3u8' : 'https://www.youtube.com/watch?v=…'}
+                    aria-label={tab === 'vod' ? t.add.vodUrl : t.add.videoUrl}
                     className="field h-10 w-full ps-9 pe-2 text-[12px]"
                     dir="ltr"
                   />
@@ -739,7 +785,7 @@ export function AddDownloadModal(): React.JSX.Element {
               </div>
             ) : null}
 
-            {yt && yt.isPlaylist ? (
+            {tab === 'video' && yt && yt.isPlaylist ? (
               <div className="anim-rise">
                 <div className="mb-2 flex items-center justify-between gap-2">
                   <div className="truncate text-[11px] font-semibold">{yt.title}</div>
@@ -798,11 +844,20 @@ export function AddDownloadModal(): React.JSX.Element {
                       {yt.title}
                     </div>
                     <div className="mt-1 flex items-center gap-1.5 text-[10px] text-muted">
-                      <Youtube size={10} className="text-bad/70" />
+                      {tab === 'vod' ? (
+                        <Film size={10} className="text-brand/80" />
+                      ) : (
+                        <Youtube size={10} className="text-bad/70" />
+                      )}
                       <span className="truncate">{yt.uploader || yt.extractor}</span>
                     </div>
                     <div className="mt-1 flex flex-wrap gap-1">
                       {yt.extractor ? <span className="chip py-0! text-[9px]!">{yt.extractor}</span> : null}
+                      {tab === 'vod' ? (
+                        <span className="chip border-brand/25! py-0! text-[9px]! text-brand!">
+                          {(yt.manifest || manifestKind(yt.url) || 'hls').toUpperCase()}
+                        </span>
+                      ) : null}
                       {yt.duration ? (
                         <span className="chip py-0! text-[9px]!">{formatDuration(yt.duration)}</span>
                       ) : null}
@@ -876,29 +931,61 @@ export function AddDownloadModal(): React.JSX.Element {
                   </div>
                 ) : null}
 
-                <div className="flex flex-wrap items-center gap-4 rounded-xl border border-line bg-elev/25 px-3 py-2">
-                  <label className="flex cursor-pointer items-center gap-2 text-[10.5px] text-muted">
-                    <input
-                      type="checkbox"
-                      checked={subtitles}
-                      onChange={(e) => setSubtitles(e.target.checked)}
-                      className="h-3.5 w-3.5 accent-[var(--c-brand)]"
-                    />
-                    {t.add.subtitles}
-                  </label>
-                  <label className="flex cursor-pointer items-center gap-2 text-[10.5px] text-muted">
-                    <input
-                      type="checkbox"
-                      checked={embedThumb}
-                      onChange={(e) => setEmbedThumb(e.target.checked)}
-                      className="h-3.5 w-3.5 accent-[var(--c-brand)]"
-                    />
-                    {t.add.thumbnail}
-                  </label>
-                  {selectedOption?.audioOnly ? (
-                    <span className="chip border-warn/25! text-[9px]! text-warn!">{t.add.audioOnly}</span>
-                  ) : null}
-                </div>
+                {tab === 'vod' ? (
+                  <>
+                    <div className="flex items-start gap-2 rounded-xl border border-line bg-elev/25 px-3 py-2.5 text-[9.5px] leading-relaxed text-muted">
+                      <ShieldCheck size={13} className="mt-[1px] shrink-0 text-ok" />
+                      {t.add.vodNote}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setAdvanced((v) => !v)}
+                      className="flex w-full items-center gap-1.5 text-[10.5px] font-medium text-muted transition hover:text-ink"
+                    >
+                      <ChevronDown size={13} className={cn('transition', advanced && 'rotate-180')} />
+                      {t.add.advanced}
+                    </button>
+                    {advanced ? (
+                      <div className="anim-rise grid grid-cols-1 gap-2.5 rounded-xl border border-line bg-elev/25 p-3 sm:grid-cols-3">
+                        <Labeled label={t.add.referer} small>
+                          <input value={referer} onChange={(e) => setReferer(e.target.value)} aria-label={t.add.referer} className="field h-8 w-full px-2 text-[10.5px]" dir="ltr" />
+                        </Labeled>
+                        <Labeled label={t.add.userAgent} small>
+                          <input value={ua} onChange={(e) => setUa(e.target.value)} aria-label={t.add.userAgent} className="field h-8 w-full px-2 text-[10.5px]" dir="ltr" />
+                        </Labeled>
+                        <Labeled label={t.add.cookie} small>
+                          <input value={cookie} onChange={(e) => setCookie(e.target.value)} aria-label={t.add.cookie} className="field h-8 w-full px-2 text-[10.5px]" dir="ltr" />
+                        </Labeled>
+                      </div>
+                    ) : null}
+                  </>
+                ) : null}
+
+                {tab === 'video' ? (
+                  <div className="flex flex-wrap items-center gap-4 rounded-xl border border-line bg-elev/25 px-3 py-2">
+                    <label className="flex cursor-pointer items-center gap-2 text-[10.5px] text-muted">
+                      <input
+                        type="checkbox"
+                        checked={subtitles}
+                        onChange={(e) => setSubtitles(e.target.checked)}
+                        className="h-3.5 w-3.5 accent-[var(--c-brand)]"
+                      />
+                      {t.add.subtitles}
+                    </label>
+                    <label className="flex cursor-pointer items-center gap-2 text-[10.5px] text-muted">
+                      <input
+                        type="checkbox"
+                        checked={embedThumb}
+                        onChange={(e) => setEmbedThumb(e.target.checked)}
+                        className="h-3.5 w-3.5 accent-[var(--c-brand)]"
+                      />
+                      {t.add.thumbnail}
+                    </label>
+                    {selectedOption?.audioOnly ? (
+                      <span className="chip border-warn/25! text-[9px]! text-warn!">{t.add.audioOnly}</span>
+                    ) : null}
+                  </div>
+                ) : null}
               </div>
             ) : null}
 
@@ -1104,7 +1191,7 @@ export function AddDownloadModal(): React.JSX.Element {
             </>
           ) : (
             <>
-              {tab === 'torrent' ? <Magnet size={11} /> : tab === 'video' ? <Youtube size={11} /> : <Globe size={11} />}
+              {tab === 'torrent' ? <Magnet size={11} /> : tab === 'video' ? <Youtube size={11} /> : tab === 'vod' ? <Film size={11} /> : <Globe size={11} />}
               {hostOf(tab === 'torrent' ? magnet || torrentPath || '' : url)}
             </>
           )}
@@ -1136,6 +1223,7 @@ export function AddDownloadModal(): React.JSX.Element {
               busy ||
               (tab === 'link' && !url.trim()) ||
               (tab === 'video' && (!yt || analyzing || (yt.isPlaylist && !(yt.entries || []).length))) ||
+              (tab === 'vod' && (!yt || analyzing)) ||
               (tab === 'torrent' && !magnet.trim() && !torrentPath && !torrentData) ||
               (tab === 'batch' && !batchParsed.valid.length)
             }

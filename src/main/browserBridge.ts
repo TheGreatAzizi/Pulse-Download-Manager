@@ -19,12 +19,12 @@ import type { DownloadManager } from './manager'
 const PORTS = [19527, 19528, 19529, 19530]
 const PROTOCOL = 1
 const MAX_CLIENTS = 8
-const MAX_PAYLOAD = 256 * 1024
+const MAX_PAYLOAD = 1024 * 1024
 const HELLO_TIMEOUT = 6000
-const MAX_ADDS_PER_MINUTE = 120
+const MAX_ADDS_PER_MINUTE = 300
 const MAX_MESSAGES_PER_WINDOW = 300
 const MESSAGE_WINDOW = 10_000
-const MAX_BATCH = 50
+const MAX_BATCH = 200
 const MAX_URL_LENGTH = 4096
 const MAX_COOKIE_LENGTH = 16 * 1024
 const MAX_REFERRER_LENGTH = 2048
@@ -406,7 +406,9 @@ export class BrowserBridge {
           cleanFileName(message.fileName),
           cleanReferrer(message.referrer),
           cleanUserAgent(message.userAgent),
-          cleanCookie(message.cookies)
+          cleanCookie(message.cookies),
+          message.media === true,
+          cleanText(message.title, 240)
         )
         this.respond(state.ws, {
           type: result.ok ? 'result' : 'error',
@@ -448,7 +450,9 @@ export class BrowserBridge {
             '',
             referrer,
             userAgent,
-            cleanCookie(entry.cookies)
+            cleanCookie(entry.cookies),
+            entry.media === true,
+            cleanText(entry.title, 240)
           )
           if (result.ok) added++
           else if (errors.length < 5) errors.push(result.error || 'Request failed')
@@ -491,7 +495,9 @@ export class BrowserBridge {
     fileName: string,
     referrer: string,
     userAgent: string,
-    cookies: string
+    cookies: string,
+    media = false,
+    title = ''
   ): Promise<AddResult> {
     if (!url) return { ok: false, error: 'Enter a valid HTTP or HTTPS link' }
     const headers: Record<string, string> = {}
@@ -501,7 +507,9 @@ export class BrowserBridge {
     try {
       const task = await this.manager.addDownload({
         url,
+        kind: media ? 'vod' : undefined,
         fileName: fileName || undefined,
+        title: title || undefined,
         headers: Object.keys(headers).length ? headers : undefined
       })
       this.onAdded(task)

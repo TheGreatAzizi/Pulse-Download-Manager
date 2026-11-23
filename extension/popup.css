@@ -349,6 +349,68 @@ textarea {
   text-align: center;
 }
 
+.media-hint {
+  color: var(--faint);
+  font-size: 9.5px;
+  line-height: 1.45;
+}
+
+.media-list {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  max-height: 144px;
+  margin-top: 7px;
+  overflow-y: auto;
+}
+
+.media-item {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel-2);
+  cursor: pointer;
+  text-align: start;
+}
+
+.media-item:hover {
+  border-color: color-mix(in srgb, var(--brand) 40%, var(--line));
+  background: var(--brand-soft);
+}
+
+.media-kind {
+  flex-shrink: 0;
+  padding: 2px 5px;
+  border-radius: 4px;
+  background: var(--brand-soft);
+  color: var(--brand);
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+
+.media-url {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 9.5px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  direction: ltr;
+}
+
+.media-send {
+  flex-shrink: 0;
+  color: var(--brand);
+  font-size: 9px;
+  font-weight: 700;
+}
+
 .footer {
   display: flex;
   align-items: center;

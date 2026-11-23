@@ -21,6 +21,21 @@ export const MAX_BATCH_URLS = 200
 /** Maximum clipboard size that will be scanned for a batch. */
 export const MAX_CLIPBOARD_TEXT = 50_000
 
+/**
+ * HLS and DASH manifests are handled by yt-dlp instead of the HTTP engine:
+ * downloading the manifest itself only saves a text playlist.
+ */
+export function manifestKind(raw: string): 'hls' | 'dash' | null {
+  try {
+    const path = new URL(raw).pathname.toLowerCase()
+    if (/\.m3u8?$/.test(path)) return 'hls'
+    if (/\.mpd$/.test(path)) return 'dash'
+  } catch {
+    /* not a URL */
+  }
+  return null
+}
+
 /** True for sites handled by the app's online-video (yt-dlp) engine. */
 export function isVideoPlatformUrl(raw: string): boolean {
   try {

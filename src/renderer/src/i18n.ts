@@ -90,6 +90,7 @@ const en = {
     overview: 'Overview',
     progress: 'Progress',
     segments: 'Connections map',
+    networks: '{count} networks',
     files: 'Files',
     source: 'Source',
     path: 'Save path',
@@ -127,6 +128,7 @@ const en = {
     tabs: {
       link: 'Direct link',
       video: 'Online video',
+      vod: 'HLS/DASH',
       torrent: 'Torrent',
       batch: 'Batch'
     },
@@ -155,6 +157,10 @@ const en = {
     urlHint: 'Paste any HTTP, HTTPS, FTP or magnet link',
     videoUrl: 'Video URL',
     videoHint: 'YouTube, Vimeo, SoundCloud, Twitch, Twitter and 1000+ sites',
+    vodUrl: 'HLS or DASH URL',
+    vodHint: 'A .m3u8 master playlist or .mpd manifest, including browser-captured streams',
+    vodNote:
+      'yt-dlp and ffmpeg download every segment and join them into one file. Add a Referer or Cookie if the server rejects the manifest.',
     analyze: 'Analyze',
     analyzing: 'Analyzing…',
     fileName: 'File name',
@@ -268,7 +274,18 @@ const en = {
       startMinimizedHint: 'When the system launches Pulse automatically, keep it in the tray instead of opening the main window.',
       notify: 'Show a notification when a download finishes or fails',
       clipboard: 'Watch the clipboard for links',
-      clipboardHint: 'Pulse offers to download links you copy in other apps.'
+      clipboardHint: 'Pulse offers to download links you copy in other apps.',
+      multiNetwork: 'Use multiple network adapters',
+      multiNetworkHint:
+        'Split direct-link connections across Wi-Fi, Ethernet and other active adapters. Requires at least two adapters.',
+      multiNetworkAdapters: 'Adapters to use',
+      multiNetworkNone: 'No physical adapters found. Connect Wi-Fi or Ethernet, then refresh.',
+      multiNetworkAll: 'Every active adapter is selected.',
+      multiNetworkProxy:
+        'A proxy is configured. Multi-network is skipped while traffic goes through the proxy.',
+      multiNetworkCount: '{count} adapters',
+      multiNetworkKeep: 'Keep at least one adapter selected.',
+      refreshAdapters: 'Refresh adapters'
     },
     speed: {
       title: 'Global speed limit',
@@ -549,6 +566,7 @@ const fa: typeof en = {
     overview: 'نمای کلی',
     progress: 'پیشرفت',
     segments: 'نقشه اتصال‌ها',
+    networks: '{count} شبکه',
     files: 'فایل‌ها',
     source: 'منبع',
     path: 'مسیر ذخیره',
@@ -586,6 +604,7 @@ const fa: typeof en = {
     tabs: {
       link: 'لینک مستقیم',
       video: 'ویدیوی آنلاین',
+      vod: 'HLS/DASH',
       torrent: 'تورنت',
       batch: 'دسته‌جمعی'
     },
@@ -614,6 +633,10 @@ const fa: typeof en = {
     urlHint: 'هر لینک HTTP، HTTPS، FTP یا مگنت را جای‌گذاری کنید',
     videoUrl: 'آدرس ویدیو',
     videoHint: 'یوتیوب، ویمیو، ساندکلاد، توییچ، توییتر و بیش از ۱۰۰۰ سایت',
+    vodUrl: 'آدرس HLS یا DASH',
+    vodHint: 'یک فایل m3u8. اصلی یا مانیفست mpd.، از جمله استریم‌های گرفته‌شده از مرورگر',
+    vodNote:
+      'yt-dlp و ffmpeg همه قطعه‌ها را دانلود و در یک فایل ادغام می‌کنند. اگر سرور مانیفست را رد کرد، Referer یا Cookie اضافه کنید.',
     analyze: 'بررسی',
     analyzing: 'در حال بررسی…',
     fileName: 'نام فایل',
@@ -727,7 +750,17 @@ const fa: typeof en = {
       startMinimizedHint: 'وقتی ویندوز یا لینوکس پالس را خودکار اجرا می‌کند، پنجره اصلی باز نشود و پالس در سینی سیستم بماند.',
       notify: 'نمایش اعلان پس از پایان یا خطای دانلود',
       clipboard: 'پایش حافظه موقت برای یافتن لینک',
-      clipboardHint: 'وقتی لینکی را در برنامه‌های دیگر کپی می‌کنید، پالس پیشنهاد دانلود می‌دهد.'
+      clipboardHint: 'وقتی لینکی را در برنامه‌های دیگر کپی می‌کنید، پالس پیشنهاد دانلود می‌دهد.',
+      multiNetwork: 'استفاده از چند کارت شبکه',
+      multiNetworkHint:
+        'اتصال‌های دانلود مستقیم بین وای‌فای، اترنت و کارت‌های فعال دیگر تقسیم می‌شود. دست‌کم دو کارت لازم است.',
+      multiNetworkAdapters: 'کارت‌های شبکه',
+      multiNetworkNone: 'کارت شبکه فیزیکی پیدا نشد. وای‌فای یا اترنت را وصل کنید و دوباره تازه‌سازی کنید.',
+      multiNetworkAll: 'همه کارت‌های فعال انتخاب شده‌اند.',
+      multiNetworkProxy: 'پروکسی فعال است؛ تا وقتی ترافیک از پروکسی می‌رود، چندشبکه‌ای انجام نمی‌شود.',
+      multiNetworkCount: '{count} کارت',
+      multiNetworkKeep: 'حداقل یک کارت را انتخاب نگه دارید.',
+      refreshAdapters: 'تازه‌سازی کارت‌ها'
     },
     speed: {
       title: 'محدودیت سرعت کل',
@@ -1008,6 +1041,7 @@ const ja: typeof en = {
     overview: '概要',
     progress: '進行状況',
     segments: '接続マップ',
+    networks: '{count} ネットワーク',
     files: 'ファイル',
     source: 'ソース',
     path: '保存先',
@@ -1045,6 +1079,7 @@ const ja: typeof en = {
     tabs: {
       link: 'ダイレクトリンク',
       video: 'オンライン動画',
+      vod: 'HLS/DASH',
       torrent: 'トレント',
       batch: '一括'
     },
@@ -1073,6 +1108,10 @@ const ja: typeof en = {
     urlHint: 'HTTP、HTTPS、FTP、またはマグネットリンクを貼り付け',
     videoUrl: '動画URL',
     videoHint: 'YouTube、Vimeo、SoundCloud、Twitch、Twitter など 1000 以上のサイト',
+    vodUrl: 'HLS または DASH の URL',
+    vodHint: '.m3u8 マスタープレイリストまたは .mpd マニフェスト（ブラウザで取得したストリームを含む）',
+    vodNote:
+      'yt-dlp と ffmpeg がすべてのセグメントをダウンロードして 1 つのファイルに結合します。サーバーがマニフェストを拒否する場合は Referer または Cookie を追加してください。',
     analyze: '分析',
     analyzing: '分析中…',
     fileName: 'ファイル名',
@@ -1186,7 +1225,17 @@ const ja: typeof en = {
       startMinimizedHint: 'Windows または Linux が Pulse を自動起動したとき、メインウィンドウを開かずトレイに常駐します。',
       notify: 'ダウンロードの完了時または失敗時に通知を表示',
       clipboard: 'クリップボードのリンクを監視',
-      clipboardHint: '他のアプリでリンクをコピーしたとき、Pulse がダウンロードを提案します。'
+      clipboardHint: '他のアプリでリンクをコピーしたとき、Pulse がダウンロードを提案します。',
+      multiNetwork: '複数のネットワークアダプターを使用',
+      multiNetworkHint:
+        'ダイレクトリンクの接続を Wi-Fi、有線 LAN、その他の有効なアダプターに分散します。2 つ以上のアダプターが必要です。',
+      multiNetworkAdapters: '使用するアダプター',
+      multiNetworkNone: '物理アダプターが見つかりません。Wi-Fi または有線 LAN を接続して更新してください。',
+      multiNetworkAll: 'すべての有効なアダプターが選択されています。',
+      multiNetworkProxy: 'プロキシが設定されています。プロキシ経由の通信ではマルチネットワークは使用されません。',
+      multiNetworkCount: '{count} アダプター',
+      multiNetworkKeep: '少なくとも 1 つのアダプターを選択してください。',
+      refreshAdapters: 'アダプターを更新'
     },
     speed: {
       title: '全体速度制限',
@@ -1467,6 +1516,7 @@ const ru: typeof en = {
     overview: 'Обзор',
     progress: 'Прогресс',
     segments: 'Карта подключений',
+    networks: 'Сетей: {count}',
     files: 'Файлы',
     source: 'Источник',
     path: 'Путь сохранения',
@@ -1504,6 +1554,7 @@ const ru: typeof en = {
     tabs: {
       link: 'Прямая ссылка',
       video: 'Онлайн-видео',
+      vod: 'HLS/DASH',
       torrent: 'Торрент',
       batch: 'Пакетно'
     },
@@ -1532,6 +1583,10 @@ const ru: typeof en = {
     urlHint: 'Вставьте HTTP, HTTPS, FTP или магнет-ссылку',
     videoUrl: 'URL видео',
     videoHint: 'YouTube, Vimeo, SoundCloud, Twitch, Twitter и 1000+ сайтов',
+    vodUrl: 'URL HLS или DASH',
+    vodHint: 'Мастер-плейлист .m3u8 или манифест .mpd, включая потоки, перехваченные браузером',
+    vodNote:
+      'yt-dlp и ffmpeg скачивают все сегменты и объединяют их в один файл. Добавьте Referer или Cookie, если сервер отклоняет манифест.',
     analyze: 'Анализировать',
     analyzing: 'Анализ…',
     fileName: 'Имя файла',
@@ -1645,7 +1700,18 @@ const ru: typeof en = {
       startMinimizedHint: 'Когда Windows или Linux запускает Pulse автоматически, главное окно не открывается, а Pulse остаётся в трее.',
       notify: 'Показывать уведомление после завершения или ошибки загрузки',
       clipboard: 'Следить за буфером обмена на наличие ссылок',
-      clipboardHint: 'Когда вы копируете ссылку в другом приложении, Pulse предложит скачать её.'
+      clipboardHint: 'Когда вы копируете ссылку в другом приложении, Pulse предложит скачать её.',
+      multiNetwork: 'Использовать несколько сетевых адаптеров',
+      multiNetworkHint:
+        'Распределять соединения прямых загрузок между Wi-Fi, Ethernet и другими активными адаптерами. Нужно не менее двух адаптеров.',
+      multiNetworkAdapters: 'Используемые адаптеры',
+      multiNetworkNone: 'Физические адаптеры не найдены. Подключите Wi-Fi или Ethernet и обновите список.',
+      multiNetworkAll: 'Выбраны все активные адаптеры.',
+      multiNetworkProxy:
+        'Настроен прокси. Пока трафик идёт через прокси, мультисеть не используется.',
+      multiNetworkCount: 'Адаптеров: {count}',
+      multiNetworkKeep: 'Оставьте выбранным хотя бы один адаптер.',
+      refreshAdapters: 'Обновить адаптеры'
     },
     speed: {
       title: 'Общий лимит скорости',

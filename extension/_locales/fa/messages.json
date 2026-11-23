@@ -158,6 +158,9 @@
   "menuMedia": {
     "message": "دانلود رسانه با Pulse"
   },
+  "menuStream": {
+    "message": "ارسال استریم HLS/DASH به پالس"
+  },
   "menuPage": {
     "message": "دانلود این صفحه با Pulse"
   },
@@ -181,6 +184,18 @@
   },
   "notifNoLinks": {
     "message": "در انتخاب شما لینکی پیدا نشد."
+  },
+  "notifNoStreams": {
+    "message": "هیچ استریم HLS یا DASH در این صفحه پیدا نشد."
+  },
+  "streams": {
+    "message": "استریم‌های HLS/DASH"
+  },
+  "streamsHint": {
+    "message": "ویدیو را در این صفحه پخش کنید، سپس استریم موردنظر را برای دانلود انتخاب کنید."
+  },
+  "sendStream": {
+    "message": "ارسال"
   },
   "notifBatch": {
     "message": "$1 لینک به Pulse فرستاده شد"

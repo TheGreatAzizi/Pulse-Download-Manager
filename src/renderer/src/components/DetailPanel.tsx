@@ -9,6 +9,7 @@ import {
   HardDrive,
   Info,
   Link2,
+  Network,
   Pause,
   Play,
   ShieldCheck,
@@ -240,8 +241,14 @@ export function DetailPanel(): React.JSX.Element {
                 })}
               </div>
               <div className="mt-1.5 flex items-center justify-between text-[9.5px] text-faint">
-                <span>
+                <span className="flex items-center gap-1.5">
                   {task.connections} / {task.segments.length} {t.row.connections}
+                  {task.networkCount && task.networkCount > 1 ? (
+                    <span className="chip border-brand/25! py-0! text-[8.5px]! text-brand!">
+                      <Network size={9} />
+                      {t.detail.networks.replace('{count}', String(task.networkCount))}
+                    </span>
+                  ) : null}
                 </span>
                 <span className="flex items-center gap-1">
                   <ShieldCheck size={10} />

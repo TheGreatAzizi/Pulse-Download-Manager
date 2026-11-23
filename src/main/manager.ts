@@ -33,6 +33,7 @@ import { TorrentEngine } from './engines/torrent'
 import { applyLaunchAtStartup } from './autostart'
 import { configureProxy, disposeProxy } from './proxy'
 import { parseProxy } from '@shared/proxy'
+import { manifestKind } from '@shared/urls'
 import { normalizeQueues, queueWindow, resolveQueueId } from '@shared/queues'
 
 interface ManagerDeps {
@@ -48,6 +49,20 @@ const NOTIFICATION_COPY: Record<Language, { complete: string; failed: string }> 
   fa: { complete: 'دانلود کامل شد', failed: 'دانلود ناموفق بود' },
   ja: { complete: 'ダウンロード完了', failed: 'ダウンロード失敗' },
   ru: { complete: 'Загрузка завершена', failed: 'Ошибка загрузки' }
+}
+
+/** A readable name for a manifest URL that has no page title. */
+function manifestTitle(url: string): string {
+  try {
+    const parsed = new URL(url)
+    const base = decodeURIComponent(parsed.pathname.split('/').filter(Boolean).pop() || '')
+      .replace(/\.(m3u8|mpd)$/i, '')
+      .trim()
+    if (base && !/^(master|index|playlist|manifest|stream|video|main)$/i.test(base)) return base
+    return parsed.hostname.replace(/^www\./i, '') || 'video'
+  } catch {
+    return 'video'
+  }
 }
 
 export class DownloadManager implements EngineHost {
@@ -230,8 +245,10 @@ export class DownloadManager implements EngineHost {
       throw new Error(`Unsupported protocol: ${scheme}`)
     }
 
+    const manifest = manifestKind(url)
+    const vod = input.kind === 'vod' || input.youtube?.vod === true || !!manifest
     const kind: TaskKind =
-      input.kind === 'youtube' || (input.kind !== 'http' && isYoutubeUrl(url))
+      vod || input.kind === 'youtube' || (input.kind !== 'http' && isYoutubeUrl(url))
         ? 'youtube'
         : 'http'
 
@@ -239,18 +256,25 @@ export class DownloadManager implements EngineHost {
     await ensureDir(dir)
 
     const fallbackName = guessNameFromUrl(url)
+    const requestedTitle = (
+      input.title ||
+      (input.fileName ? input.fileName.replace(/\.[^./\\]+$/, '') : '') ||
+      (vod ? manifestTitle(url) : 'video')
+    ).trim()
     const fileName = sanitizeFileName(
-      input.fileName ||
-        (kind === 'youtube'
-          ? `${sanitizeFileName(input.title || 'video')}.${input.youtube?.audioOnly ? 'm4a' : 'mp4'}`
-          : fallbackName)
+      vod
+        ? `${sanitizeFileName(requestedTitle || 'video')}.${input.youtube?.audioOnly ? 'm4a' : 'mp4'}`
+        : input.fileName ||
+            (kind === 'youtube'
+              ? `${sanitizeFileName(input.title || 'video')}.${input.youtube?.audioOnly ? 'm4a' : 'mp4'}`
+              : fallbackName)
     )
 
     const task: DownloadTask = {
       id: randomUUID(),
       kind,
       url,
-      name: input.title || fileName,
+      name: input.title || (vod ? requestedTitle || fileName : fileName),
       fileName,
       dir,
       status: 'queued',
@@ -273,19 +297,21 @@ export class DownloadManager implements EngineHost {
       this.autoNames.delete(task.id)
       task.name = input.title || fileName
       task.youtube = {
-        title: input.title || fileName,
+        title: input.title || (vod ? requestedTitle : fileName),
         uploader: input.youtube?.uploader,
         duration: input.youtube?.duration,
         thumbnail: input.thumbnail,
         quality: input.youtube?.quality,
-        formatId: input.youtube?.selector || 'bestvideo*+bestaudio/best',
+        formatId: input.youtube?.selector || (vod ? 'best' : 'bestvideo*+bestaudio/best'),
         audioOnly: !!input.youtube?.audioOnly,
         audioFormat: input.youtube?.audioFormat,
         subtitles: input.youtube?.subtitles,
         embedThumbnail: input.youtube?.thumbnail,
         videoId: input.youtube?.videoId,
         playlistIndex: input.youtube?.playlistIndex,
-        playlistCount: input.youtube?.playlistCount
+        playlistCount: input.youtube?.playlistCount,
+        vod: vod || undefined,
+        manifest: (manifest || input.youtube?.manifest) as 'hls' | 'dash' | undefined
       }
     }
     this.tasks.set(task.id, task)

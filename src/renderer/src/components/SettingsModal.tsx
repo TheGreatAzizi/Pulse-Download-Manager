@@ -42,6 +42,8 @@ export function SettingsModal(): React.JSX.Element {
     stats,
     browser,
     system,
+    adapters,
+    refreshAdapters,
     patchSettings,
     pushToast,
     refreshTools,
@@ -69,6 +71,26 @@ export function SettingsModal(): React.JSX.Element {
 
   const set = <K extends keyof Settings>(key: K, value: Settings[K]): void => {
     setDraft((prev) => ({ ...prev, [key]: value }))
+  }
+
+  const proxyActive = proxy.ok && !!proxy.proxy
+  const selectedAdapters = useMemo(() => {
+    if (!adapters.length) return []
+    const chosen = merged.networkAdapters
+    if (!chosen.length) return adapters.map((adapter) => adapter.address)
+    return adapters.filter((adapter) => chosen.includes(adapter.address)).map((adapter) => adapter.address)
+  }, [adapters, merged.networkAdapters])
+
+  const toggleAdapter = (address: string): void => {
+    const current = selectedAdapters
+    const next = current.includes(address)
+      ? current.filter((value) => value !== address)
+      : [...current, address]
+    if (!next.length) {
+      pushToast('info', t.settings.general.multiNetworkKeep)
+      return
+    }
+    set('networkAdapters', next.length === adapters.length ? [] : next)
   }
 
   const save = (): void => {
@@ -202,6 +224,84 @@ export function SettingsModal(): React.JSX.Element {
                     <span className="chip text-[12px]! text-brand! tabular">{merged.connections}</span>
                   </div>
                 </Group>
+              </div>
+
+              <div className="overflow-hidden rounded-xl border border-line">
+                <ToggleRow
+                  title={t.settings.general.multiNetwork}
+                  hint={
+                    proxyActive
+                      ? t.settings.general.multiNetworkProxy
+                      : t.settings.general.multiNetworkHint
+                  }
+                  checked={merged.multiNetwork}
+                  onChange={(v) => set('multiNetwork', v)}
+                />
+                {merged.multiNetwork && !proxyActive ? (
+                  <div className="border-t border-line/60 px-4 pb-4 pt-3">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="text-[11.5px] font-semibold text-muted">
+                        {t.settings.general.multiNetworkAdapters}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => void refreshAdapters()}
+                        className="btn btn-ghost h-7 px-2 text-[10px]"
+                      >
+                        <RefreshCw size={11} />
+                        {t.settings.general.refreshAdapters}
+                      </button>
+                    </div>
+                    {adapters.length ? (
+                      <>
+                        <div className="mt-2 grid gap-1.5 sm:grid-cols-2">
+                          {adapters.map((adapter) => {
+                            const checked = selectedAdapters.includes(adapter.address)
+                            return (
+                              <label
+                                key={adapter.id}
+                                className={cn(
+                                  'flex cursor-pointer items-center gap-2 rounded-lg border px-2.5 py-2 text-[11px] transition',
+                                  checked
+                                    ? 'border-brand/40 bg-brand/8 text-ink'
+                                    : 'border-line bg-elev/25 text-muted hover:border-line2'
+                                )}
+                              >
+                                <input
+                                  type="checkbox"
+                                  checked={checked}
+                                  onChange={() => toggleAdapter(adapter.address)}
+                                  className="h-3.5 w-3.5 accent-[var(--c-brand)]"
+                                />
+                                <span className="grid h-6 w-6 shrink-0 place-items-center rounded-md bg-elev2 text-faint">
+                                  <Network size={12} />
+                                </span>
+                                <span className="min-w-0 flex-1">
+                                  <span className="block truncate">{adapter.device}</span>
+                                  <span className="block text-[9.5px] text-faint" dir="ltr">
+                                    {adapter.address}
+                                  </span>
+                                </span>
+                              </label>
+                            )
+                          })}
+                        </div>
+                        <p className="mt-2 text-[9.5px] text-faint">
+                          {merged.networkAdapters.length === 0
+                            ? t.settings.general.multiNetworkAll
+                            : t.settings.general.multiNetworkCount.replace(
+                                '{count}',
+                                String(selectedAdapters.length)
+                              )}
+                        </p>
+                      </>
+                    ) : (
+                      <p className="mt-2 text-[10px] leading-relaxed text-faint">
+                        {t.settings.general.multiNetworkNone}
+                      </p>
+                    )}
+                  </div>
+                ) : null}
               </div>
 
               <div className="divide-y divide-line/60 overflow-hidden rounded-xl border border-line">

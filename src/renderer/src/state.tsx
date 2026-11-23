@@ -14,6 +14,7 @@ import type {
   DownloadTask,
   GlobalStats,
   MainEvent,
+  NetworkAdapter,
   Settings,
   UpdateInfo
 } from '@shared/types'
@@ -56,7 +57,7 @@ export interface ToastItem {
 }
 
 export interface AddInitial {
-  tab?: 'link' | 'video' | 'torrent' | 'batch'
+  tab?: 'link' | 'video' | 'vod' | 'torrent' | 'batch'
   url?: string
   batchUrls?: string[]
 }
@@ -68,6 +69,8 @@ interface AppContextValue {
   settings: Settings
   stats: GlobalStats | null
   browser: BrowserStatus | null
+  adapters: NetworkAdapter[]
+  refreshAdapters: () => Promise<void>
   system: AppSnapshot['system'] | null
   lang: Lang
   t: Dict
@@ -136,6 +139,8 @@ const fallbackSettings: Settings = {
   cookiesFile: '',
   githubToken: '',
   browserIntegration: true,
+  multiNetwork: false,
+  networkAdapters: [],
   queues: [makeDefaultQueue()],
   defaultQueueId: DEFAULT_QUEUE_ID
 }
@@ -149,6 +154,7 @@ export function AppProvider({ children }: { children: ReactNode }): React.JSX.El
   const [settings, setSettings] = useState<Settings>(fallbackSettings)
   const [stats, setStats] = useState<GlobalStats | null>(null)
   const [browser, setBrowser] = useState<BrowserStatus | null>(null)
+  const [adapters, setAdapters] = useState<NetworkAdapter[]>([])
   const [system, setSystem] = useState<AppSnapshot['system'] | null>(null)
   const [view, setView] = useState<ViewId>('all')
   const [query, setQuery] = useState('')
@@ -298,6 +304,7 @@ export function AppProvider({ children }: { children: ReactNode }): React.JSX.El
         setSystem(snap.system)
         setMaximized(Boolean(snap.system.maximized))
         setReady(true)
+        void window.pulse.networkAdapters().then(setAdapters).catch(() => setAdapters([]))
       })
       .catch((err: Error) => {
         if (cancelled) return
@@ -428,6 +435,14 @@ export function AppProvider({ children }: { children: ReactNode }): React.JSX.El
     [tasks, selectedId]
   )
 
+  const refreshAdapters = useCallback(async (): Promise<void> => {
+    try {
+      setAdapters(await window.pulse.networkAdapters())
+    } catch {
+      setAdapters([])
+    }
+  }, [])
+
   const refreshTools = useCallback(() => {
     void window.pulse.rescanTools().then(async () => {
       const snap = await window.pulse.snapshot()
@@ -444,6 +459,8 @@ export function AppProvider({ children }: { children: ReactNode }): React.JSX.El
     settings,
     stats,
     browser,
+    adapters,
+    refreshAdapters,
     system,
     lang,
     t,

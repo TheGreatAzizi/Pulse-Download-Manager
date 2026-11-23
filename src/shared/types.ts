@@ -74,6 +74,10 @@ export interface Settings {
   githubToken: string
   /** Accept downloads from the Pulse browser extension over a local WebSocket. */
   browserIntegration: boolean
+  /** Split HTTP connections across the selected physical network adapters. */
+  multiNetwork: boolean
+  /** Local IPv4 addresses selected for multi-network downloads. Empty means all. */
+  networkAdapters: string[]
   /** Named queues with optional schedules and per-queue concurrency limits. */
   queues: DownloadQueue[]
   /** Queue preselected when a new download is added. */
@@ -87,6 +91,17 @@ export interface BrowserStatus {
   clients: number
   extensionPath: string
   error?: string
+}
+
+/** A physical network adapter available for multi-network HTTP downloads. */
+export interface NetworkAdapter {
+  /** Stable selection key: the adapter's local IPv4 address. */
+  id: string
+  device: string
+  name: string
+  address: string
+  family: 'IPv4'
+  kind: 'wifi' | 'ethernet' | 'other'
 }
 
 export interface SegmentState {
@@ -116,6 +131,9 @@ export interface YoutubeMeta {
   playlistCount?: number
   viewCount?: number
   uploadDate?: string
+  /** Picked up from an HLS/DASH manifest rather than a video page. */
+  vod?: boolean
+  manifest?: 'hls' | 'dash'
 }
 
 export interface YoutubeFormatOption {
@@ -148,6 +166,9 @@ export interface YoutubeProbe {
   playlistCount?: number
   entries?: Array<{ url: string; title: string; duration?: number; thumbnail?: string; index: number }>
   formats: YoutubeFormatOption[]
+  /** True when the URL was recognized as an HLS or DASH manifest. */
+  vod?: boolean
+  manifest?: 'hls' | 'dash'
 }
 
 export interface TorrentFileEntry {
@@ -197,6 +218,8 @@ export interface DownloadTask {
   resumable?: boolean
   segments?: SegmentState[]
   maxConnections?: number
+  /** Number of adapters currently splitting this transfer. */
+  networkCount?: number
   headers?: Record<string, string>
   thumbnail?: string
   category?: string
@@ -241,7 +264,7 @@ export interface ProbeResult {
 
 export interface AddDownloadInput {
   url: string
-  kind?: 'auto' | 'http' | 'youtube'
+  kind?: 'auto' | 'http' | 'youtube' | 'vod'
   fileName?: string
   dir?: string
   connections?: number
@@ -262,6 +285,8 @@ export interface AddDownloadInput {
     playlistIndex?: number
     playlistCount?: number
     uploader?: string
+    vod?: boolean
+    manifest?: 'hls' | 'dash'
   }
 }
 
@@ -403,7 +428,7 @@ export type MainEvent =
 export interface PulseAPI {
   snapshot(): Promise<AppSnapshot>
   probe(url: string, headers?: Record<string, string>): Promise<ProbeResult>
-  probeYoutube(url: string): Promise<YoutubeProbe>
+  probeYoutube(url: string, headers?: Record<string, string>): Promise<YoutubeProbe>
   addDownload(input: AddDownloadInput): Promise<DownloadTask>
   addTorrent(input: AddTorrentInput): Promise<DownloadTask>
   pauseTask(id: string): Promise<void>
@@ -439,6 +464,7 @@ export interface PulseAPI {
   revealUpdate(): Promise<void>
   resumeWithUrl(id: string, url: string): Promise<ResumeWithUrlResult>
   browserStatus(): Promise<BrowserStatus>
+  networkAdapters(): Promise<NetworkAdapter[]>
   openExtensionFolder(): Promise<void>
   subscribe(cb: (event: MainEvent) => void): () => void
 }

@@ -4,6 +4,7 @@ import type { AddDownloadInput, AddTorrentInput, AppSnapshot, BrowserStatus, Mai
 import { IP } from '@shared/ipc'
 import type { DownloadManager } from './manager'
 import { isAutoStartSupported } from './autostart'
+import { listNetworkAdapters } from './network'
 import { getGithubRepo, searchGithubRepos } from './github'
 import * as updater from './updater'
 
@@ -73,7 +74,9 @@ export function registerIpc(
 
   handle(IP.probe, (url: string, headers?: Record<string, string>) => manager.probe(url, headers))
 
-  handle(IP.probeYoutube, (url: string) => manager.youtube.probe(url))
+  handle(IP.probeYoutube, (url: string, headers?: Record<string, string>) =>
+    manager.youtube.probe(url, headers)
+  )
 
   handle(IP.addDownload, (input: AddDownloadInput) => manager.addDownload(input))
 
@@ -189,6 +192,8 @@ export function registerIpc(
   handleQuiet(IP.resumeWithUrl, (id: string, url: string) => manager.resumeWithUrl(id, url))
 
   handleQuiet(IP.browserStatus, () => browser.status())
+
+  handleQuiet(IP.networkAdapters, () => listNetworkAdapters())
 
   handle(IP.openExtensionFolder, () => browser.openFolder())
 

@@ -158,6 +158,9 @@
   "menuMedia": {
     "message": "Download media with Pulse"
   },
+  "menuStream": {
+    "message": "Send HLS/DASH stream to Pulse"
+  },
   "menuPage": {
     "message": "Download this page with Pulse"
   },
@@ -181,6 +184,18 @@
   },
   "notifNoLinks": {
     "message": "No links found in the selection."
+  },
+  "notifNoStreams": {
+    "message": "No HLS or DASH stream was captured on this page."
+  },
+  "streams": {
+    "message": "HLS/DASH streams"
+  },
+  "streamsHint": {
+    "message": "Play a video on this page, then pick a stream to download."
+  },
+  "sendStream": {
+    "message": "Send"
   },
   "notifBatch": {
     "message": "$1 links sent to Pulse"
