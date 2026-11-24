@@ -3,6 +3,7 @@ import {
   Check,
   ChevronDown,
   Gauge,
+  Heart,
   Plus,
   Search,
   Settings,
@@ -163,6 +164,16 @@ export function TopBar(): React.JSX.Element {
             </div>
           ) : null}
         </div>
+
+        <button
+          type="button"
+          onClick={() => window.pulse.openExternal('https://daramet.com/AziziWarmCorner')}
+          className="icon-btn hidden h-9 w-9 text-brand md:grid"
+          title={t.settings.about.support}
+          aria-label={t.settings.about.support}
+        >
+          <Heart size={16} />
+        </button>
 
         <button
           type="button"

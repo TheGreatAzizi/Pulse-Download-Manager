@@ -11,6 +11,7 @@ import {
   FolderOpen,
   Gauge,
   Globe2,
+  Heart,
   Info,
   KeyRound,
   Loader2,
@@ -842,6 +843,14 @@ export function SettingsModal(): React.JSX.Element {
                 <span className="chip"><Moon size={10} /> RTL</span>
               </div>
               <p className="mt-3 max-w-md text-[12px] leading-relaxed text-faint">{t.settings.about.features}</p>
+              <button
+                type="button"
+                onClick={() => window.pulse.openExternal('https://daramet.com/AziziWarmCorner')}
+                className="btn btn-soft mt-4 h-10 gap-2 px-5 text-[13px]"
+              >
+                <Heart size={15} className="text-brand" />
+                {t.settings.about.support}
+              </button>
               <div className="mt-5 w-full max-w-sm divide-y divide-line/60 overflow-hidden rounded-xl border border-line text-start">
                 <Row label={t.settings.about.version} value={system?.appVersion ?? '1.0.0'} />
                 <Row label={t.settings.about.platform} value={`${system?.platform} ${system?.version}`} />
