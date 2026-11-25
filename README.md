@@ -6,7 +6,7 @@
 
 <p align="center">
   <b>A fast, local-first download manager for Windows and Linux.</b><br>
-  Direct links, YouTube and 1000+ sites, BitTorrent, and a Chrome/Edge extension.
+  Direct links, YouTube and 1000+ sites, HLS/DASH streams, BitTorrent, multi-network downloads and a Chrome/Edge extension.
 </p>
 
 <p align="center">
@@ -23,73 +23,75 @@
   <a href="#screenshots">Screenshots</a> |
   <a href="#download">Download</a> |
   <a href="#browser-extension">Browser extension</a> |
-  <a href="#startup-and-bulk-actions">Startup and bulk actions</a> |
+  <a href="#multi-network-downloads">Multi-network</a> |
+  <a href="#hls-and-dash-streams">HLS/DASH</a> |
   <a href="#proxy-support">Proxy</a> |
-  <a href="#notifications">Notifications</a> |
+  <a href="#support-the-project">Support</a> |
   <a href="#development">Development</a> |
-  <a href="#troubleshooting">Troubleshooting</a> |
-  <a href="#contributing">Contributing</a>
+  <a href="#troubleshooting">Troubleshooting</a>
 </p>
 
 ## Overview
 
-Pulse is a desktop download manager built with Electron, React and TypeScript. It combines a multi-connection HTTP engine, yt-dlp for video and audio, and a BitTorrent client in one clean interface.
+Pulse is a desktop download manager built with Electron, React and TypeScript. It combines a multi-connection HTTP engine, yt-dlp for video and audio, HLS/DASH manifest downloads, and a BitTorrent client in one clean interface.
 
-The app is local-first: settings, task state and files stay on your machine. It ships in English, Persian (RTL), Japanese and Russian, with light and dark themes.
+The app is local-first. Settings, task history and downloaded files stay on your machine. Pulse runs on Windows and Linux, ships in English, Persian (RTL), Japanese and Russian, and includes light and dark themes.
 
 ## Features
 
 | Area | Highlights |
 | --- | --- |
 | HTTP downloads | Multi-connection engine, resume, named queues with schedules, global speed limit, expired link recovery, batch links |
-| Network | HTTP, HTTPS, SOCKS5 and SOCKS5H proxy support with optional authentication |
+| Multi-network | Optional round-robin distribution of direct HTTP connections across selected Wi-Fi, Ethernet and other adapters |
 | Video and audio | yt-dlp integration, 1000+ supported sites, quality selection, audio extraction, subtitles, thumbnails, playlists |
+| HLS and DASH | Manifest detection, stream analysis, quality selection, Referer and cookie forwarding, browser-captured streams |
 | BitTorrent | Magnet links and `.torrent` files, file selection, secure resume, peer and seeder stats, upload ratio |
-| Browser integration | Chrome/Edge extension, download takeover, history-safe startup, context menus, multi-link selection, cookies/referrer/user agent forwarding, popup, `Alt+Shift+P` |
+| Browser integration | Chrome/Edge extension, download takeover, history-safe startup, context menus, multi-link selection, stream capture, popup, `Alt+Shift+P` |
 | GitHub | Repository search, source ZIPs, release assets, optional personal access token |
-| Desktop experience | English, Persian (RTL), Japanese, Russian, Vazirmatn for Persian, light and dark themes, completion and failure notifications, start minimized to tray, pause all, multi-select bulk actions, auto-start, tray, in-app updates |
+| Network | HTTP, HTTPS, SOCKS5 and SOCKS5H proxy support with optional authentication |
+| Desktop experience | Four languages, Persian RTL, Vazirmatn, light and dark themes, notifications, tray, start minimized, pause all, bulk actions, in-app updates |
 | Privacy | Local WebSocket bridge on `127.0.0.1`, pinned extension origin, no account required |
 
 ## Screenshots
 
-| Main dashboard | Dark theme |
+| Main window | Dark theme |
 | --- | --- |
-| ![Main dashboard][main-light] | ![Dark theme][main-dark] |
+| ![Pulse main window][main-light] | ![Pulse dark theme][main-dark] |
 
-| Persian RTL | Add download |
+| Persian interface (RTL) | Add download |
 | --- | --- |
-| ![Persian RTL][main-fa] | ![Add download][add-download] |
+| ![Persian interface][main-fa] | ![Add download dialog][add-download] |
 
-| GitHub browser | Settings |
+| HLS/DASH download | GitHub browser |
 | --- | --- |
-| ![GitHub browser][github-browser] | ![Settings][settings-general] |
+| ![HLS and DASH download][add-download-vod] | ![GitHub browser][github-browser] |
 
-### Extension preview
+| Settings | Multi-network adapters |
+| --- | --- |
+| ![Settings][settings-general] | ![Multi-network adapters][settings-multinetwork] |
 
-| Popup | Options |
+### Browser extension
+
+| Extension popup | Extension options |
 | --- | --- |
 | ![Browser extension popup][ext-popup] | ![Browser extension options][ext-options] |
 
 <details>
 <summary>More screenshots</summary>
 
-| Browser extension settings | Software update |
+| Proxy | Appearance |
 | --- | --- |
-| ![Browser extension settings][settings-browser] | ![Software update][update-available] |
+| ![Proxy settings][settings-proxy] | ![Appearance settings][settings-appearance] |
 
-| Resume with a new link | Empty state |
+| Browser integration | About |
 | --- | --- |
-| ![Resume with a new link][resume-new-link] | ![Empty state][empty-paused] |
-
-| About | Search and filters |
-| --- | --- |
-| ![About][settings-about] | ![Search and filters][search-filter] |
+| ![Browser integration][settings-browser] | ![About Pulse][settings-about] |
 
 </details>
 
 ## Download
 
-Get the latest files from the [Releases page](https://github.com/TheGreatAzizi/Pulse-Download-Manager/releases).
+Get the latest files from the [Releases page](https://github.com/TheGreatAzizi/Pulse-Download-Manager/releases). Builds are produced by GitHub Actions for every release.
 
 | Platform | File | Notes |
 | --- | --- | --- |
@@ -117,20 +119,22 @@ The Windows installer lets you choose the install directory, creates desktop and
 3. Add your first download:
    - **Direct link:** choose **New download** or press `Ctrl+N`, paste the URL, then start.
    - **Video or audio:** paste a YouTube or supported site URL, then choose the quality or audio-only mode.
+   - **HLS or DASH:** open the **HLS/DASH** tab and paste a `.m3u8` playlist or `.mpd` manifest.
    - **BitTorrent:** open a magnet link or a `.torrent` file.
    - **Browser:** enable browser integration and install the extension, then let Pulse take over downloads.
 4. Use the sidebar to filter by status, source or category. Pause, resume, retry, open the folder, copy the link or remove tasks from the task row.
 
 ## Browser extension
 
-Pulse ships a Manifest V3 extension for Chrome and Edge. It works like a classic download manager extension: it hands downloads to Pulse, adds right-click actions, and shows live progress from the popup. The popup and options page use a light palette that matches the desktop app.
+Pulse ships a Manifest V3 extension for Chrome and Edge. It works like a classic download manager extension: it hands downloads to Pulse, adds right-click actions, captures media streams, and shows live progress from the popup. The popup and options page use the same light palette as the desktop app.
 
 ### What it does
 
 - **Download takeover:** new Chrome/Edge downloads are cancelled in the browser and queued in Pulse with cookies, referrer and user agent. Takeover ignores completed or stale history entries when the browser restarts.
 - **Context menus:** send a link, image, video or audio file, the current page, a text selection, or every link on a page.
 - **Multi-link selection:** highlight one or more links or any text that contains links, right-click, and choose **Send selected links to Pulse**. The selection is collected from the page, so link text works without copying the destination URL.
-- **Popup:** connection status, current page, an **Add a link** field, active downloads, and a takeover switch.
+- **Stream capture:** Pulse watches for `.m3u8` and `.mpd` requests and lists them in the popup. Choose a stream and send it to Pulse as an HLS/DASH download.
+- **Popup:** connection status, current page, an **Add a link** field, captured streams, active downloads, and a takeover switch.
 - **Shortcut:** `Alt+Shift+P` sends the current page.
 - **Domain exclusions:** disable takeover for specific sites in the extension options.
 - **Languages:** English, Persian, Japanese and Russian.
@@ -155,8 +159,30 @@ The extension ID is fixed by the key in `extension/manifest.json`, so unpacked i
 - Pulse runs a local WebSocket bridge on `127.0.0.1`, using the first free port from `19527` to `19530`.
 - The bridge accepts only the Pulse extension origin, which is derived from the public key in the extension manifest.
 - Cookies, referrer and user agent are forwarded only for the download you send to Pulse.
+- Captured streams are stored per tab and cleared when the tab navigates or closes.
 - Takeover can be paused from the popup or disabled per domain in the extension options.
 - If Pulse is not running, the browser keeps the download.
+
+## Multi-network downloads
+
+On machines with more than one active network adapter, Pulse can spread direct HTTP connections across the adapters you choose.
+
+1. Open **Settings → General**.
+2. Turn on **Use multiple network adapters**.
+3. Select two or more adapters and save.
+
+The option requires at least two active adapters. It applies to direct HTTP downloads, not to BitTorrent or proxy traffic, and turns off automatically while a proxy is configured.
+
+## HLS and DASH streams
+
+Pulse can download HTTP Live Streaming (HLS) and MPEG-DASH video directly from a manifest.
+
+- Paste a `.m3u8` playlist or `.mpd` manifest in **New download → HLS/DASH**.
+- Pulse analyzes available streams with yt-dlp, then downloads the selected quality through yt-dlp and ffmpeg.
+- Add a **Referer**, **User-Agent** or **Cookie** when a site requires them.
+- Captured streams from the browser extension appear in the popup and can be sent to Pulse with one click.
+
+HLS/DASH downloads require `yt-dlp` and `ffmpeg`. Pulse can install yt-dlp from **Settings → Tools** and detects ffmpeg from system paths or user data.
 
 ## Startup and bulk actions
 
@@ -191,7 +217,7 @@ Percent-encode special characters in the username or password, for example `@` b
 The proxy applies to:
 
 - Direct HTTP and HTTPS downloads, including segmented transfers and resume.
-- YouTube and other yt-dlp downloads, plus the yt-dlp installer.
+- YouTube, HLS/DASH and other yt-dlp downloads, plus the yt-dlp installer.
 - GitHub API requests, repository downloads and release assets.
 - Update checks and update downloads.
 
@@ -201,6 +227,16 @@ BitTorrent traffic, including peer connections and trackers, stays direct. Pulse
 
 Pulse can show a system notification when a download completes or fails. Turn on **Settings → General → Show a notification when a download finishes or fails**. Failed downloads include the task name and the error detail. Notifications are best effort and depend on support in the operating system.
 
+## Support the project
+
+Pulse is free and open source, and development continues in the maintainer's spare time. If Pulse saves you time, you can support the project through Daramet:
+
+<p align="center">
+  <a href="https://daramet.com/AziziWarmCorner"><img src="https://img.shields.io/badge/Support%20Pulse-Daramet-e11d48?style=for-the-badge" alt="Support Pulse on Daramet"></a>
+</p>
+
+Donations are optional. Starring the repository, reporting bugs and sharing Pulse with others also help the project grow.
+
 ## Development
 
 ### Requirements
@@ -208,7 +244,7 @@ Pulse can show a system notification when a download completes or fails. Turn on
 - Node.js 20 or newer
 - npm
 - Windows or Linux
-- Optional: `yt-dlp` and `ffmpeg` for video and audio downloads. Pulse can install yt-dlp from **Settings → Tools** and detects ffmpeg from system paths or user data.
+- Optional: `yt-dlp` and `ffmpeg` for video, audio and HLS/DASH downloads. Pulse can install yt-dlp from **Settings → Tools** and detects ffmpeg from system paths or user data.
 
 ### Commands
 
@@ -226,7 +262,7 @@ Build output is written to `dist/`.
 
 ### Project structure
 
-```
+```text
 src/
   main/       Electron main process: HTTP, YouTube, torrent engines, queue, persistence
   preload/    Secure window.pulse bridge
@@ -267,6 +303,8 @@ Keep `yt-dlp` newer than 2025.11 for JavaScript runtime support.
 | Browser extension shows Offline | Start Pulse, enable browser integration, reload the extension, and check the port in **Settings → Tools**. |
 | Chrome re-downloads old history | Reload the extension from `chrome://extensions` or `edge://extensions`. Takeover now ignores completed downloads and stale history entries. |
 | Downloads stay in the browser | Turn on takeover in the popup, remove the site from domain exclusions, and make sure Pulse is running. |
+| HLS/DASH analysis fails | Update yt-dlp, install ffmpeg, and add the required Referer, User-Agent or Cookie. |
+| Multi-network is unavailable | Connect at least two active adapters, or disable the proxy, which takes priority over multi-network transfers. |
 | AppImage does not start | Install `fuse2`, or run `./Pulse-*.AppImage --appimage-extract-and-run`. |
 | SmartScreen warning on Windows | Builds are unsigned; choose **More info → Run anyway**. |
 | Cookie database is locked | Close the browser before reading cookies, or use an exported `cookies.txt`. |
@@ -302,20 +340,20 @@ See [LICENSE](LICENSE) for the full text. Pulse is free software; you can redist
 The bundled [Vazirmatn](https://github.com/rastikerdar/vazirmatn) Persian font is copyright 2015 The Vazirmatn Project Authors and is licensed under the SIL Open Font License 1.1. Its license text is included at [src/renderer/src/assets/fonts/OFL.txt](src/renderer/src/assets/fonts/OFL.txt) and in packaged builds at `resources/licenses/Vazirmatn-OFL.txt`.
 
 <p align="center">
-  <sub>If Pulse saves you time, consider starring the repository. It helps the project grow.</sub>
+  <sub>If Pulse saves you time, consider starring the repository or supporting development.</sub>
 </p>
 
-[main-light]: https://raw.githubusercontent.com/TheGreatAzizi/Pulse-Download-Manager/main/docs/screenshots/final/main-light.png
-[main-dark]: https://raw.githubusercontent.com/TheGreatAzizi/Pulse-Download-Manager/main/docs/screenshots/final/main-dark.png
-[main-fa]: https://raw.githubusercontent.com/TheGreatAzizi/Pulse-Download-Manager/main/docs/screenshots/final/main-fa.png
-[add-download]: https://raw.githubusercontent.com/TheGreatAzizi/Pulse-Download-Manager/main/docs/screenshots/final/add-download-en.png
-[github-browser]: https://raw.githubusercontent.com/TheGreatAzizi/Pulse-Download-Manager/main/docs/screenshots/final/github-browser.png
-[settings-general]: https://raw.githubusercontent.com/TheGreatAzizi/Pulse-Download-Manager/main/docs/screenshots/final/settings-general-light.png
-[ext-popup]: https://raw.githubusercontent.com/TheGreatAzizi/Pulse-Download-Manager/main/docs/screenshots/final/extension-popup.png
-[ext-options]: https://raw.githubusercontent.com/TheGreatAzizi/Pulse-Download-Manager/main/docs/screenshots/final/extension-options.png
-[settings-browser]: https://raw.githubusercontent.com/TheGreatAzizi/Pulse-Download-Manager/main/docs/screenshots/final/settings-browser-light.png
-[update-available]: https://raw.githubusercontent.com/TheGreatAzizi/Pulse-Download-Manager/main/docs/screenshots/final/update-available.png
-[resume-new-link]: https://raw.githubusercontent.com/TheGreatAzizi/Pulse-Download-Manager/main/docs/screenshots/final/resume-new-link.png
-[empty-paused]: https://raw.githubusercontent.com/TheGreatAzizi/Pulse-Download-Manager/main/docs/screenshots/final/empty-paused.png
-[settings-about]: https://raw.githubusercontent.com/TheGreatAzizi/Pulse-Download-Manager/main/docs/screenshots/final/settings-about-light.png
-[search-filter]: https://raw.githubusercontent.com/TheGreatAzizi/Pulse-Download-Manager/main/docs/screenshots/final/search-filter.png
+[main-light]: docs/screenshots/final/main-light.png
+[main-dark]: docs/screenshots/final/main-dark.png
+[main-fa]: docs/screenshots/final/main-fa.png
+[add-download]: docs/screenshots/final/add-download-en.png
+[add-download-vod]: docs/screenshots/final/add-download-vod.png
+[github-browser]: docs/screenshots/final/github-browser.png
+[settings-general]: docs/screenshots/final/settings-general-light.png
+[settings-multinetwork]: docs/screenshots/final/settings-multinetwork.png
+[settings-proxy]: docs/screenshots/final/settings-proxy-light.png
+[settings-appearance]: docs/screenshots/final/settings-appearance-light.png
+[settings-browser]: docs/screenshots/final/settings-browser-light.png
+[settings-about]: docs/screenshots/final/settings-about-light.png
+[ext-popup]: docs/screenshots/final/extension-popup.png
+[ext-options]: docs/screenshots/final/extension-options.png
