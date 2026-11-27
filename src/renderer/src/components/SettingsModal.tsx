@@ -24,7 +24,7 @@ import {
   Sun,
   Wrench
 } from 'lucide-react'
-import type { Settings } from '@shared/types'
+import type { Settings, YtdlpUpdateInfo } from '@shared/types'
 import { parseProxy, proxyEndpoint } from '@shared/proxy'
 import { useApp } from '../state'
 import { dictionaries } from '../i18n'
@@ -56,6 +56,8 @@ export function SettingsModal(): React.JSX.Element {
   const [tab, setTab] = useState<Tab>('general')
   const [draft, setDraft] = useState<Partial<Settings>>({})
   const [installing, setInstalling] = useState(false)
+  const [ytdlpUpdate, setYtdlpUpdate] = useState<YtdlpUpdateInfo | null>(null)
+  const [checkingYtdlp, setCheckingYtdlp] = useState(false)
   const [customLimit, setCustomLimit] = useState('')
 
   useEffect(() => {
@@ -66,6 +68,26 @@ export function SettingsModal(): React.JSX.Element {
       settings.globalSpeedLimit ? String(+(settings.globalSpeedLimit / (1024 * 1024)).toFixed(2)) : ''
     )
   }, [settingsOpen])
+
+  useEffect(() => {
+    if (!settingsOpen || tab !== 'tools') return
+    let alive = true
+    setCheckingYtdlp(true)
+    window.pulse
+      .checkYtdlpUpdate()
+      .then((info) => {
+        if (alive) setYtdlpUpdate(info)
+      })
+      .catch(() => {
+        if (alive) setYtdlpUpdate(null)
+      })
+      .finally(() => {
+        if (alive) setCheckingYtdlp(false)
+      })
+    return () => {
+      alive = false
+    }
+  }, [settingsOpen, tab])
 
   const merged = useMemo<Settings>(() => ({ ...settings, ...draft }), [settings, draft])
   const proxy = useMemo(() => parseProxy(String(merged.proxy || '')), [merged.proxy])
@@ -128,10 +150,27 @@ export function SettingsModal(): React.JSX.Element {
 
   const installYtdlp = async (): Promise<void> => {
     setInstalling(true)
+    const wasInstalled = !!stats?.ytdlp.available
     try {
       const result = await window.pulse.installYtDlp()
-      pushToast(result.ok ? 'success' : 'error', result.message)
+      pushToast(
+        result.ok ? 'success' : 'error',
+        result.ok
+          ? wasInstalled
+            ? t.toast.ytdlpUpdated
+            : t.toast.ytdlpInstalled
+          : result.message
+      )
       refreshTools()
+      if (result.ok) {
+        setYtdlpUpdate(null)
+        setCheckingYtdlp(true)
+        window.pulse
+          .checkYtdlpUpdate()
+          .then(setYtdlpUpdate)
+          .catch(() => setYtdlpUpdate(null))
+          .finally(() => setCheckingYtdlp(false))
+      }
     } finally {
       setInstalling(false)
     }
@@ -611,9 +650,35 @@ export function SettingsModal(): React.JSX.Element {
                       {installing ? <Loader2 size={12} className="animate-spin" /> : <Download size={12} />}
                       {installing ? t.settings.tools.installing : t.settings.tools.install}
                     </button>
+                  ) : installing ? (
+                    <span className="flex items-center gap-1 text-[11.5px] font-semibold text-faint">
+                      <Loader2 size={12} className="animate-spin" /> {t.settings.tools.updating}
+                    </span>
+                  ) : checkingYtdlp ? (
+                    <span className="flex items-center gap-1 text-[11.5px] font-semibold text-faint">
+                      <Loader2 size={12} className="animate-spin" /> {t.settings.tools.checkingUpdate}
+                    </span>
+                  ) : ytdlpUpdate?.hasUpdate ? (
+                    <button
+                      type="button"
+                      onClick={() => void installYtdlp()}
+                      className="btn btn-soft h-8 px-2.5 text-[12px]"
+                    >
+                      <Download size={12} />
+                      {t.settings.tools.updateTo.replace('{version}', ytdlpUpdate.latest || '')}
+                    </button>
+                  ) : !ytdlpUpdate ? (
+                    <button
+                      type="button"
+                      onClick={() => void installYtdlp()}
+                      className="btn btn-soft h-8 px-2.5 text-[12px]"
+                    >
+                      <Download size={12} />
+                      {t.settings.tools.update}
+                    </button>
                   ) : (
                     <span className="flex items-center gap-1 text-[11.5px] font-semibold text-ok">
-                      <Check size={12} /> {t.settings.tools.installed}
+                      <Check size={12} /> {t.settings.tools.upToDate}
                     </span>
                   )
                 }

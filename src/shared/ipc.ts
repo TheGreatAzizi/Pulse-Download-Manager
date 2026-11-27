@@ -23,6 +23,7 @@ export const IP = {
   chooseCookies: 'pulse:choose-cookies',
   setSpeedLimit: 'pulse:set-speed-limit',
   installYtDlp: 'pulse:install-ytdlp',
+  checkYtdlpUpdate: 'pulse:check-ytdlp-update',
   rescanTools: 'pulse:rescan-tools',
   githubSearch: 'pulse:github-search',
   githubRepo: 'pulse:github-repo',

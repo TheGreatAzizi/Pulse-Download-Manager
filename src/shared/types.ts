@@ -252,6 +252,12 @@ export interface GlobalStats {
   ffmpeg: { available: boolean; path?: string }
 }
 
+export interface YtdlpUpdateInfo {
+  current?: string
+  latest?: string
+  hasUpdate: boolean
+}
+
 export interface ProbeResult {
   url: string
   finalUrl: string
@@ -450,6 +456,7 @@ export interface PulseAPI {
   chooseCookiesFile(): Promise<string | null>
   setSpeedLimit(bytesPerSecond: number): Promise<void>
   installYtDlp(): Promise<{ ok: boolean; message: string }>
+  checkYtdlpUpdate(): Promise<YtdlpUpdateInfo>
   rescanTools(): Promise<void>
   githubSearch(query: string, page?: number): Promise<GithubSearchResult>
   githubRepo(fullName: string): Promise<GithubRepoDetails>

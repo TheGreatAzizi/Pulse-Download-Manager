@@ -16,7 +16,8 @@ import type {
   Settings,
   SpeedSample,
   TaskKind,
-  TaskStatus
+  TaskStatus,
+  YtdlpUpdateInfo
 } from '@shared/types'
 import { Store } from './store'
 import {
@@ -32,6 +33,7 @@ import { YoutubeEngine } from './engines/youtube'
 import { TorrentEngine } from './engines/torrent'
 import { applyLaunchAtStartup } from './autostart'
 import { configureProxy, disposeProxy } from './proxy'
+import { compareVersions } from './updater'
 import { parseProxy } from '@shared/proxy'
 import { manifestKind } from '@shared/urls'
 import { normalizeQueues, queueWindow, resolveQueueId } from '@shared/queues'
@@ -1028,13 +1030,19 @@ export class DownloadManager implements EngineHost {
 
   async installYtdlp(): Promise<{ ok: boolean; message: string }> {
     const result = await this.youtube.install()
-    if (result.ok) {
-      this.toast('success', result.message)
-      await this.refreshTools()
-    } else {
-      this.toast('error', result.message)
-    }
+    if (result.ok) await this.refreshTools()
     return result
+  }
+
+  async checkYtdlpUpdate(): Promise<YtdlpUpdateInfo> {
+    const bin = await this.youtube.resolveBin()
+    const current = bin?.version || this.toolStatus.ytdlp.version || ''
+    const latest = await this.youtube.latestVersion()
+    return {
+      current: current || undefined,
+      latest: latest || undefined,
+      hasUpdate: !!latest && !!current && compareVersions(latest, current) > 0
+    }
   }
 
   async rescanTools(): Promise<void> {

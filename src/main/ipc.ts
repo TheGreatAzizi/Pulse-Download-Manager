@@ -122,6 +122,8 @@ export function registerIpc(
 
   handle(IP.installYtDlp, () => manager.installYtdlp())
 
+  handle(IP.checkYtdlpUpdate, () => manager.checkYtdlpUpdate())
+
   handle(IP.rescanTools, () => manager.rescanTools())
 
   handle(IP.githubSearch, (query: string, page?: number) =>

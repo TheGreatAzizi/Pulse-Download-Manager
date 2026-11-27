@@ -14,6 +14,7 @@ import type {
   Settings,
   UpdateDownloadResult,
   UpdateInfo,
+  YtdlpUpdateInfo,
   YoutubeProbe
 } from '../shared/types'
 import { IP } from '../shared/ipc'
@@ -50,6 +51,8 @@ const api: PulseAPI = {
   chooseCookiesFile: () => ipcRenderer.invoke(IP.chooseCookies) as Promise<string | null>,
   setSpeedLimit: (bytes: number) => ipcRenderer.invoke(IP.setSpeedLimit, bytes) as Promise<void>,
   installYtDlp: () => ipcRenderer.invoke(IP.installYtDlp) as Promise<{ ok: boolean; message: string }>,
+  checkYtdlpUpdate: () =>
+    ipcRenderer.invoke(IP.checkYtdlpUpdate) as Promise<YtdlpUpdateInfo>,
   rescanTools: () => ipcRenderer.invoke(IP.rescanTools) as Promise<void>,
   githubSearch: (query: string, page?: number) =>
     ipcRenderer.invoke(IP.githubSearch, query, page) as Promise<GithubSearchResult>,

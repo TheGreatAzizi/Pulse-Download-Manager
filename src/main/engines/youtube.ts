@@ -31,6 +31,37 @@ interface RawFormat {
   protocol?: string
 }
 
+function isDirectFormat(format: RawFormat): boolean {
+  const protocol = (format.protocol || '').toLowerCase()
+  return protocol === 'http' || protocol === 'https'
+}
+
+function isDrcAudio(format: RawFormat): boolean {
+  return /-drc$/i.test(format.format_id || '') || /\bdrc\b/i.test(format.format_note || '')
+}
+
+/**
+ * Prefer formats that download over plain HTTP and can be merged into MP4.
+ * YouTube publishes the same height as HLS and direct variants; the HLS
+ * variants often carry inflated bitrate values and are the ones that fail
+ * with "Requested format is not available" during a later extraction pass.
+ * Falling back to HLS only when no direct variant exists keeps the selected
+ * quality reliable.
+ */
+function formatRank(format: RawFormat): number {
+  const codec = (format.vcodec || '').toLowerCase()
+  const direct = isDirectFormat(format) ? 1_000_000_000 : 0
+  const mp4 = (format.ext || '').toLowerCase() === 'mp4' ? 1_000_000 : 0
+  const codecRank = codec.startsWith('avc')
+    ? 30_000
+    : codec.startsWith('av01')
+      ? 20_000
+      : codec.startsWith('vp9') || codec.startsWith('vp09')
+        ? 10_000
+        : 0
+  return direct + mp4 + codecRank + (format.tbr || 0)
+}
+
 function friendlyYoutubeError(raw: string): string {
   const text = (raw || '').replace(/\s+/g, ' ').trim()
   if (/sign in to confirm|not a bot|confirm you.{0,3}re not a bot/i.test(text)) {
@@ -42,20 +73,27 @@ function friendlyYoutubeError(raw: string): string {
   if (/age[- ]restricted|confirm your age/i.test(text)) {
     return 'This video is age-restricted. Add cookies from a signed-in account in Settings → Tools.'
   }
+  if (/requested format is not available|no video formats found/i.test(text)) {
+    return 'That quality is not available for this video anymore. Choose Best quality or open the link again.'
+  }
   return text
 }
 
 function runCapture(
   cmd: string,
   args: string[],
-  timeout = 15_000
+  timeout = 15_000,
+  env: Record<string, string> = {}
 ): Promise<{ code: number | null; stdout: string; stderr: string }> {
   return new Promise((resolve) => {
     let stdout = ''
     let stderr = ''
     let child: ChildProcess
     try {
-      child = spawn(cmd, args, { windowsHide: true })
+      child = spawn(cmd, args, {
+        windowsHide: true,
+        ...(Object.keys(env).length ? { env: { ...process.env, ...env } } : {})
+      })
     } catch {
       resolve({ code: -1, stdout: '', stderr: 'spawn failed' })
       return
@@ -113,12 +151,20 @@ export function bundledBin(name: string): string {
   return candidates.find((p) => existsSync(p)) || ''
 }
 
+interface JsRuntime {
+  /** yt-dlp runtime spec, for example "node" or "node:C:\\...\\Pulse.exe". */
+  spec: string
+  /** Extra environment variables the runtime process needs. */
+  env: Record<string, string>
+}
+
 export class YoutubeEngine {
   private host: EngineHost
   private binCache: BinInfo | null = null
   private childs = new Map<string, ChildProcess>()
   private ffmpegCache: string | null | undefined = undefined
-  private jsRuntimeCache: string | null | undefined = undefined
+  private jsRuntimeCache: JsRuntime | null | undefined = undefined
+  private latestCache: { version: string; at: number } | null = null
   versionCache = ''
 
   constructor(host: EngineHost) {
@@ -202,17 +248,27 @@ export class YoutubeEngine {
 
   /**
    * yt-dlp 2026+ can use an external JavaScript runtime to solve YouTube's
-   * challenge scripts. Node is usually present when the app is installed on a
-   * developer machine, so detect it once and pass it through when available.
+   * challenge scripts. Node is the preferred runtime. On clean machines where
+   * Node is not installed, the running Electron executable can act as Node
+   * when ELECTRON_RUN_AS_NODE is set.
    */
-  private async resolveJsRuntime(): Promise<string | null> {
+  private async resolveJsRuntime(): Promise<JsRuntime | null> {
     if (this.jsRuntimeCache !== undefined) return this.jsRuntimeCache
     const candidates = process.platform === 'win32' ? ['node.exe', 'node'] : ['node']
     for (const cmd of candidates) {
       const res = await runCapture(cmd, ['--version'], 6_000)
       if (res.code === 0 && /^v\d+\.\d+/m.test(res.stdout.trim())) {
-        this.jsRuntimeCache = cmd
-        return cmd
+        this.jsRuntimeCache = { spec: 'node', env: {} }
+        return this.jsRuntimeCache
+      }
+    }
+    if (process.execPath) {
+      const env = { ELECTRON_RUN_AS_NODE: '1' }
+      const res = await runCapture(process.execPath, ['--version'], 8_000, env)
+      const version = (res.stdout || res.stderr).trim()
+      if (res.code === 0 && /^v\d+\.\d+/m.test(version)) {
+        this.jsRuntimeCache = { spec: `node:${process.execPath}`, env }
+        return this.jsRuntimeCache
       }
     }
     this.jsRuntimeCache = null
@@ -227,9 +283,10 @@ export class YoutubeEngine {
     return year > 2025 || (year === 2025 && month >= 11)
   }
 
-  private async jsRuntimeArgs(): Promise<string[]> {
-    if (!this.supportsJsRuntime()) return []
-    return (await this.resolveJsRuntime()) ? ['--js-runtimes', 'node'] : []
+  private async jsRuntime(): Promise<{ args: string[]; env: Record<string, string> }> {
+    if (!this.supportsJsRuntime()) return { args: [], env: {} }
+    const runtime = await this.resolveJsRuntime()
+    return runtime ? { args: ['--js-runtimes', runtime.spec], env: runtime.env } : { args: [], env: {} }
   }
 
   private cookieArgs(): string[] {
@@ -300,6 +357,7 @@ export class YoutubeEngine {
       )
     }
     const manifest = manifestKind(url)
+    const js = await this.jsRuntime()
     const args = [
       ...bin.prefix,
       '-J',
@@ -315,10 +373,10 @@ export class YoutubeEngine {
       ...this.cookieArgs(),
       ...this.proxyArgs(),
       ...this.headerArgs(headers),
-      ...(await this.jsRuntimeArgs()),
+      ...js.args,
       url
     ]
-    const res = await runCapture(bin.cmd, args, 90_000)
+    const res = await runCapture(bin.cmd, args, 90_000, js.env)
     if (res.code !== 0 || !res.stdout.trim()) {
       const tail = res.stderr.trim().split('\n').filter(Boolean).slice(-3).join(' ')
       throw new Error(friendlyYoutubeError(tail) || 'yt-dlp could not read this URL')
@@ -398,7 +456,15 @@ export class YoutubeEngine {
     )
     const bestAudio = audios
       .slice()
-      .sort((a, b) => (b.abr || b.tbr || 0) - (a.abr || a.tbr || 0))[0]
+      .sort((a, b) => {
+        // DRC variants are normalized for loudness and are not the original
+        // mix. Keep them as a fallback, not as the default audio stream.
+        const drc = Number(isDrcAudio(a)) - Number(isDrcAudio(b))
+        if (drc) return drc
+        const m4a = Number((b.ext || '').toLowerCase() === 'm4a') - Number((a.ext || '').toLowerCase() === 'm4a')
+        if (m4a) return m4a
+        return (b.abr || b.tbr || 0) - (a.abr || a.tbr || 0)
+      })[0]
     const options: YoutubeFormatOption[] = []
 
     const heights = Array.from(new Set(videos.map((v) => v.height as number))).sort(
@@ -419,34 +485,46 @@ export class YoutubeEngine {
 
     for (const height of heights) {
       const candidates = videos.filter((v) => v.height === height)
-      const best = candidates.sort((a, b) => (b.tbr || 0) - (a.tbr || 0))[0]
+      // Prefer a direct HTTP variant at this height. HLS variants are kept as
+      // a fallback for sites where they are the only source.
+      const direct = candidates.filter(isDirectFormat)
+      const best = (direct.length ? direct : candidates)
+        .slice()
+        .sort((a, b) => formatRank(b) - formatRank(a))[0]
       if (!best?.format_id) continue
       const prog = progressive
         .filter((p) => p.height === height)
-        .sort((a, b) => (b.tbr || 0) - (a.tbr || 0))[0]
-      const useProgressive = !ffmpeg && !!prog
-      const chosen = useProgressive ? prog : best
-      // HLS variants usually contain both streams. Adding "+bestaudio" for
-      // those makes yt-dlp reject the requested format and fall back to
-      // "best", so a muxed format is selected directly.
+        .slice()
+        .sort((a, b) => formatRank(b) - formatRank(a))[0]
+      // Without ffmpeg separate streams cannot be merged, so prefer a muxed
+      // variant when this height has no progressive one.
+      const muxedCandidate = !ffmpeg
+        ? candidates
+            .filter((c) => c.acodec && c.acodec !== 'none')
+            .sort((a, b) => formatRank(b) - formatRank(a))[0]
+        : undefined
+      const chosen = !ffmpeg ? prog || muxedCandidate || best : best
+      // A muxed stream already contains audio, so it is selected on its own.
+      // Only video-only streams are paired with the best audio track.
       const muxed = !!chosen.acodec && chosen.acodec !== 'none'
-      const selector = muxed
-        ? String(chosen.format_id)
-        : useProgressive || !ffmpeg
-          ? `${chosen.format_id}/${best.format_id}`
-          : bestAudio?.format_id
-            ? `${best.format_id}+${bestAudio.format_id}`
-            : `${best.format_id}+bestaudio/best`
-      const size = sizeOf(chosen) ?? (bestAudio ? (sizeOf(chosen) || 0) + (sizeOf(bestAudio) || 0) : undefined)
+      const heightFallback = `bestvideo[height<=${height}]+bestaudio/best[height<=${height}]/best`
+      const selector = muxed || !ffmpeg
+        ? `${chosen.format_id}/${heightFallback}`
+        : bestAudio?.format_id
+          ? `${chosen.format_id}+${bestAudio.format_id}/${chosen.format_id}+bestaudio/${heightFallback}`
+          : `${chosen.format_id}+bestaudio/${heightFallback}`
+      const videoSize = sizeOf(chosen) || 0
+      const audioSize = !muxed && bestAudio ? sizeOf(bestAudio) || 0 : 0
+      const size = videoSize || audioSize ? videoSize + audioSize : undefined
       const fps = chosen.fps && chosen.fps > 30 ? `${Math.round(chosen.fps)}fps` : ''
       options.push({
         id: String(chosen.format_id),
         height,
-        ext: useProgressive ? chosen.ext || 'mp4' : 'mp4',
+        ext: chosen.ext || 'mp4',
         fps: chosen.fps || undefined,
         vcodec: chosen.vcodec,
-        acodec: useProgressive ? chosen.acodec : bestAudio?.acodec,
-        filesize: size || undefined,
+        acodec: muxed ? chosen.acodec : bestAudio?.acodec,
+        filesize: size,
         tbr: chosen.tbr || undefined,
         selector,
         label: `${height}p${fps ? ' ' + fps : ''}`,
@@ -524,6 +602,7 @@ export class YoutubeEngine {
       handle.toast('info', 'ffmpeg is missing. Downloading the best single-file format instead.')
     }
     const outputTemplate = join(task.dir, '%(title).120B [%(id)s].%(ext)s')
+    const js = await this.jsRuntime()
     const args = [
       ...bin.prefix,
       '--no-warnings',
@@ -550,7 +629,7 @@ export class YoutubeEngine {
       ...this.proxyArgs(),
       ...this.headerArgs(task.headers)
     ]
-    args.push(...(await this.jsRuntimeArgs()))
+    args.push(...js.args)
     if (process.platform === 'win32') args.push('--windows-filenames')
     if (ffmpeg) args.push('--ffmpeg-location', ffmpeg)
     if (settings.globalSpeedLimit > 0) {
@@ -575,7 +654,7 @@ export class YoutubeEngine {
       const startedAt = Date.now()
       const child = spawn(bin.cmd, args, {
         windowsHide: true,
-        env: { ...process.env, PYTHONIOENCODING: 'utf-8' }
+        env: { ...process.env, PYTHONIOENCODING: 'utf-8', ...js.env }
       })
       this.childs.set(task.id, child)
       let stdout = ''
@@ -734,12 +813,63 @@ export class YoutubeEngine {
     }
   }
 
+  /**
+   * Latest stable yt-dlp release tag from GitHub. The result is cached for
+   * thirty minutes so opening Settings repeatedly does not exhaust the
+   * anonymous API rate limit.
+   */
+  async latestVersion(force = false): Promise<string | null> {
+    const now = Date.now()
+    if (!force && this.latestCache && now - this.latestCache.at < 30 * 60_000) {
+      return this.latestCache.version
+    }
+    try {
+      const res = await proxiedFetch(
+        'https://api.github.com/repos/yt-dlp/yt-dlp/releases/latest',
+        {
+          headers: {
+            Accept: 'application/vnd.github+json',
+            'User-Agent': `Pulse/${app.getVersion()}`
+          },
+          signal: AbortSignal.timeout(15_000)
+        }
+      )
+      if (!res.ok) return this.latestCache?.version ?? null
+      const data = (await res.json()) as { tag_name?: string }
+      const version = String(data.tag_name || '')
+        .trim()
+        .replace(/^v/i, '')
+      if (!/^\d{4}\.\d{2}\.\d{2}(?:\.\d+)?$/.test(version)) {
+        return this.latestCache?.version ?? null
+      }
+      this.latestCache = { version, at: now }
+      return version
+    } catch {
+      return this.latestCache?.version ?? null
+    }
+  }
+
   async install(): Promise<{ ok: boolean; message: string }> {
+    if (this.childs.size > 0) {
+      return {
+        ok: false,
+        message: 'Pause or finish active video downloads before updating yt-dlp.'
+      }
+    }
     const dir = join(app.getPath('userData'), 'bin')
     await fs.mkdir(dir, { recursive: true })
     const exe = process.platform === 'win32' ? 'yt-dlp.exe' : 'yt-dlp'
+    // Linux releases ship a standalone build. The plain "yt-dlp" asset is a
+    // Python zipapp and needs an interpreter that clean machines may not have.
+    const asset =
+      process.platform === 'win32'
+        ? 'yt-dlp.exe'
+        : process.arch === 'arm64'
+          ? 'yt-dlp_linux_aarch64'
+          : 'yt-dlp_linux'
     const target = join(dir, exe)
-    const url = `https://github.com/yt-dlp/yt-dlp/releases/latest/download/${exe}`
+    const temp = `${target}.download`
+    const url = `https://github.com/yt-dlp/yt-dlp/releases/latest/download/${asset}`
     try {
       const res = await proxiedFetch(url, { redirect: 'follow' })
       if (!res.ok) return { ok: false, message: `Download failed: HTTP ${res.status}` }
@@ -747,16 +877,27 @@ export class YoutubeEngine {
       if (buf.length < 1_000_000) {
         return { ok: false, message: 'Downloaded file looks corrupted. Try again later.' }
       }
-      await fs.writeFile(target, buf)
-      if (process.platform !== 'win32') await fs.chmod(target, 0o755)
+      await fs.writeFile(temp, buf)
+      if (process.platform !== 'win32') await fs.chmod(temp, 0o755)
+      // Replace the previous binary only after the download is complete.
+      await fs.rename(temp, target)
       this.binCache = null
+      this.latestCache = null
       const bin = await this.resolveBin(true)
+      if (bin && resolvePath(bin.path) === resolvePath(target)) {
+        this.latestCache = { version: bin.version || '', at: Date.now() }
+      }
       return {
         ok: !!bin,
         message: bin ? `yt-dlp ${bin.version} installed` : 'Installed, but the binary could not run.'
       }
     } catch (err) {
-      return { ok: false, message: (err as Error).message }
+      await fs.rm(temp, { force: true }).catch(() => undefined)
+      const message = (err as Error).message
+      if (/EPERM|EBUSY|EACCES/i.test(message)) {
+        return { ok: false, message: 'Could not replace yt-dlp because the file is in use. Close other downloads and try again.' }
+      }
+      return { ok: false, message }
     }
   }
 
