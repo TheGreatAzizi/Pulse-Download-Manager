@@ -73,6 +73,9 @@ function friendlyYoutubeError(raw: string): string {
   if (/age[- ]restricted|confirm your age/i.test(text)) {
     return 'This video is age-restricted. Add cookies from a signed-in account in Settings → Tools.'
   }
+  if (/innertube_context/i.test(text)) {
+    return 'YouTube rejected the saved cookies. Open Settings → Tools and re-export the cookies file, or switch to reading cookies from your browser, then retry.'
+  }
   if (/requested format is not available|no video formats found/i.test(text)) {
     return 'That quality is not available for this video anymore. Choose Best quality or open the link again.'
   }
@@ -165,6 +168,7 @@ export class YoutubeEngine {
   private ffmpegCache: string | null | undefined = undefined
   private jsRuntimeCache: JsRuntime | null | undefined = undefined
   private latestCache: { version: string; at: number } | null = null
+  private cookieCache: { source: string; mtimeMs: number; size: number; path: string } | null = null
   versionCache = ''
 
   constructor(host: EngineHost) {
@@ -289,10 +293,66 @@ export class YoutubeEngine {
     return runtime ? { args: ['--js-runtimes', runtime.spec], env: runtime.env } : { args: [], env: {} }
   }
 
-  private cookieArgs(): string[] {
+  /**
+   * Cookie exporters sometimes write duplicate entries for a parent domain
+   * with an empty path (`www.youtube.com` next to `youtube.com`). YouTube
+   * receives both cookies, rejects the session and yt-dlp fails later with
+   * `KeyError('INNERTUBE_CONTEXT')`. Invalid entries are dropped into a clean
+   * copy so the original cookies.txt is never modified.
+   */
+  private cleanCookieText(input: string): { text: string; changed: boolean } {
+    const lines = input.split(/\r?\n/)
+    const kept: string[] = []
+    let changed = false
+    for (const line of lines) {
+      if (!line.trim()) {
+        changed = true
+        continue
+      }
+      const httpOnly = line.startsWith('#HttpOnly_')
+      if (line.startsWith('#') && !httpOnly) {
+        kept.push(line)
+        continue
+      }
+      const parts = (httpOnly ? line.slice('#HttpOnly_'.length) : line).split('\t')
+      const valid = parts.length === 7 && !!parts[0] && !!parts[2] && parts[2].startsWith('/') && !!parts[5]
+      if (valid) kept.push(line)
+      else changed = true
+    }
+    return { text: `${kept.join('\n')}\n`, changed }
+  }
+
+  private async cookieFile(source: string): Promise<string> {
+    try {
+      const stat = await fs.stat(source)
+      if (
+        this.cookieCache &&
+        this.cookieCache.source === source &&
+        this.cookieCache.mtimeMs === stat.mtimeMs &&
+        this.cookieCache.size === stat.size
+      ) {
+        return this.cookieCache.path
+      }
+      const original = await fs.readFile(source, 'utf8')
+      const { text, changed } = this.cleanCookieText(original)
+      let path = source
+      if (changed) {
+        const dir = join(app.getPath('userData'), 'cookies')
+        await fs.mkdir(dir, { recursive: true })
+        path = join(dir, 'cookies-clean.txt')
+        await fs.writeFile(path, text, 'utf8')
+      }
+      this.cookieCache = { source, mtimeMs: stat.mtimeMs, size: stat.size, path }
+      return path
+    } catch {
+      return source
+    }
+  }
+
+  private async cookieArgs(): Promise<string[]> {
     const settings = this.host.settings()
     if (settings.cookiesFile && existsSync(settings.cookiesFile)) {
-      return ['--cookies', settings.cookiesFile]
+      return ['--cookies', await this.cookieFile(settings.cookiesFile)]
     }
     if (settings.cookiesBrowser) {
       return ['--cookies-from-browser', settings.cookiesBrowser]
@@ -370,7 +430,7 @@ export class YoutubeEngine {
       '20',
       '--retries',
       '3',
-      ...this.cookieArgs(),
+      ...(await this.cookieArgs()),
       ...this.proxyArgs(),
       ...this.headerArgs(headers),
       ...js.args,
@@ -625,7 +685,7 @@ export class YoutubeEngine {
       selector,
       '-o',
       outputTemplate,
-      ...this.cookieArgs(),
+      ...(await this.cookieArgs()),
       ...this.proxyArgs(),
       ...this.headerArgs(task.headers)
     ]
