@@ -60,7 +60,7 @@ interface BridgeOptions {
   manager: DownloadManager
   getWindow: () => BrowserWindow | null
   onStatus: (status: BrowserStatus) => void
-  onAdded: (task: DownloadTask) => void
+  onAdded: (tasks: DownloadTask[]) => void
 }
 
 interface AddResult {
@@ -143,7 +143,7 @@ export class BrowserBridge {
   private readonly manager: DownloadManager
   private readonly getWindow: () => BrowserWindow | null
   private readonly onStatus: (status: BrowserStatus) => void
-  private readonly onAdded: (task: DownloadTask) => void
+  private readonly onAdded: (tasks: DownloadTask[]) => void
   private readonly extensionPath: string
   private server: WebSocketServer | null = null
   private clients = new Map<WebSocket, ClientState>()
@@ -435,6 +435,7 @@ export class BrowserBridge {
         const seen = new Set<string>()
         const errors: string[] = []
         let added = 0
+        const addedTasks: DownloadTask[] = []
         for (const item of items) {
           if (!item || typeof item !== 'object') continue
           const entry = item as Record<string, unknown>
@@ -452,10 +453,16 @@ export class BrowserBridge {
             userAgent,
             cleanCookie(entry.cookies),
             entry.media === true,
-            cleanText(entry.title, 240)
+            cleanText(entry.title, 240),
+            false,
+            addedTasks
           )
           if (result.ok) added++
           else if (errors.length < 5) errors.push(result.error || 'Request failed')
+        }
+        if (addedTasks.length) {
+          this.showWindow()
+          this.onAdded(addedTasks)
         }
         this.respond(state.ws, {
           type: 'batch',
@@ -497,7 +504,9 @@ export class BrowserBridge {
     userAgent: string,
     cookies: string,
     media = false,
-    title = ''
+    title = '',
+    notify = true,
+    collected?: DownloadTask[]
   ): Promise<AddResult> {
     if (!url) return { ok: false, error: 'Enter a valid HTTP or HTTPS link' }
     const headers: Record<string, string> = {}
@@ -510,9 +519,15 @@ export class BrowserBridge {
         kind: media ? 'vod' : undefined,
         fileName: fileName || undefined,
         title: title || undefined,
-        headers: Object.keys(headers).length ? headers : undefined
+        headers: Object.keys(headers).length ? headers : undefined,
+        start: false
       })
-      this.onAdded(task)
+      if (notify) {
+        this.showWindow()
+        this.onAdded([task])
+      } else {
+        collected?.push(task)
+      }
       return { ok: true, id: task.id, name: task.name }
     } catch (err) {
       return { ok: false, error: shortError(err) }

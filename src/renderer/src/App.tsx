@@ -13,6 +13,7 @@ import { SettingsModal } from './components/SettingsModal'
 import { QueueManagerModal } from './components/QueueManagerModal'
 import { UpdateModal } from './components/UpdateModal'
 import { NewLinkModal } from './components/NewLinkModal'
+import { BrowserDownloadPrompt } from './components/BrowserDownloadPrompt'
 import { GithubBrowser } from './components/GithubBrowser'
 import { Toasts } from './components/Toasts'
 import { Logo } from './components/primitives'
@@ -147,6 +148,7 @@ export function App(): React.JSX.Element {
       <QueueManagerModal />
       <UpdateModal />
       <NewLinkModal />
+      <BrowserDownloadPrompt />
       <Toasts />
 
       {dropping ? (

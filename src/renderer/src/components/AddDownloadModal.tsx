@@ -5,6 +5,7 @@ import {
   Check,
   ChevronDown,
   ClipboardPaste,
+  Clock,
   FileUp,
   Film,
   FolderOpen,
@@ -304,14 +305,14 @@ export function AddDownloadModal(): React.JSX.Element {
     }
   }
 
-  const finish = (id: string): void => {
-    pushToast('success', t.toast.added)
+  const finish = (id: string, start = true): void => {
+    pushToast('success', start ? t.toast.added : t.toast.savedForLater)
     setSelectedId(id)
     setView('all')
     closeAdd()
   }
 
-  const submitPlaylist = async (): Promise<void> => {
+  const submitPlaylist = async (start = true): Promise<void> => {
     const entries = yt?.entries || []
     if (!yt || !entries.length) {
       setError(t.add.errorProbe)
@@ -338,7 +339,8 @@ export function AddDownloadModal(): React.JSX.Element {
               duration: entry.duration,
               playlistIndex: entry.index,
               playlistCount: yt.playlistCount
-            }
+            },
+            start
           })
           lastId = task.id
           added++
@@ -349,7 +351,7 @@ export function AddDownloadModal(): React.JSX.Element {
       if (!added) throw new Error(t.add.errorProbe)
       if (lastId) setSelectedId(lastId)
       setView('all')
-      pushToast('success', `${added} ${t.add.items} · ${t.toast.added}`)
+      pushToast('success', `${added} ${t.add.items} · ${start ? t.toast.added : t.toast.savedForLater}`)
       closeAdd()
     } catch (err) {
       setError(cleanIpcError(err, t.add.errorProbe))
@@ -358,7 +360,7 @@ export function AddDownloadModal(): React.JSX.Element {
     }
   }
 
-  const submitBatch = async (): Promise<void> => {
+  const submitBatch = async (start = true): Promise<void> => {
     const { valid } = batchParsed
     if (!valid.length) {
       setError(t.add.batch.emptyError)
@@ -382,7 +384,8 @@ export function AddDownloadModal(): React.JSX.Element {
           kind: 'http',
           dir,
           queueId,
-          connections
+          connections,
+          start
         })
         lastId = task.id
         added++
@@ -405,19 +408,21 @@ export function AddDownloadModal(): React.JSX.Element {
         'info',
         t.add.batch.addedPartial.replace('{added}', String(added)).replace('{skipped}', String(skipped))
       )
+    } else if (!start) {
+      pushToast('success', `${added} ${t.add.items} · ${t.toast.savedForLater}`)
     } else {
       pushToast('success', t.add.batch.added.replace('{count}', String(added)))
     }
     closeAdd()
   }
 
-  const submit = async (): Promise<void> => {
+  const submit = async (start = true): Promise<void> => {
     if (tab === 'batch') {
-      await submitBatch()
+      await submitBatch(start)
       return
     }
     if (tab === 'video' && yt?.isPlaylist) {
-      await submitPlaylist()
+      await submitPlaylist(start)
       return
     }
     setError(null)
@@ -441,9 +446,10 @@ export function AddDownloadModal(): React.JSX.Element {
           dir,
           queueId,
           connections,
-          headers: Object.keys(headers).length ? headers : undefined
+          headers: Object.keys(headers).length ? headers : undefined,
+          start
         })
-        finish(task.id)
+        finish(task.id, start)
       } else if (tab === 'video' || tab === 'vod') {
         const vod = tab === 'vod'
         if (!yt || (!vod && yt.isPlaylist)) {
@@ -485,9 +491,10 @@ export function AddDownloadModal(): React.JSX.Element {
             uploader: yt.uploader,
             vod: vod || undefined,
             manifest: vod ? manifestKind(yt.url) || undefined : undefined
-          }
+          },
+          start
         })
-        finish(task.id)
+        finish(task.id, start)
       } else {
         const source = torrentPath || magnet.trim()
         if (!source && !torrentData) {
@@ -501,9 +508,10 @@ export function AddDownloadModal(): React.JSX.Element {
           name: torrentName || undefined,
           dir,
           queueId,
-          sequential
+          sequential,
+          start
         })
-        finish(task.id)
+        finish(task.id, start)
       }
     } catch (err) {
       setError(
@@ -1215,6 +1223,22 @@ export function AddDownloadModal(): React.JSX.Element {
           </label>
           <button type="button" className="btn btn-ghost h-9 px-3.5 text-[11.5px]" onClick={requestClose} disabled={busy}>
             {t.common.cancel}
+          </button>
+          <button
+            type="button"
+            onClick={() => void submit(false)}
+            disabled={
+              busy ||
+              (tab === 'link' && !url.trim()) ||
+              (tab === 'video' && (!yt || analyzing || (yt.isPlaylist && !(yt.entries || []).length))) ||
+              (tab === 'vod' && (!yt || analyzing)) ||
+              (tab === 'torrent' && !magnet.trim() && !torrentPath && !torrentData) ||
+              (tab === 'batch' && !batchParsed.valid.length)
+            }
+            className="btn btn-soft h-9 px-3.5 text-[11.5px]"
+          >
+            {busy ? <Loader2 size={14} className="animate-spin" /> : <Clock size={14} />}
+            {t.add.startLater}
           </button>
           <button
             type="button"

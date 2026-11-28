@@ -235,7 +235,12 @@ export class HttpEngine {
       partPath = `${next}${PART_SUFFIX}`
     }
 
-    if (resume && existsSync(finalPath) && !existsSync(partPath)) {
+    // Only a task that already owns a target path can carry partial data.
+    // A task that was deferred before it ever started must start from scratch
+    // so it can never adopt an unrelated file that happens to share its name.
+    const canResume = resume && !!task.filePath
+
+    if (canResume && existsSync(finalPath) && !existsSync(partPath)) {
       // Nothing left to do. The file is already complete on disk.
       const size = await fileSize(finalPath)
       handle.patch({
@@ -253,7 +258,7 @@ export class HttpEngine {
     }
 
     let meta: HttpMeta | null = null
-    if (resume && existsSync(metaPath) && existsSync(partPath)) {
+    if (canResume && existsSync(metaPath) && existsSync(partPath)) {
       const raw = await fs.readFile(metaPath, 'utf8').catch(() => '')
       const parsed = safeJsonParse<HttpMeta | null>(raw, null)
       if (parsed && parsed.version === 1 && parsed.size > 0 && parsed.segments?.length) {

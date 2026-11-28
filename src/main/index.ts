@@ -250,7 +250,7 @@ async function bootstrap(): Promise<void> {
       manager,
       getWindow: () => mainWindow,
       onStatus: (status) => send({ type: 'browser:status', status }),
-      onAdded: (task) => send({ type: 'browser:download', name: task.name })
+      onAdded: (tasks) => send({ type: 'browser:download', tasks })
     },
     store.settings.browserIntegration
   )

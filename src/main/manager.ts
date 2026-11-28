@@ -279,7 +279,7 @@ export class DownloadManager implements EngineHost {
       name: input.title || (vod ? requestedTitle || fileName : fileName),
       fileName,
       dir,
-      status: 'queued',
+      status: input.start === false ? 'paused' : 'queued',
       size: 0,
       downloaded: 0,
       speed: 0,
@@ -322,7 +322,7 @@ export class DownloadManager implements EngineHost {
     this.emitStats(true)
     this.persistSoon()
     this.enforceQueueSchedules()
-    this.schedule()
+    if (input.start !== false) this.schedule()
     return task
   }
 
@@ -338,14 +338,29 @@ export class DownloadManager implements EngineHost {
     if (!uri && !input.data) throw new Error('No torrent source provided')
     if (/^https?:/i.test(uri) && /\.torrent($|\?)/i.test(uri)) name = guessNameFromUrl(uri).replace(/\.torrent$/i, '')
 
+    const id = randomUUID()
+    // A dropped .torrent file only arrives as base64. Persist it next to the
+    // other torrent metadata so a deferred download survives an app restart.
+    let torrentFile: string | undefined
+    if (input.data) {
+      try {
+        const torrentDir = join(app.getPath('userData'), 'torrents')
+        await fs.mkdir(torrentDir, { recursive: true })
+        torrentFile = join(torrentDir, `pending-${id}.torrent`)
+        await fs.writeFile(torrentFile, Buffer.from(input.data, 'base64'))
+      } catch {
+        torrentFile = undefined
+      }
+    }
+
     const task: DownloadTask = {
-      id: randomUUID(),
+      id,
       kind: 'torrent',
       url: uri || `file:${input.name || 'torrent'}`,
       name: sanitizeFileName(name),
       fileName: sanitizeFileName(name),
       dir,
-      status: 'queued',
+      status: input.start === false ? 'paused' : 'queued',
       size: 0,
       downloaded: 0,
       speed: 0,
@@ -358,6 +373,7 @@ export class DownloadManager implements EngineHost {
       queueId: resolveQueueId(this.queues(), input.queueId || this.store.settings.defaultQueueId),
       torrent: {
         infoHash: '',
+        torrentFile,
         peers: 0,
         seeds: 0,
         uploadSpeed: 0,
@@ -379,8 +395,23 @@ export class DownloadManager implements EngineHost {
     this.emitStats(true)
     this.persistSoon()
     this.enforceQueueSchedules()
-    this.schedule()
+    if (input.start !== false) this.schedule()
     return task
+  }
+
+  /** Removes the temporary copy of a dropped .torrent file, if one exists. */
+  private async deletePendingTorrent(task: DownloadTask): Promise<void> {
+    const file = task.torrent?.torrentFile
+    if (!file) return
+    try {
+      const dir = join(app.getPath('userData'), 'torrents')
+      const rel = relative(dir, file)
+      if (!rel || rel.startsWith('..') || isAbsolute(rel)) return
+      if (!basename(rel).startsWith('pending-')) return
+      await fs.unlink(file)
+    } catch {
+      /* already gone */
+    }
   }
 
   private nextOrder(): number {
@@ -744,7 +775,10 @@ export class DownloadManager implements EngineHost {
     if (!task) return
     this.controllers.get(id)?.abort()
     this.controllers.delete(id)
-    if (task.kind === 'torrent') await this.torrent.remove(id)
+    if (task.kind === 'torrent') {
+      await this.torrent.remove(id)
+      await this.deletePendingTorrent(task)
+    }
     if (task.kind === 'youtube') this.youtube.stop(id)
     this.tasks.delete(id)
     this.lastDownloaded.delete(id)

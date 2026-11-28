@@ -69,6 +69,9 @@ interface AppContextValue {
   settings: Settings
   stats: GlobalStats | null
   browser: BrowserStatus | null
+  browserPrompt: DownloadTask[] | null
+  pushBrowserPrompt: (tasks: DownloadTask[]) => void
+  dismissBrowserPrompt: (ids?: string[]) => void
   adapters: NetworkAdapter[]
   refreshAdapters: () => Promise<void>
   system: AppSnapshot['system'] | null
@@ -154,6 +157,7 @@ export function AppProvider({ children }: { children: ReactNode }): React.JSX.El
   const [settings, setSettings] = useState<Settings>(fallbackSettings)
   const [stats, setStats] = useState<GlobalStats | null>(null)
   const [browser, setBrowser] = useState<BrowserStatus | null>(null)
+  const [browserPrompt, setBrowserPrompt] = useState<DownloadTask[] | null>(null)
   const [adapters, setAdapters] = useState<NetworkAdapter[]>([])
   const [system, setSystem] = useState<AppSnapshot['system'] | null>(null)
   const [view, setView] = useState<ViewId>('all')
@@ -210,6 +214,29 @@ export function AppProvider({ children }: { children: ReactNode }): React.JSX.El
 
   const closeAdd = useCallback(() => setAddOpen(false), [])
 
+  const pushBrowserPrompt = useCallback((items: DownloadTask[]): void => {
+    if (!items.length) return
+    setBrowserPrompt((prev) => {
+      const known = new Set((prev || []).map((task) => task.id))
+      const fresh = items.filter((task) => !known.has(task.id))
+      if (!fresh.length) return prev
+      return prev ? [...prev, ...fresh] : fresh
+    })
+  }, [])
+
+  const dismissBrowserPrompt = useCallback((ids?: string[]): void => {
+    if (!ids) {
+      setBrowserPrompt(null)
+      return
+    }
+    const done = new Set(ids)
+    setBrowserPrompt((prev) => {
+      if (!prev) return prev
+      const remaining = prev.filter((task) => !done.has(task.id))
+      return remaining.length ? remaining : null
+    })
+  }, [])
+
   const patchSettings = useCallback((patch: Partial<Settings>) => {
     setSettings((prev) => ({ ...prev, ...patch }))
     void window.pulse.updateSettings(patch)
@@ -248,10 +275,7 @@ export function AppProvider({ children }: { children: ReactNode }): React.JSX.El
           setBrowser(event.status)
           break
         case 'browser:download':
-          pushToast(
-            'success',
-            dictionaries[langRef.current].toast.browserDownload.replace('{name}', event.name)
-          )
+          pushBrowserPrompt(event.tasks)
           break
         case 'toast':
           pushToast(event.level, event.message)
@@ -315,7 +339,7 @@ export function AppProvider({ children }: { children: ReactNode }): React.JSX.El
       cancelled = true
       unsubscribe()
     }
-  }, [openAdd, pushToast])
+  }, [openAdd, pushToast, pushBrowserPrompt])
 
   const lang = settings.language
   const t = dictionaries[lang] ?? dictionaries.en
@@ -459,6 +483,9 @@ export function AppProvider({ children }: { children: ReactNode }): React.JSX.El
     settings,
     stats,
     browser,
+    browserPrompt,
+    pushBrowserPrompt,
+    dismissBrowserPrompt,
     adapters,
     refreshAdapters,
     system,

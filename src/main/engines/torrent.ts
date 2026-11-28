@@ -278,6 +278,16 @@ export class TorrentEngine {
 
       torrent.on('metadata', async () => {
         const saved = await this.saveTorrentFile(torrent)
+        // The pending copy only exists so a deferred download can start after
+        // a restart. The metadata copy is now authoritative.
+        if (
+          saved &&
+          input.torrentFile &&
+          input.torrentFile !== saved &&
+          /[\\/]pending-[^\\/]+\.torrent$/i.test(input.torrentFile)
+        ) {
+          void fs.unlink(input.torrentFile).catch(() => undefined)
+        }
         handle.patch({
           name: torrent.name || task.name,
           fileName: torrent.name || task.fileName,

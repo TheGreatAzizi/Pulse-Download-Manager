@@ -278,6 +278,8 @@ export interface AddDownloadInput {
   title?: string
   thumbnail?: string
   queueId?: string
+  /** False adds the task in a paused state so it can be started later. */
+  start?: boolean
   youtube?: {
     /** yt-dlp format selector, e.g. "137+140" or "bestaudio/best" */
     selector?: string
@@ -363,6 +365,8 @@ export interface AddTorrentInput {
   sequential?: boolean
   fileIndices?: number[]
   queueId?: string
+  /** False adds the torrent in a paused state so it can be started later. */
+  start?: boolean
 }
 
 export interface AppSnapshot {
@@ -429,7 +433,7 @@ export type MainEvent =
   | { type: 'window:state'; maximized: boolean }
   | { type: 'settings'; settings: Settings }
   | { type: 'browser:status'; status: BrowserStatus }
-  | { type: 'browser:download'; name: string }
+  | { type: 'browser:download'; tasks: DownloadTask[] }
 
 export interface PulseAPI {
   snapshot(): Promise<AppSnapshot>
